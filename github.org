@@ -5,7 +5,7 @@
 * DONE Ajouter la clef publique dans la console
 ** ssh-add clef.privee et saisir la passphrase
 * DONE Créer un repository local
-** DONE Lui définir un remote avec comme URL git@github.com:MangeChats/emacs.git
+** DONE Lui définir un remote origin avec comme URL git@github.com:MangeChats/emacs.git
 ** DONE Faire un premier Push vers ce remote
    - dans un premier temps
      Les mises à jour ont été rejetées car le sommet de la branche
