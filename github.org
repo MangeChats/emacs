@@ -1,0 +1,17 @@
+* DONE Créer ou réactiver un compte gratuit MangeChats sur github.com
+** DONE Lui ajouter dans settings la clef publique avec les 2 rôles
+* DONE Créer un repository public emacs sur github
+  - Sans un README
+* DONE Ajouter la clef publique dans la console
+** ssh-add clef.privee et saisir la passphrase
+* DONE Créer un repository local
+** DONE Lui définir un remote avec comme URL git@github.com:MangeChats/emacs.git
+** DONE Faire un premier Push vers ce remote
+   - dans un premier temps
+     Les mises à jour ont été rejetées car le sommet de la branche
+     actuelle est derrière son homologue distant. Si vous souhaitez
+     intégrer les changements distants, utilisez 'git pull' avant de
+     pousser à nouveau.
+   - Mais mes essais de git pull échouent SAUF avec un --rebase
+
+     

@@ -1,0 +1,2747 @@
+#+TITLE: Aide mémoire emacs
+#+BRAIN_PARENTS: Documentation
+#+LANGUAGE: fr
+#+OPTIONS: toc:true
+#+DATE: 2020-04-21
+#+AUTHOR: Pierre DEDIEU
+#+Email: MangeChats@gmail.com
+#+UID: emacs-doc-pde
+## #+SETUPFILE: theme-bigblow-local.setup
+#+SETUPFILE: theme-readtheorg-local.setup
+#+Subject: Notes pour retrouver les raccourcis des fonctions que j'ai utilisées
+#+PANDOC_OPTIONS: "epub-cover-image:3d-gnu-head.jpg" standalone:nil
+#+roam_alias: emacs
+:RESOURCES:
+- Utilisation de GitLab avec [[magit][magit]]
+- Prise de notes [[org-mode][Org]]
+:END:
+
+* Editeur
+** Ouverture de fichiers
+   - C-x f filename :: ouvrir un fichier en root
+   - C-x f /sudo:: filename :: ouvrir un fichier en root
+   - C-x f //scp:root@pde:/home/ :: TRAMP, ouvrir un fichier sur une autre
+	machine via SSH: =/scp:root@hdvwww10.intranet.rouen.fr:/var/www/=.
+	Noter qu'il peut être inutile de préciser =scp:= qui est le
+	protocole par défaut (identique à =ssh:=).
+   - helm-tramp :: tramp avec helm
+     - il faut installer le package ~helm-tramp~
+     - il est utile d'ajouter de la configuration dans l'init, pour
+       avoir un raccourci d'ouverture de tels fichiers distants par
+       exemple:
+	#+BEGIN_SRC emacs-lisp
+	  (setq tramp-default-method "ssh")
+	  (define-key global-map (kbd "C-c s") 'helm-tramp)
+	#+END_SRC
+     - les choix en user courant et en root proposés sont trouvés à
+       partir des hosts définis dans * ~/.ssh/config *
+     - on peut faire de même pour dired
+     - lorsqu'on ouvre un eshell ou un shell depuis l'affichage d'un
+       fichier/répertoire tramp on a une ligne de commande vers le
+       serveur corespondant, dans le dossier
+   - C-x 4f :: ouvre un fichier dans une autre fenêtre
+   - C-x 52 :: Ouvre une autre frame (fenêtre au sens de l'OS)
+     - C-x 50 :: pour la fermer
+     - C-x 51 :: pour ne garder que la frame en cours
+   - C-x b :: buffer, afficher un buffer, avec ido noter que *C-k* permet
+              de fermer un buffer.
+   - ido-mode :: ajouter dans init.el ~(require 'ido)(ido-mode t)~
+	permet une completion améliorée pour les ouvertures de fichiers
+	et les switchs de buffer. Pour les cas où c'est gênant, on
+	retrouve le comportement habituel avec un autre *C-f*. Pour les
+	répertoires on redécouvre *C-x d* (Dired), mais noter que pour
+	ouvrir un répertoire comme un dossier, il est aussi possible
+	d'utiliser *C-x f C-f*.
+   - find-file-at-point :: peut être appelé via *M-x*, ou
+	ajouté *.emacs* via *(setq ido-use-filename-at-point 'guess)*
+	bien plus confortable: on mixte les avantage ido et *ffap*.
+   - emacsclient :: il faut avoir lancé le serveur dans une session
+                    emacs *M-x server-start* puis *emacsclient -t
+                    fichier* dans une console (et sortie par *C-x #*)
+   - Ouverture d'un fichier en tant que root :: après definition
+	#+BEGIN_SRC bash
+	export SUDO_EDITOR='emacsclient -t '
+	#+END_SRC
+	utiliser *sudo -e fichier* dans une console. Depuis emacs on
+	peut installer le package *sudo-edit* puis *M-x sudo-edit* puis
+	saisie du nom de fichier (on peut aussi modifier un fichier
+	actuellement en read-only avec *sudo-edit*).
+   - M-x dired-jump :: Ouverture du répertoire du fichier en cours
+    
+** Edition
+   - M-/ :: autocomplétion à partir des mots des buffers ouverts (noms
+            de variables existants...)
+   - C-x u :: Undo
+   - M-x undo-redo :: Redo (pour clavier fr ...)
+   - Keys C-h F1 :: liste tout les raccourcis commençants par
+                    *keys*. Mais installer le package *which-key* est
+                    mieux et l'activer par défaut via (which-key-mode t)
+   - which-key-mode :: après une demi seconde suite à un préfixe affiche
+                    toutes les possibilités de fonctions...
+   - helm-descbinds ::
+     pour une description pratique des key bindings, mais nécessite
+     l'installation du package *helm-descbinds* depuis MELPA. Si aimé
+     ajouter un ~(global-set-key (kbd "C-h b") 'helm-descbinds)~.
+   - C-x h :: sélectionner tout le buffer (donc *C-x h C-w* efface le
+              buffer.
+   - C-x C-x :: échanger la marque et le point
+   - C-^ :: join with prev line (contraire de *C-j*).
+   - C-Spc C-Spc :: marquer une position pour y revenir
+   - C-u C-Spc :: retour à la marque précédente (dans le buffer
+		courant)
+   - C-x C-Spc :: retour à la marque précédente (dans tous les buffers)
+   - C-c % :: Marque la position courante pour y revenir plus tard (liste cumulative)
+              semble limité au mode org, mais à se généraliser via mark-ring.el (pde)
+   - C-c & :: Retourne à la précédente position marquée (multibuffer), limité aussi à org par défaut
+   - C-x r Spc Lettre :: Marque la position courante (fichier et ligne)
+	dans le registre *Lettre*
+   - C-x r j Lettre :: Retourne à la postion du registre *Lettre*
+   - M-backspace :: efface mot précédent
+   - M-z :: zap to char, efface les caractères jusqu'au prochain char
+   - M-; :: comment, met la région en commentaire (bascule)
+   - C-x C-+ :: Grossir la police utilisée dans le buffer (*C-x C--*
+		pour diminuer). Juste après on peut changer avec une
+		des touches +, - ou 0 (retour à conf initiale)
+   - C-x = :: Affiche tout sur le caractère sous le curseur (code
+              ASCII, position...)
+   - C-q :: escape next key (pour insérer une touche spéciale, la taper
+            après)
+   - Esc-Space :: réduit le nombre d'espaces entre les deux mots à 1
+   - C-u M-| :: remplace la région par le résultat de son passage par
+		une commande shell. Ex: sort, grep ... (sans *C-u*
+		affiche le résultat temporairement, et l'envoi dans le
+		buffer *Shell Command Output*)
+   - C-u M-! :: insère le résultat d'une commande shell dans le buffer
+		courant
+   - desktop-save-mode :: ajouter dans init.el (desktop-save-mode 1)
+	pour retrouver les buffers ouverts et leurs position lors du
+	prochain démarrage.
+   - M-x revert-buffer-with-coding-system :: (C-x RET r) en précisant au prompt
+	l'encodage en *UTF-8* permet de lire des fichier org issus de
+	Linux dans Windows. Noter que pour ne plus se poser la
+	question, il est possible d'en faire le choix par défaut via
+	une ligne dans init.el:
+	*(prefer-coding-system 'utf-8)*
+   - set-buffer-file-coding-system :: semble permettre de corriger des
+     err d'encodage (puis utf-16 ou UTF-8) on peut vérifier en clair la
+     valeur actuelle de l'encodage du fichier avec *C-h v
+     buffer-file-coding-system* (le fichier sera modifié sur disque après sa sauvegarde)
+   - M-x recode-region :: doit permettre de corriger l'encodage d'une
+	région (mais dépend de la connaissance de l'ancien encodage)
+     - Forcer l'encodage du fichier via la modeline suivante:
+       #+begin_example
+       ;; Emacs 23 is unable to open this file properly:
+       -*- coding: utf-16 -*- (ou latin-1 ou UTF-8)
+       #+end_example
+   - M-C-v :: Scroll l'autre fenêtre d'un écran vers le bas (aide, man,
+              ...) et *M-C-V* dans l'autre sens.
+   - C-x C-q :: bascule le mode Read-Only (de oui à non)
+   - M-x revert-buffer :: pour revenir à la version enregistrée du buffer.
+     - pour un revert sans confirmation piste d'ajout dans init.el de
+       ~(global-set-key (kbd "C-c !") (lambda () (interactive)
+       (revert-buffer t t)))~
+   - M-x auto-revert-tail-mode :: pour un fichier de log permet de se
+	maintenir à la fin et d'en afficher le contenu toujours à jour
+
+*** Narrowing
+    Pour se concentrer sur une partie du buffer en cours.
+    - Le préfixe de ces commandes est *C-x n*
+      - s :: Subtree, dans un Org file, permet de restreindre au titre courant
+      - d :: Defun, dans un source pour restreindre à la définition de la fonction courante
+      - w :: widen pour ne plus restreindre et retrouver le buffer complet
+       
+** Recherches
+   - M-x show-parent-mode  :: permet l'affichage de l'autre
+	parenthèse... pour s'y déplacer on a *C-M-n* et *C-M-p*
+   - C-s/r :: recherche incrementale (r pour reverse), noter qu'on
+              retourne au point de départ par *C-g* et que *C-w* insère le
+              mot sous le curseur (répété plusieurs fois, ajoute le mot
+              suivant).
+
+   Pour rechercher ou marquer une regexp dans le buffer
+   - M-s o :: Occur, ouvre dans un buffer tous les match de la regexp
+              (comme résultat de compilation). *g* permet de rafraîchir
+              le résultat de la requête. Dans le fichier *M-g n* pour
+              le prochain match.
+   - M-s w :: recherche un mot (*C-w* pour le mot courant) dans le
+              buffer.
+   - M-s h r :: Highlight Regexp, avec choix de couleur
+   - M-x grep :: préciser la regexp puis le filtre de fichiers
+   - M-x rgrep :: recursive, idem mais plus interactif
+   - M-x lgrep :: local, idem mais un seul niveau de répertoire
+   - M-g M-n :: permet de se placer sur la prochaine occurence trouvée
+		par le dernier grep (*M-g M-p* pour la précédente)
+
+   - C-c C-j :: imenu jump to definition (si programme) ou titre pour
+		org. Permet en particulier le rescan des tags de
+		speedbar via *C-c C-j * Tab Enter Enter* puis réouvrir
+		speedbar.
+   - M-g g :: goto-line
+   - M-g c :: goto-char (position en nombre de caractères, utile dans certaines erreurs elis)
+   - M-x speedbar :: permet une fenếtre qui affiche sous forme d'arbre
+                     le répertoire courant ou les buffers ouverts. Dans
+                     le cas de sources, utilise imenu pour afficher les
+                     classes et fonctions
+     - Enter :: pour ouvrir le fichier
+     - f :: pour afficher les fichiers
+     - b :: pour les buffers ouverts
+     - k :: pour fermer le buffer
+     - D :: pour effacer le fichier (avec confirmation)
+     - g :: pour rafraîchir si nécessaire
+     - q :: pour quitter
+	   
+** Marquage de position dans des fichiers
+   - C-c % :: marque la position courante du fichier en court
+   - C-c & :: retourne à la dernière position marquée. Si utilisé
+     plusieurs fois propose les précédentss
+    
+** Fenêtres multiples
+   - C-x 0 :: cache la fenêtre en cours
+   - C-x 1 :: cache toutes les autre fenêtres ou *Esc Esc Esc* 
+   - C-x 2 :: Sépare la fenêtre en cours horizontalement
+   - C-x 3 :: Sépare la fenêtre en cours verticalement
+   - C-x o :: Passage à la fenêtre suivante
+   - C-x ^ :: Agrandir verticalement la fenêtre
+   - C-x { et } :: Agrandir horizontalement (respectivement vers la
+                   gauche, la doite)
+   - M-x elscreen :: si les fenêtres ne suffisent pas, voir le package
+                     elscreen puis *elscreen-start* qui permet
+                     d'utiliser des onglets dans lesquels on a autant
+                     de répartitions de fenêtres. Utilisable avec la
+                     souris.
+     - C-z c :: permet de créer un nouvel onglet
+     - C-z n :: passer à l'onglet suivant (*p* précédent)
+     - C-z 0 .. 9 :: pour aller à l'onglet n
+     - Il reste à trouver comment y lancer aptitude (pb de TERM ?)
+		  
+** Fichier de configuration: .emacs et .emacs.d/init.el
+*** assignation de touches 
+**** Pour projet python
+     #+BEGIN_SRC emacs-lisp
+       (global-set-key
+	(kbd "C-x C-g")
+	(lambda () (interactive) (python-django-open-project "~/Dropbox/retrouve" "retrouve.settings")))
+     #+END_SRC
+**** Ouvrir le répertoire du fichier courant 
+     (global-set-key "\C-xj" 'dired-jump) ;
+*** Couleurs et masquage du menu / icônes
+    - Pour éviter le fond noir en mode texte, essayer *M-x load-theme
+      whitheboard* ou *dichromacy*
+    - pour afficher la colonne courante: *M-x column-number-mode*
+    - M-x linum-mode ::affiche les no de lignes du buffer.
+    - Si c'est en mode texte (-nw ou serveur en SSH) il faut ajouter
+      - dans .bashrc ~export TERM=xterm-256color~
+      - ou son équivallent zsh ~.zshrc~ les thèmes qui semblent bien
+	sont par exemple wombat et misterioso (sur un ubuntu récent ?)
+    - Masquage des menu et toolbar
+      #+begin_src elisp
+	(menu-bar-mode -1)
+	(tool-bar-mode -1)
+      #+end_src    
+*** use-package pour chargement différé de packages
+    - Suppose l'installation du package *use-package*
+    - L'utilisation basique est ~(use-package nom-package :defer t)~
+    - Pour charger lors d'une commande initiale, utiliser un param du
+      type ~:commands xxx-mode~
+    - Voir la substitution d'une macro via (compléter !)
+    
+*** Divers autre
+     #+BEGIN_SRC elisp
+       (ido-mode t)
+       ;;(ffap-bindings)
+       (setq ido-use-filename-at-point 'guess)
+       (load-library "iso-transl")
+       (desktop-save-mode 1)
+       (setq auto-save-default nil)  ; Pour ne plus faire d'autosave (TRAMP ...)
+       (setq org-export-dispatch-use-expert-ui 1)
+       (xterm-mouse-mode 1) ; Pour avoir un support souris dans un emacs dans terminal
+       (require 'realgud) ; Pour debug de bash
+     #+END_SRC
+*** Exemple avec helm+magit
+    Noter qu'il faut installer les packages use-package, helm et magit
+    #+begin_src elisp
+      (package-initialize)
+
+      ;; Aspect
+      ;;(load-theme 'dichromacy)
+      (load-theme 'wheatgrass)
+      (setq inhibit-splash-screen t)
+      (menu-bar-mode 0)
+      (global-set-key (kbd "<f8>") 'menu-bar-open)
+
+      ;; Ajouts de packages MELPA
+      (when (>= emacs-major-version 24)
+	(require 'package)
+	(add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
+	;;(add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/packages/"))
+	(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/")))
+      (use-package  helm :ensure t)
+      (require 'helm-config)
+      (global-set-key (kbd "C-x C-f") 'helm-find-files)
+      (global-set-key (kbd "C-x b") 'helm-buffers-list)
+      (global-set-key (kbd "C-x rb") 'helm-bookmarks)
+      (global-set-key (kbd "M-s o") 'helm-occur)
+      (global-set-key (kbd "M-x") 'helm-M-x)
+      (global-set-key (kbd "M-y") 'helm-show-kill-ring)
+      (global-set-key (kbd "C-h i") 'helm-info)
+      ;;(global-set-key (kbd "<f2><f2>") 'helm-calcul-expression)
+      ;;(setq tramp-default-method "ssh")
+      ;;(define-key global-map (kbd "C-c s") 'helm-tramp)
+
+      (custom-set-variables
+       ;; custom-set-variables was added by Custom.
+       ;; If you edit it by hand, you could mess it up, so be careful.
+       ;; Your init file should contain only one such instance.
+       ;; If there is more than one, they won't work right.
+       '(package-check-signature nil)
+       '(package-selected-packages
+	 (quote
+	  (use-package helm magit gnu-elpa-keyring-update php-mode))))
+      (custom-set-faces
+       ;; custom-set-faces was added by Custom.
+       ;; If you edit it by hand, you could mess it up, so be careful.
+       ;; Your init file should contain only one such instance.
+       ;; If there is more than one, they won't work right.
+    #+end_src
+** helm et listes plus puissantes
+   - Suppose l'installation du package *helm*
+   - Voir une prise en main dans https://boruch-baum.github.io/emacs_mini_manual/helm-intro.html
+   - Affiche des listes dynamiquement mises à jour en fonction du pattern tapé
+   - possibilité de plusieurs pattern séparés par espacs, et de *!*
+     pour exclure. Et d'échapper des caractères spéciaux avec *\*,
+     comme pour SPACE.
+     - @xx :: recherche xx dans le contenu des buffers
+     - *xx :: recherche par les noms de major-mode (shell, dired, lisp ...)
+     - /xx :: recherche par le nom du répertoire du buffer
+   - TAB :: affiche des actions sur l'élément sélectionné
+   - C-SPACE :: pour sélectionner plusieurs éléments de la liste
+   - F2 :: dans helm-M-x permet d'avoir la doc emacs de la fonction sélectionnée
+   - C-x f C-S :: pour faire une *recherche dans tous les fichiers du
+     répertoire* (type grep) à partir de l'endroit où on a commencé un
+     find file
+   - C-t :: pour déplacer le fenêtre des suggestions (bascule)
+   - Une configuration type récupérée sur youtube est
+   #+begin_src elisp
+     (use-package  helm :ensure t)
+     (require 'helm-config)
+     (helm-mode 1) 	 
+     (setq helm-split-window-inside-p t)
+     (global-set-key (kbd "C-x C-f") 'helm-find-files)
+     (global-set-key (kbd "C-x b") 'helm-buffers-list)
+     (global-set-key (kbd "C-x rl") 'helm-bookmarks)
+     (global-set-key (kbd "M-s") 'helm-occur)
+     (global-set-key (kbd "M-x") 'helm-M-x)
+     (global-set-key (kbd "M-y") 'helm-show-kill-ring)
+     (global-set-key (kbd "C-h i") 'helm-info)
+     (global-set-key (kbd "<f2><f2>") 'helm-calcul-expression)
+   #+end_src
+*** Ecrire une extension à Helm
+  Voir https://wikemacs.org/wiki/How_to_write_helm_extensions#More_than_one_action
+  Et pour un exemple impressionnnant en vidéo, l'écriture de helm-spotify https://www.youtube.com/watch?v=XjKtkEMUYGc
+  - L'appel principal est ~(helm :sources var-src :prompt "Saisir XX: ")~
+  - Les sources peuvent être du type
+    #+begin_src elisp
+      (setq var-src- '((name . "Sélection base Oracle sur ProxMox")
+	      (candidates . bases-proxmox)
+	      (action . (("Ouvrir le buffer shell de la sélection" . (lambda (x)
+								       (message "Affichage shell de %s sur %s" x (assq x bases-proxmox))))
+			 ("Ouverture d'un dired en adminXX" . (lambda (x)
+								(message "Ouverture de dired sur %s de %s en adminXXXX"
+									 x (assq x bases-proxmox))))
+			 ("Ouverture d'un dired en root" . en-vrai)
+			 ("Startup mount" . (lambda (x) (en-vrai x "startup mount")))
+			 ("Shutdown immediate" . (lambda (x) (en-vrai x "shutdown immediate")))))))
+    #+end_src
+  
+** Themes et Font
+   - Font - Suggestions youtube
+     - M-x customize
+     - Rechercher *Faces* puis *Basic Faces* et *Default*
+     - Font Family :: xos4 Terminus
+     - Height :: 90 à 120
+     - Décocher *Foreground* et *Background*
+   - Coding font voir https://www.codingfont.com/
+     - permet de tester par comparaison successives sur un même texte
+     - j'ai choisi et téléchargé *NovaMono* qu'on peut activer avec
+       ~(set-frame-font "NovaMono-11")~
+   - Theme spacemax
+     - Installer via *M-x package-list-packages* choisir *spacsmax-theme*
+     - L'activer via *M-x customize-themes*
+     - Pour le mode terminal, penser à ~export TERM=xterm-256color~
+   - Pour revenir à une police fixe ~(set-frame-font "DejaVu Sans Mono-14" nil t)~
+      
+** Rectangles
+    Le rectangle est définit par ses deux coins (Mark et Point) et les
+    commandes suivantes sont disponibles:
+    - C-x r M-w :: copier la sélection en tant que rectangle
+    - C-x r k :: kill, supprime le rectangle et le garde dans le kill ring
+    - C-x r y :: yank, colle le contenu du rectangle
+    - C-x r o :: open, décale le texte en insérant un rectangle de la
+	 taille de la sélection (place des espaces qui écale le reste
+	 vers la droite.
+    - C-x r t :: insère une chaîne devant toutes les lignes du rectangle
+    - C-x SPC :: début du marquage d'un rectangle, permet via *M-w* et
+	 *C-y* de copier coller le rectangle.  
+** Bookmarks
+   - C-x r l :: List Bookmarks (stocké dans ~/.emacs.d/bookmarks)
+   - C-x r m :: Mark new Bookmark
+   - Dans la liste :: les touches principales sont:
+     - Enter :: pour afficher le fichier marqué
+     - d :: delete, pour marquer un bookmark pour effacement
+     - u :: unmark, pour retirer la marque de la ligne courante
+     - x :: pour exécuter les effacements demandés.
+   - C-x r C-SPC :: Stocker la position courante dans un registre
+		    (chosir une lettre)
+   - C-x r j :: Jump, retourner au point stocké dans le registre (taper
+		la lettre chosie comme registre)
+   - Nautilus :: le fichier définissant les bookmarks Ubuntu est dans
+		 ~/.config/gtk-3.0/bookmarks et il est rechargé dès sa
+		 sauvegarde.
+
+** Onglets - tabs
+   Pour afficher ou cacher les onglets *M-x tab-bar-mode*
+   - C-x t 2 :: Crée un nouvel onglet (tab-new)
+   - C-x t o :: Sélectionner l'onglet suivant
+   - C-x t 0 :: Ferme l'onglet courant
+   - C-x t 1 :: Ferme tous les onglets sauf le courant
+   - C-x t ? :: Aide sur les autres raccourcis
+   Voir pour faire des raccourcis plus faciles ?
+   On peut aussi renommer l'onglet courant via ~tab-bar-rename-tab NOM~
+     
+** Abréviations
+
+   - C-x aig :: abbrev inverse global, à taper après l'abréviation, il
+		 faut ensuite saisir le texte complet, terminé par
+		 return. Il est possible de coller un texte multiligne.
+   - M-x list-abbrevs :: Affiche tous les tables d'abréviations
+	 courantes, avec possibilité d'en effacer (C-k) ou d'en
+	 modifier. Il faut utiliser *C-c C-c* pour valider les
+	 modifications.
+   - M-x abbrev-mode :: Active le mode abbrev pour le buffer en cours
+	 (bascule)
+
+** Squelettes
+   - définition en lisp du type
+     #+BEGIN_SRC emacs-lisp
+       (define-skeleton hello-world-skeleton
+	  "Write a greeting (commentaire)"
+	  "Type name of user (prompt) : "
+	  > "hello, " str "!" \n >
+	  "I need " _ ", and you are the person for it..." \n
+	  "--" \n "La direction")
+     #+END_SRC
+     - str :: est remplacé par la saisie utilisateur
+     - ~_~ :: permet de placer la position du curseur
+     - > :: augmente l'indentation (si cela a un sens dans le mode courant)
+     - \n :: insère un saut de ligne
+     - -NN :: recule de NN caractères
+
+   - Exemples:
+     #+BEGIN_SRC emacs-lisp
+       (define-skeleton html-skeleton
+	  "Insère une page HTML basique avec un titre à saisir..."
+	  "Titre de la page : "
+	  "<html>" \n
+	  > "<head>" \n
+	  > "<title>" str "</title>" \n
+	  -2 "</head>" \n
+	  > "<body>" \n
+	  > "<p>" _ "</p>" \n
+	  -2 "</body>" \n
+	  -2 "</html>")
+       (define-skeleton org-skel
+	  "En tête pour mes fichiers org"
+	  "Titre : "
+	  "#+TITLE: " str \n
+	  "#DATE: " (date) \n
+	  "#+OPTIONS: toc:nil" \n
+	  "#+SETUPFILE: theme-readtheorg-local.setup" \n
+	  "#+AUTHOR: Pierre DEDIEU" \n
+	  "#+Email: MangeChats@gmail.com" \n \n)
+       (global-set-key "\C-ch" 'org-skel)
+    #+END_SRC 
+   
+** Sauvegarde de layouts avec workgroup2
+   - Utiliser le package *workgroup2*
+   - C-c z C-c :: create wg, demande un nom pour sauver le layout courant
+   - C-c z C-v :: open wg, permet de choisir et de restaurer un des layouts sauvés
+   - En complément ~(desktop-save-mode 1)~ dans *init.el* permet de restaurer les buffers ouverts au démarage d'emacs
+   - Plus léger et efficace *winner-mode* qui permet via *C-<left>* et
+     *C-<right>* de retrouver le layout précédent / suivant.
+   - En complément, *ace-window* permet de passer par no d'une des
+     fenêtres à une autre (raccourci suggéré *M-o*)
+    
+** Vérification de l'orthographe
+   via les paquet *ispell* et *aspell-fr*.
+   - M-x flyspell-mode :: pour une vérification des mots dès leur
+	frappe. Comme c'est la solution que je préfère je lui dédie F5:
+	~(global-set-key (kbd "<f5>") 'flyspell-mode)~
+   - M-$ :: Pour le mot courant (en flyspell-mode c'est une correction
+	    facile). Les alternatives sont *C-M-i* et *ESC i*
+   - M-x ispell-buffer :: pour proposer des choix de correction en français
+   - M-x ispell-region :: RAS
+   - M-x flyspell-buffer :: permet de souligner les erreurs après
+	vérification de tout le buffer mais les corrections sont
+	laborieuses, voir plutôt flyspell-mode.
+   - M-x flyspell-goto-next-error :: vraiment mieux si assigné via
+	~(global-set-key (kbd "<f5>") 'flyspell-goto-next-error)~
+   - M-x flyspell-correct-word-before-point :: gagnerait à être assigné
+	à une touche ?
+	mouse-2 down doit être maintenu pour voir les
+	choix proposés (seuls les boutons du bas marchent pour cela sur
+	mon PC HP !).
+
+** Packages
+  installation de packages supplémentaires depuis internet
+  - M-x list-packages :: affiche la liste des noms disponibles dans le
+       dépôt défini, puis Entrée sur un nom donne quelques infos
+       complémentaires et permet d'installer. (ex: ido-ubiquous)
+  - Définir quel shell utiliser :: pour que la valeur par défaut soit
+       changée un paramètre à mettre dans le init.el:
+       '(python-shell-interpreter "python3") qui peut aussi se changer
+       via *Customize*
+  - ajouter le dépôt MELPA :: il faut ajouter dans ~/.emacs les
+       lignes. Voir quelle URL est la plus intéressante
+       #+BEGIN_SRC emacs-lisp
+	 (when (>= emacs-major-version 24)
+	   (require 'package)
+	   (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
+	   ;;(add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/packages/"))
+	   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+	   (package-initialize))
+       #+END_SRC
+  - Pour les erreur de clef GPG au chargement essayer
+    ~gpg --homedir ~/.emacs.d/elpa/gnupg --receive-keys 066DAFCB81E42C40~
+  - Puis il faut rafraîchir la liste des packages avec la touche *r*.
+  - On peut sélectionner un package avec *i* et installer la sélection
+    avec *x*
+*** Détail
+  une source est [[http://melpa.org/#/getting-started]] suppose de
+  l'ajouter dans init.el ... puis via l'accès internet l'installation
+  se fait via la commande *package-list-packages*. Voir mode-php,
+  python-django ...
+
+** Documentation en Markdown
+   - installer *markdown-mode*
+   - permet surtout un affichage des enrichissements
+     
+** Affichage des commandes
+   - Installer le package *command-log*
+   - Lancer commande *command-log-mode*
+   - C-c o :: Bascule l'affichage ou non des dernières commandes
+
+** God mode
+   Avec le paquet *god-mode* pour taper directement le commandes nécessitant l'utilisation de la touche *Control*
+   - Bascule de ce mode mineur avec ~(god-mode-all)~ ou ~(god-local-mode)~
+     - Je propose ~(global-set-key "C-²" 'god-local-mode)~
+   - précéder une LETTRE de *g* pour insérer *M-LETTRE*
+   - précéder une lettre de *G* pour insérer *C-M-LETTRE*
+   - pour taper une suite de *lettres sans Control*, les préfixer d'un espace
+     
+** multiple-cursors
+   - Voir le [[https://github.com/magnars/multiple-cursors.el][README]] du Git
+   - ajouter dans *init.el* ~(require 'multiple-cursors)~
+   - utiliser des set-key car les appels via *M-x* buggent
+   - mc/edit-lines :: pour mettre un curseur devant chaque ligne de la selection courante
+   - mc/mark-next-like-this :: place un curseur avant le prochain match du mot sélectionné
+   - mc/mark-all-like-this :: pour tous les matchs
+     #+begin_src elisp
+       (require 'multiple-cursors)
+       (global-set-key (kbd "C-c à à") 'set-rectangular-region-anchor)
+       (global-set-key (kbd "C-c à l") 'mc/edit-lines)
+       (global-set-key (kbd "C-c à a") 'mc/mark-all-like-this)
+       (global-set-key (kbd "C-c à n") 'mc/mark-next-like-this)
+     #+end_src
+     
+*** cua-mode pour curseurs multiples
+   - M-x cua-mode :: activer le mode (toggle, attention aux conflits des touches std emacs)
+   - C-Enter :: marquer le début de la sélection cua,
+    puis déplacer le curseur avec les flèches pour étendre la sélection
+    et terminer par *M-Enter*
+		    
+** Autre
+   - M-x toggle-truncate-lines :: Pour changer la coupure des lignes longues
+   - C-h l :: view-loosage, affiche un buffer avec les dernières commandes tapées
+   - M-x : (buffer-file-name) :: affiche le chmin complet du fichier associé au buffer courant
+   - M-x white-space-mode :: toggle, permet d'afficher les espaces (gros points) et les fins de ligne ($)
+   - M-x find-name-dired :: affiche dans un dired tout les fichiers à
+     partir d'un répertoire de départ dont le nom correspond à un nom
+     (avec * comme wildcar)
+   - M-: :: évaluer du code elisp, exemple ~(current-buffer)~ mais pour
+     avoir le répertoire *C-x b* est plus complet
+   - M-x prettify-symbols-mode :: permet l'affichage de symboles UTF-8
+     à la place de leur noms pour les modes qui le supportent, par
+     exemple pour afficher lambda λ dans un source lisp on a
+     *prettify-symbols-alist* qui vaut ~(("lambda" . 955))~ car code 955
+     en décimal
+     - utiliser ~(global-prettify-symbols-mode 1)~ dans init.el pour le
+       généralser
+   - C-x 8 Ret :: Lit un caractère UTF8 par nom ou no et l'insère
+     - on peut taper ~*substring~ puis tabulation pour la complétion
+     - 😉 ou 🧐 😢 👍 👎 💋 😎 🤭 sont possibles
+     - ajouter via abbrev des raccourcis pour cela avec ~M-x list-abbrevs~
+       puis par exemple saisir (et valider par *C-c C-c*)
+       #+begin_example
+       "bg"	       3    "🐛🐛🐛🐛"
+       "ks"	       1    "💋"
+       "lm"	       1    "λ"
+       "sg"	       1    "😎"
+       "tdo"	       1    "👎"
+       "tup"	       1    "👍"
+       #+end_example
+** Installer emacs sur un Ubuntu neuf
+ - installer le paquet emacs
+ - Ajouter les lignes pour avoir Melpa (dans *~/.emacs.d/init.el*)
+ - utiliser M-x package-init-package pour installer des paquets minimum
+   - use-package
+   - org-roam-ui
+ - ajouter un theme, et le paramétrage de org et helm
+ - optionnellement installer les fichiers info pour emacs et elisp via
+   ~apt install emacs-common-non-dfsg~ qui permet par exemple la
+   consultation avec M-x ~emacs-index-search~ et ~elisp-index-search~
+*** Installer une version plus récente
+   - avec un dépôt spécifique ~apt-add-repository ppa:ubuntu-elisp/ppa~
+     + ~apt update~ puis ~apt-get install emacs-snapshot~
+     + et pour revenir en arrière ~add-apt-repository --remove ppa:ubuntu-elisp/ppa~
+     + puis ~apt remove emacs-snapshot~
+   - avec snap
+     - ~apt remove emacs emacs-gui~ puis ~snap install emacs --classic~
+     - et pour la désinstallation ~snap remove emacs~
+   - il est aussi possible de le faire via flatpack, voir https://learnubuntu.com/install-emacs/
+* Intégration OS
+** Répertoires
+   - C-x d :: Dired, Directory Edition. Si on veut on peut préciser un
+              filtre pour les fichiers à lister genre
+	      ~/var/log/Vulture/worker/*.access.log~ pour ne lister que les logs
+	      actifs de Vulture3 par exemple
+     - m/u :: mark / unmark, pour sélectionner / déselectionner le
+              fichier sous le curseur
+     - D :: Delete, efface les fichiers sélectionnés
+     - k :: retire les fichiers sélectionnés de l'affichage
+     - U :: Unmark all, dé-sélectionne tout
+     - a :: au lieu de Return sur un répertoire permet de le visiter
+       sans conserver le dired source (comande à confirmer comme
+       dangeureuse)
+     - j :: jump demande un nom de fichier du repertoire courant et positionne le curseur dessus
+     - M :: Mode, pour changer le mode du fichier courant (saisir a+x ou 655 par exemple)
+     - O :: Owner pour changer le propritéaire du fichier
+     - %m :: pour sélectionner des fichiers via une regex (\.py$ ou ~$
+             par exemple)
+     - A :: pour rechercher un mot dans les fichiers marqués et se
+            placer à la première occurrence du premier fichier (puis
+            utiliser *M-;* pour se placer sur l'occurrence suivante)
+     - Q :: pour faire un search / replace sur tous les fichiers
+            sélectionnés (avec confirmation). Cela ne sauve pas les
+            fichiers modifiés, à faire par exemple avec *C-x s*.
+     - i :: si placé sur un répertoire, ajoute la liste de ses fichiers
+            à la fin du buffer. Puis *$* pour replier ou *C-u k* pour
+            retirer le répertoire du listing
+   - C-u s :: pour changer l'ordre du tri ou le format d'affichage (voir man ls)
+     - -latS :: trier par taille de fichier décroissant
+     - -lah :: tailles en human readable
+     - -lR :: affiche récursivement le contenu
+   - $ :: replie/déplie un sous répertoire quand dired en liste plusieurs
+   - M-x find-name-dired :: affiche dans un dired les fichiers
+	correspondants à un nom
+   - M-x find-grep-dired :: afficher dans un dired les fichiers dont le
+	contenu match une regexp
+       
+** Impressions
+    - Je recommande la fonction *ps-print-with-faces*
+    - Attention il faut que l'imprimante CUPS soit définie comme
+      imprimante par défaut de lpr
+      - pour cela il faut consulter http://localhost:631
+      - dans *Imprimantes* choisir pour la bonne imprimante listée la
+	tâche d'administration *Définir par défaut*
+    - Elle peut être customisée via *ps-print-customize*, en particulier
+      j'ai retenu:
+      - Ps N Up printing :: à *2* pour mettre 2 pages par page A4.
+      - Ps N Up Border P :: à *off* pour éviter des cadres inutiles
+    - Dans *ps-print Ps Lpr Switches* voir *-o
+      sides=two-sided-long-edge* pour faire du recto/verso
+
+** Calculatrices
+*** Calculatrice RPN
+    accès par *C-x * c*
+    - ??... :: pour les aides en mini buffer
+    - q :: pour quit
+    - y :: yank (colle le top dans le buffer d'origine)
+    - U :: undo
+    - D :: redo
+    - p NN :: ajuste la précision à NN chiffres (2000 possible!)
+    - ds :: affichage scientifique (argument optionnel = nb de chiffres)
+    - dn :: retour affichage normal
+    - ch :: affiche en Heure Minutes Secondes (dh permet d'en définir
+	    le format). Les saisies directes se font par ex. comme
+	    11h12m30
+    - 16#XXX :: saisie de chiffres en hexa
+    - d NN :: Affichage en base NN
+    - dB et dO :: affiche en big ou normal les formules
+    - ms :: bascule, mode calcul symbolique (les racines ou quotients restent...)
+    - mf :: bascule, les fractions restent (et se simplifient) (*cf*
+	    pour la calculer), on peut changer cet affichage cia *do*
+	    qui demande un séparateur (/ ou : par exemple, mais +/
+	    permet d'isoler la partie entière)
+    - cF :: convertie en fraction
+    - g :: groupe les chiffres 3 par 3 (ou autre)
+    - td :: Affiche ou cache l'historique (trail)
+    - tn ou tp :: previous ou next du Trail
+    - t[ ou t] :: début ou fin du trail
+    - ty :: paste le chiffre choisi du trail
+    - dt :: Truncate stack, insère temporairement le point à la
+	    position du curseur
+    - Alt-Gr 7 Alt-Gr 7 :: Pour éditer une entrée de la pile (sortir avec *Ret*)
+    - ' :: Algébrique, permet aussi la saisie de valeur avec leurs
+	   unités (mi/hr km ...)
+      - mO :: désactive les simplifications algébriques par défaut, on
+	      peut les faire alors via *av* (qui ne substitue pas les
+	      variables par leurs valeurs contrairement à *=*). Voir
+	      aussi *ae* qui fait les simplifications étendues.
+      - cu :: permet de saisir une autre unité de destination.
+      - aS :: Solve, demande la variable selon laquelle résoudre,
+	      marche pour des polynômes, des systèmes d'équations...
+      - aC :: Collect, pour développer selon une variable
+      - af :: Fatorize, pour factoriser dans la mesure du possible,
+	      selon une variable.
+      - aD :: Dériver, préciser selon quelle variable ET *ms* est votre ami (Symbolique !)
+      - aI :: Intégrer, demande de préciser selon quelle variable.
+      - M-u aI :: Intégrale définie avec bornes: préciser les bornes de début / fin
+    - [x + y = a , x y = 1] :: saisie d'un système d'équations,
+	 puis *aS x,y* donne les solutions
+    - ' <31 aug 64> :: saisie de ma date de naissance
+    - hk tN :: lire la doc de *tN*
+
+*** Quick calc
+    - M-x quick-calc :: Calculatrice algébrique simple, écrire la
+			formule à évaluer, Enter affiche le
+			résultat. Puis Résultat récupérable par *C-y*.
+
+*** Calculatrice Embedded
+    Pour écrire des devoirs de math ou physique. On rédige un document
+    principal, en particulier en mode org ou LaTex et on délimite des
+    formules, par exemple en les entourant de *$$* ou de lignes vides
+    (recommandé).  calc-embedded, où on peut utiliser les commandes
+    - C-x * e :: Edit, permet de passer la formule courante en édition
+		 de la calculatrice classique sur la formule
+		 algébrique courante. En particulier on peut en
+		 changer les unitées via *cu*, ou l'évaluer
+		 via *=*. Pour retourner à l'édition normale du
+		 buffer, utiliser *C-x * e*. Deux cas particuliers:
+		 l'assignation via *:=* et l'utilisation de *=>* en
+		 fin de ligne pour faire afficher l'évaluation de
+		 la formule (cumulable avec une assignation).
+    - C-x * d :: Duplicate, pour copier la formule en cours sur une
+	       autre ligne (pour la faire évoluer, en développant,
+	       réduisant, changeant d'unités ...)
+    - C-x a :: All, permet de parcourir tout le fichier et d'interpréter
+	       toutes les formules trouvées.
+    - C-x u :: Update, permet de rafraîchir le calcul sous le curseur.
+    - C-x * AltGr 7 AltGr7 :: pour modifier la formule sous le
+	 curseur. Sortir ensuite via *Ret*.
+    - C-x * j :: Permet de sélectionner une partie de la formule pour
+		 l'éditer... je ne maîtrise pas pour l'instant!
+    - C-x * g :: Grab, met la sélection dans la calculatrice (en
+		 vecteur si espaces ou multiligne)
+    - C-x * r :: Rectangle, pour définir en matrice la sélection
+    - C-x * ~_~ :: somme les lignes d'une matrice (donne un vecteur)
+    - C-x * : :: somme les colonnes d'une matrice (donne un vecteur)
+
+*** helm-calcul-expression
+    Pour un rapide calcul avec *Enter* pour récupérer le résultat dans
+    le kill-ring (j'associe à F5)
+** Terminaux et Man
+   - M-x shell :: Pour passer des commandes bash dans un buffer. Pour
+                  en lancer un deuxième sous un autre nom, utiliser
+                  *C-u M-x shell*.
+   - my-shell :: Pour ouvrir directement un shell sur un srv distant
+     #+begin_src elisp
+       (defun my-shell ()
+	 (interactive)
+	 (let ((default-directory "/ssh:user@host:"))
+	   (shell)))
+     #+end_src
+   - M-x ansi-term :: (ou term) Pour lancer des programmes qui ne sont
+                      pas supportés par le shell, comme aptitude ...
+                      Pour sortir du buffer penser au menu via *F10*.,
+                      Noter qu'il existe deux modes, le mode *char* par
+                      défaut, et le mode *line*
+     - C-c b :: Pour passer à un autre buffer.
+     - C-c C-j :: Pour passer en mode *line* (qui permet de remonter
+                  dans l'historique dans le buffer)
+     - C-c C-k :: Pour revenir en mode *char*
+   - M-x man :: Permet de lire les pages de manuel linux dans un buffer,
+            voir aussi *Mx woman* qui est une version en lisp.
+   - rdesktop :: Dans un shell, pour lancer une session RDP vers un
+                 serveur, commande type:
+		 ~rdesktop -uadminpdedieu -dAD-MAIRIE -g90% -r disk:linux=/tmp hdvcdad33~
+   - ssh-agent :: Il est intéressant de dévérouiller et enregistrer sa
+                  clef SSH pour la durée de la session, pour cela
+                  ajouter dans le *~/.profile* (attention cela bloque
+                  l'ouverture de la session X)
+		  #+BEGIN_EXAMPLE
+		  eval $(ssh-agent -s)
+		  ssh-add
+		  trap 'kill $SSH_AGENT_PID' EXIT
+		  #+END_EXAMPLE
+*** eshell
+    Terminal elisp
+    - intercepte certaines commandes comme *grep, find, dired,
+      find-file* et crée un buffer pour les résultat
+      - dired *(Lk+5) :: ouvre un buffer dired des fichiers de + de 5 ko
+      - dired *(mw-7) :: devrait ouvrir un dired des fichiers modifiés
+        depuis moins de 7 jours mair retourne *invalid function 25549*
+    - globing
+      - *(filter) :: globing avec un filtre (ou cumul de plusieurs parmis les suivants)
+	- . :: que les fichier
+	- / :: que les répertoires
+	- L+50 :: les fichiers de +de 50 octets
+	- Lk-500:: les fichiers de moins de 500 Ko
+	- ms-50 :: les fichiers modifié depuis moins de 50 secondes
+      - C-c M-q :: aide concernant les predicates (dont tous les filtres)
+      - Définition de nouveaux predicates ::
+        définir une nouvelle fonction elisp 'mon-file-predicate ici
+        avec un param *file* qui retourne true si on doit retenir le
+        fichier et pour ajouter le predicat
+        #+begin_src elisp
+	(add-hook 'eshell-pred-load-hook (lambda ())
+	  (add-to-list 'eshell-predicate-alist
+          '(?U . 'mon-file-predicate)))
+	#+end_src
+    - list modifier (aide par *C-c M-m*)
+      - "Hello"(:U) :: to Upper case
+      - echo *(:L) :: retourne la liste des noms de fichiers en minuscules
+      - echo ini*(:e:j/ | /) :: retourne une chaîne des extensions des
+        fichiers commençant par ini séparés par des ' | '
+    - deux interpréteurs en même temps: shell et elisp
+    - definition de fonction elisp (defun XXX ())
+      - Pour définir des fonctions dans le mode shell (defun eshell/ma-fonc () ...)
+      - Pour utiliser une fonction std masquée par une perso avec *ma-fonc
+      - Pour tester si une fonction a été préfixée, voir ~current-prefix-arg~
+	- si pas préfixée c'est nil
+	- si une valeur numérique, c'est cette valeur
+	- un simple C-u donne 4, C-u C-u donne 16
+    - pipes ~command > #<buffer nom-buffer>~ ou ~#<nom-buffer>~
+      - idée de fonction bargs pour appliquer une fonction à toutes les lignes d'un buffer
+    - tramp
+      - *(default-directory "ssh://root@serveur:/")*
+      - Après quoi il est possible de faire un *dired* ou un *find-file*
+        sur le serveur distant
+    - Programmes non compatibles: ajouter à la liste
+      *'eshell-visual-commands* les noms des programmes comme *aptitude*
+      ~(add-to-list 'eshell-visual-commands "aptitude")~
+    - Boucle sur une recherche ~for fic i in *.yml { bloc à exec }~
+    - Utiliser des parenthèses pour forcer le mode lisp
+	
+** Serveur emacs
+   - Permet d'avoir un emacs qui tourne en arrière plan à qui on envoi
+     les fichiers qu'on veut ouvrir via *emacsclient*.
+   - Cette edition peut être fermée par *c-x #* (rappelé par un
+     message)
+   - ~alias ec='emacsclient -s moi'~ dans ~ ~/bash_aliases~ si le
+     serveur a pour nom moi.
+   - Un module gnome-shell permet de voir les serveurs démarés et d'en
+     démarrer un.
+    
+** Scripts sur un serveur distant depuis emacs
+   Noter qu'on se sert de la clef SSH qui évite le MDP, et que le
+   compte root utilisé doit utliiser bash (zsh ne se connecte pas)
+*** Examples
+    #+BEGIN_SRC bash :dir /ssh:root@hdvdb18:/tmp/
+      df -h /
+    #+END_SRC
+    
+    #+RESULTS:
+    | Filesystem | Size | Used | Avail | Use% | Mounted | on |
+    | /dev/sda1  | 7.9G | 5.5G | 2.0G  |  74% | /       |    |
+    
+** EIN - Emacs IPython Notebook
+   - Voir un [[http://millejoh.github.io/emacs-ipython-notebook/][site]] pour l'initiation
+     
+** Navigateur web interne -  eww
+   - M-x eww :: Promp pour URL ou mots clefs
+   - l :: last page
+   - p :: previous page
+   - G :: re-saissie des mots clefs ou une URL
+   - b :: ajoute un bookmark pour la page en cours
+   - B :: Liste des bookmarks
+   - q :: Quit
+	 
+** Gestion des mails mu4e - Messagerie Exchange
+*** Accepter le certificat du serveur Exchange
+    - Copier Wildcard.pem dans /usr/share/ca-certificates/
+    - Rafraichir avec ~update-ca-certificates --fresh~
+*** Autre méthode pour accepter un certificat refusé
+    - Récupérer le certificat à problème, par exemple via
+      ~openssl s_client -connect mail.rouen.fr:993 < /dev/null >/tmp/tout.txt~
+    - On a alors le texte du certificat dans /tmp/tout.txt (entre autre)
+    - Copier ce certificat par exemple dans /tmp/certif.pem
+    - Obtenir sa signature sha256 via
+      ~openssl x509 -in /tmp/certif.pem -noout -sha256 -fingerprint~
+    - Utiliser cet fingerprint dans une ligne de la conf de .offlineimaprc (section concernant le serveur distant)
+      ~cert_fingerprint = A6:98:9C:2B:55:42:5F:F2:A1:09:E5:F0:74:8B:86:33:37:C5:ED:8E:71:49:57:2B:F4:BA:0E:F4:7A:9D:12:E5~
+    - Vérifier que le mot de passe user est bien à jour (!)
+     
+*** Méthode plus directe
+    - En cas de pb de signature, lancer ~offilneimap~ et trouver la
+      signature effective dans le message d'erreur retourné
+     
+*** Récupération des mails avec offlineimap
+    - installer le paquet *offlineimap*
+    - le configurer dans un fichier *~/.offlineimaprc*
+      #+BEGIN_EXAMPLE
+	[general]
+	accounts = Rouen
+	maxsyncaccounts = 3
+       
+	[Account Rouen]
+	localrepository = LocalRouen
+	remoterepository = RemoteRouen
+       
+	[Repository LocalRouen]
+	type = Maildir
+	localfolders = ~/Maildir/Rouen
+       
+	[Repository RemoteRouen]
+	type = IMAP
+	remotehost = mail.rouen.fr
+	auth_mechanisms = PLAIN
+	sslcacertfile = /etc/ssl/certs/ca-certificates.crt
+	remoteuser = Pierre.DEDIEU@rouen.fr
+	remotepass = ******
+	ssl = yes
+	maxconnections = 1
+       
+	[Account Admin]
+	localrepository = LocalAdmin
+	remoterepository = RemoteAdmin
+       
+	[Repository LocalAdmin]
+	type = Maildir
+	localfolders = ~/Maildir/Admin
+       
+	[Repository RemoteAdmin]
+	type = IMAP
+	remotehost = mail.rouen.fr
+	auth_mechanisms = PLAIN
+	sslcacertfile = /etc/ssl/certs/ca-certificates.crt
+	remote_identity = admin@rouen.fr
+	remoteuser = pdedieu@rouen.fr
+	remotepass = ******
+	ssl = yes
+	maxconnections = 1
+      #+END_EXAMPLE
+**** Installation
+    - Voir à installer le paquet ubuntu *mu4e* (apt)
+    - Pour travailler avec TB, il faut le passer le serveur en maildir
+      et pas mbox (fait avec un nouveau profil via ~thunderbird -p~ puis
+      utilisation d'une extension TB pour récupérer les contenus:
+      *ImportExportTools*
+    - Modifier le paramètre avancé de TB: Menu / Préférences /
+      références / bouton Avancé changer le paramètre
+      *mail.store_conversion_enabled* à *true*
+    - Clic droit sur local folder / *Parmètres* Type de stockage, passer
+      en maildir
+    - Configurer le *~/.emacs.d/init.el* pour cela (maildir issus de TB)
+      mais il faut récupérer mon fichier init.el du Max
+      #+BEGIN_SRC elisp    
+	;; Lire mes mails de TB
+	;; (require 'org-mime)
+	(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e/")
+	(require 'mu4e)
+	(setq mu4e-maildir (expand-file-name "~/.thunderbird/s7i0rsjl.MailDir/"))
+	(setq mu4e-maildir-shortcuts
+	      '( ("/ImapMail/mail.rouen-1.fr/INBOX/cur"     . ?i)
+		 ("/Mail/LocalFolders-maildir/Direction"   . ?d)
+		 ("/drafts"   . ?b)
+		 ("/ImapMail/mail.rouen-1.fr/sent"   . ?l)
+		 ("/sent"      . ?s)))
+	(add-to-list 'mu4e-bookmarks
+		     (make-mu4e-bookmark
+		      :name  "Gros messages"
+		      :query "size:3M..500M"
+		      :key ?g))
+	(add-to-list 'mu4e-bookmarks
+		     (make-mu4e-bookmark
+		      :name  "Pierre Non Lus"
+		      :query "not to:admin* and flag:unread"
+		      :key ?p))
+	(add-to-list 'mu4e-bookmarks
+		     (make-mu4e-bookmark
+		      :name  "Admin Non Lus"
+		      :query "to:admin* and flag:unread"
+		      :key ?a))
+	(add-to-list 'mu4e-bookmarks
+		     (make-mu4e-bookmark
+		      :name  "MGO / JLE"
+		      :query "from:Monique OR from:Jerome"
+		      :key ?d))
+		     (add-to-list 'mu4e-bookmarks
+				  (make-mu4e-bookmark
+				   :name  "Non lus -4 jours"
+				   :query "date:4d..today and flags:unread"
+				   :key ?d))
+
+	(setq
+	 message-send-mail-function   'smtpmail-send-it
+	 user-mail-address "Pierre.DEDIEU@rouen.fr"
+	 smtpmail-default-smtp-server "mail.rouen.fr"
+	 smtpmail-smtp-server         "mail.rouen.fr"
+	 smtp-mail-service 587
+	 smtpmail-local-domain        "rouen.fr"
+	 smtmail-stream-type 'starttls
+	 starttls-use-gnutls t
+	 user-full-name  "Pierre DEDIEU"
+	 mu4e-compose-signature
+	 (concat
+	  "Pierre DEDIEU\n"
+	  "Mairie de Rouen\n"
+	  "DSI - SOI - Infrastructures et Production\n"
+	  "Responsable Production et Architecture\n"
+	  "DSI - Production\n\n"
+	  "Téléphone: 02 35 08 86 37\n"
+	  "Courriel: pdedieu@rouen.fr\n\n"
+	  "Mairie de Rouen\n"
+	  "Place du Général de Gaule\n"
+	  "76037 ROUEN cedex 1\n\n"
+	  "Économisez du papier, n'imprimez ce message que si nécessaire\n"
+	  "Soyons écocitoyens!")
+	 mu4e-headers-fields '((:human-date . 12)
+	  (:flags . 6)
+	  (:from-or-to . 26)
+	  (:size . 8)
+	  (:subject)))
+	;; spell check
+	(add-hook 'mu4e-compose-mode-hook
+		  (defun my-do-compose-stuff ()
+		    "My settings for message composition."
+		    (set-fill-column 72)
+		    (flyspell-mode)))
+      #+END_SRC
+    - Configurer l'authentification sur le serveur Exchange
+      - Utiliser SeaHorse (MDP, ubuntu graphique)
+      - Se créer une clef PGP /GPG moi pour MangeChats
+      - lancer emacs en mode graphique pour que seahorse puise
+	intercepter la demande de clef
+      - saisir la passphrase dans seahorse en l'enregistrant
+      - Se créer dans emacs un fichier *~/.authinfo.gpg* avec comme
+	contenu crypté ~mail.rouen.fr 587 Pierre.Dedieu MonMotDePasse~
+      - Je m'ajoute un alias dans *~/.profile* soit ~max='emacs
+	~/.emacs.d/init.el -f mu4e '~
+      - Pour la correction avec flyspell-mode on peut utiliser *C-M-I*
+	qui prend le premier choix et peut être appelé plusieurs fois
+	pour les alternatives. Il est aussi possible de choisir les
+	possibilités par numéro *M-$* ou *Escape-$*
+      
+*** Quelques raccourcis clavier
+    - O :: Permet de changer le champ selon lequel est filtré la liste
+           des msg
+    - H :: Affiche l'aide info du module
+    - W :: Bascule l'affichage des mails de la conversation ou
+           seulement de ceux qui matchent
+    - ] :: Prochain message non lu (*[* pour précédent
+    - n/p :: mail suivant / précédent
+    - s :: saisie d'un filtre de recherche (*S* pour éditer le courant)
+    - / :: affiner la recherche actuelle (backslash pour revenir)
+    - H :: affiche l'aide (info) sur le mode
+    - r :: Refill (applique le déplacement selon les règles définies
+           pour le message)
+    - e :: Dans un message, Extract l'une des PJ
+	  
+*** Filtre de recherche avec mu
+    - La documentation la plus complète est dans *man mu-find*
+    - Il faut taper *s* puis taper une query
+    - *S* permet de modifier la requête courante
+    - Quelques exemples:
+      - from:dedieu date:today subject:Oracle not g:seen 'MotClef à' :: penser
+           à entourer une séquence par des ' si il faut des espaces
+      - to:monnier and not flag:seen cron :: noter que le nom est
+           incomplet et que si on utilise une * elle ne peux être
+      - date:2y..1m size:1k..200m m:Procedures:: filtre par date et taille
+      - pour selectionner par dossier utiliser *jo* et taper quelques
+	lettres du nom de dossier (incrémental). Sinon voir que des
+	regex peuvet être précisées encadrées par des /.
+      - pour rechercher un tag c'est tag:XXX
+       
+** Gestion des mails notmuch - Free/GMail
+*** Installation
+    - paquet offlineimap sous linux (dnf ou apt)
+    - configuration dans ~~/.offlineimaprc~
+      #+begin_example
+[general]
+accounts = MangeChats, Free
+
+[Account MangeChats]
+localrepository = Local
+remoterepository = Remote
+
+[Repository Local]
+type = GmailMaildir
+localfolders = ~/mail/Gmail
+
+[Repository Remote]
+type = Gmail
+remotehost = imap.gmail.com
+remoteuser = XXXXX@gmail.com
+remotepass = VotrePasswordDeGMail
+ssl = yes
+starttls = no
+sslcacertfile = /etc/ssl/certs/ca-certificates.crt
+# Voir https://console.cloud.google.com/apis/credentials?inv=1&invt=AbiUlQ&project=jovial-acronym-727 et définir une application web
+#  avec comme URI de redirection https://oauth2.dance/    
+oauth2_client_id = XXXXXX.googleusercontent.com
+oauth2_client_secret = XXXXXXXXX
+# Utiliser git clone https://github.com/google/gmail-oauth2-tools
+#  puis lancer
+#  python oauth2.py --generate_oauth2_token --client_id=XXXXXXXXXXX.apps.googleusercontent.com --client_secret=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
+#  passer le warning et copier le refresh_token obtenu
+oauth2_refresh_token = XXXXXXXXX
+
+[Account Free]
+localrepository = Local-Free
+remoterepository = Remote-Free
+
+[Repository Local-Free]
+type = Maildir
+localfolders = ~/mail/Free
+
+[Repository Remote-Free]
+type = IMAP
+remotehost = imap.free.fr
+remoteuser = XXXXXX@free.fr
+remotepass = XXXXXX
+ssl = yes
+starttls = no
+sslcacertfile = /etc/ssl/certs/ca-certificates.crt
+      #+end_example
+    - lancer une première fois un ~offlineimap setup~
+    - puis récup de la boite en local par ~offlineimap new~
+    - Installer le paquet notmuch sous linux (dnf ou apt)
+    - L'installer aussi dans emacs (package-list-packages)
+    - Installer le package ~bbdb~ pour gérer la base des contacts
+    - Configurer notmuch et l'envoi de mails dans default.el ou .emacs
+      #+begin_src elisp
+	(setq mail-user-agent 'message-user-agent)
+	(setq user-mail-address "MangeChats@gmail.com"
+	      user-full-name "Pierre DEDIEU")
+	;; smtp config
+	(setq smtpmail-smtp-server "smtp.gmail.com"
+	      message-send-mail-function 'message-smtpmail-send-it)
+	;; report problems with the smtp server
+	(setq smtpmail-debug-info t)
+	;; add Cc and Bcc headers to the message buffer
+	(setq message-default-mail-headers "Cc: \nBcc: \n")
+	;; postponed message is put in the following draft directory
+	(setq message-auto-save-directory "~/mail/draft")
+	(setq message-kill-buffer-on-exit t)
+	;; change the directory to store the sent mail
+	(setq message-directory "~/mail/")
+	(defun notmuch-remove-deleted ()
+	  "Efface les messages taggés deleted"
+	  (interactive)
+	  (shell-command "notmuch search --output=files tag:deleted | tr '\\n' '\\0' | xargs -0 -L 1 rm")
+	  (sleep-for 0.3)
+	  (notmuch-poll-and-refresh-this-buffer)
+	  )
+	(defun notmuch-exec-offlineimap ()
+	    "execute offlineimap pour syncho mails locaux et serveurs"
+	    (interactive)
+	    (set-process-sentinel
+	     (start-process-shell-command "offlineimap"
+					  "*offlineimap*"
+					  "offlineimap -o")
+	     '(lambda (process event)
+		(notmuch-refresh-all-buffers)
+		(let ((w (get-buffer-window "*offlineimap*")))
+		  (when w
+		    (with-selected-window w (recenter (window-end)))))))
+	    (popwin:display-buffer "*offlineimap*"))
+	(add-to-list 'popwin:special-display-config
+		     '("*offlineimap*" :dedicated t :position bottom :stick t
+		       :height 0.4 :noselect t))
+	(defun notmuch-tag-large-mails (taille)
+	  "Contourne l'absence de notion de taille dans notmuch la taille en paramètre"
+	  (interactive "nTaille max en Mega octets: ")
+	  (let ((cmd (format "for msg in $(
+	  for file in $(find ~/mail/ -type f -size +%sM);
+	    do
+	      grep -i ^Message-Id $file | sed -e \"s/^.*<\\(.*\\)>.*/\\1/\";
+	    done
+	    );
+	      do
+		notmuch tag +large id:$msg;
+	      done"
+			     taille)))
+	    ;;(message cmd)
+	    (shell-command cmd)
+	    (notmuch-search "tag:large")
+	    (delete-other-windows)
+	  ))
+	;; Pour les envois:
+	(setq user-mail-address "MangeChats@gmail.com"
+	      user-full-name "Pierre DEDIEU")
+	(setq mail-user-agent 'message-user-agent)
+	(setq message-send-mail-function 'smtpmail-send-it
+	      smtpmail-stream-type 'starttls
+	      smtpmail-smtp-server "smtp.gmail.com"
+	      smtpmail-smtp-service 587)
+      #+end_src
+*** Utilisation
+    - lancement par ~notmuch-hello~ (ou définir un raccourci clavier)
+    - Tous les mails sont dans une seule base, et le principe est de
+      faire des requêtes voir de positionner un pour plusieurs tags
+      sur les messages, puis de créer des queries (similaires à des
+      dossier virtuels)
+    - Les dernières requêtes sont conservées à l'écran d'accueil et
+      elles peuvent être sauvées pour les prochaines sessions
+    - les commandes sont (pense à TAB pour completion)
+    - s :: Search, saisie d'une query
+      - E :: Edit, modifier la requête dont le résultat est affiché
+      - j :: Jump, lancer une query par défaut ou sauvée par
+	l'utilisateur (choix dans une liste)
+      - o :: revert list Order
+      - Z :: tree view of current list
+      - l :: Limit, filtre la liste par une requête complémentaire
+      - +/- :: ajoute/retire un tag pour le mail courant ou la sélection (C-space)
+      - * +/- :: ajoute ou retire des tags aux mails de la liste en cours
+      - m :: écrire un Mail
+      - r :: Reply (*R* rplay-all)
+      - q :: Quit, retour à hello depuis une liste de résultats²
+    - Mots clefs pour les recherches:
+      - from: / to: :: Expéditeur ou Destinataire
+      - date: start..send :: sélection entre start et end (et on peut
+        omettre start ou end), qui peuvent s'écrire
+	- en absolu avec HH:MM ou MM/YYYY ou DD/MM/YYYY
+	- en relatif avec *nnM* pour nn mois avant aujoud'hui, *nnd*
+          pour nn jours, voir *two weeks*
+      - subject: :: suivi d'un mot ou d'une regex
+	- ex: subject:/[qQ]antum/) le mot peut inclure *** sinon ce
+          sera le mot complet
+      - body: :: idem pour le corps du mail
+      - tag: :: un des tags définis par l'utilisateur ou par défaut
+        (équivallent à is: ?)
+	- tag:attachment :: pour sélectionner les mails ayant une pièce jointe
+      - attachment:  :: pour rechercher un mail avec une pièce jointe
+        dont le nom commence par (supporte aussi une regex avec ~/regex/~)
+    - Joindre des critères avec *and*, *or*, *not*
+      - plus spécifique *NEAR* ou *ADJ** entre deux mots pour que les
+        2 soient à moins de 10 mots
+    - Exemples
+      - from:Dedieu and subject:internet :: mails de Pierre DEDIEU
+        comme de pierre.dedieu, dont le sujet contient Internet ou
+        internet ou INTERNET (les recherche sont case insensitives)
+      - from:dedieu and not from:pierre :: mails des Dedieu hormis Pierre
+      - from:dedieu and maison :: mails des Dedieu contenant maison
+        (sujet, contenu ou autre)
+      - date: 3w.. :: mails des trois dernières semaines
+      - folder:"/.*/Trash$/" :: ceux qui sont dans la poubelle de gmail
+      - date:10/2018..12/2018 and to:dedieu and from:dedieu ::
+	reçu entre octobre et décembre 2018 envoyé par dedieu et à
+        destination de dedieu
+	
+* Macros
+  Enregistrer avec *F3* puis fin par *F4*, exécution via *F4* avec
+  préfixe par *C-u NN* ou *M-NN* pour répéter une macro (peut être
+  appliqué pour toute autre commande). Fonction avancées via *C-x
+  C-k*, noter qu'on peut appeler une des autres commande juste après
+  sans retaper ce préfixe.
+  - e :: pour éditer la dernière macro en clair.
+  - C-e :: pour éditer une macro choisie par son binding ou son nom
+  - n :: name last kbd macro
+  - r :: region, applique une macro à la région
+  - l :: lossage, édition des 300 dernières frappes comme macro
+  - b :: bind, pour associer à une touche.
+  - C-n/C-p :: next/previous, affichage des différentes macros ring.
+  Après l'avoir renommée, on peut insérer le code lisp d'une macro
+  dans le fichier de conf via *M-x insert-kbd-macro* pour la retrouver
+  lors de prochaines sessions (*C-u M-x insert-kbd-macro* pour insérer
+  en plus l'assignation de touches).
+
+  L'alternative est *C-x (* pour commencer une macro et *C-x )* et
+  *C-x e* pour l'exécuter. *e* permet ensuite de répéter la macro. Il
+  est possible aussi de demander NN éxécutions avec *C-u NN C-x e* ou
+  *ESC NN C-x e*.
+
+  Noter qu'on peut utiliser un compteur pour insérer une valeur qui
+  s'incrémente dans le contenu de la macro, au moment ou on doit
+  placer la valeur, taper *F3*. Par défaut la valeur commence à 0.
+
+  *C-u NNN F3* pour que le compteur soit incrémenté de NNN à chaque
+  itération.
+
+  *M-x edit-last-kbd-macro* permet de voir/modifier la dernière
+  macro. Finir avec *C-c C-c*
+
+  Il est possible d'insérer le contenu d'une variable dans une macro
+  en utilisant ~C-u M-: nom-variable~
+
+* Programmation et debug
+** Debug de Bash
+  - installer *bashdb* (apt-get ou rpm)
+  - Installer via MELPA *realgud* pour disposer de *bashdb* dans emacs.
+  - ajouter dans son *.emacs* une ligne *(require 'realgud)*
+  - depuis un script shell, *M-x bashdb* lance le debug du script. La
+    position courante dans le script est affichée avec un triangle en
+    début de ligne. Le source est en lecture seule sauf si on termine
+    le debug (avec *k*)
+  - On peut cliquer devant une ligne du src pour y définir un
+    breakpoint, un deuxième clic l'enlève (mais il y reste une trace
+    persistante dans l'affichage: bug ?)
+  - Les commandes disponibles incluent:
+    - n :: pour pas à pas
+    - display nomvar :: pour afficher la variable nomvar (sans le
+         $ final) lors de chaque arrêt du debugger.
+    - c :: continue, pour exécuter le script jusqu'au prochain
+         breakpoint ou à la fin
+    - R :: Restart, reprend le debug au début du script
+    - b NN :: définir un breakpoint à la ligne NN (on peut préciser
+         une condition pour ne s'arrêter que si elle est remplie).
+    - action NN comande :: ajoute une action (bash) à exécuter lors de
+         chaque arrêt du debugger. µPb je ne sais pas effacer une
+         action sans quitter le debugger !
+    - pr $var :: Print de la valeur de $a.
+    - x $a :: eXamine, proche de print mais sait gérer des liste des
+         fonctions ...
+    - L :: affiche breakpoints, watch, actions définies
+    - info display :: affiche les displays définis
+    - undisplay NN :: supprime un display
+		      
+** Debug de C et C++
+  - Penser à compiler en debug , soit pour un seul fichier *M-x
+    compile* en choisissant *gcc -g %*
+  - Noter que pour se positionner sur la prochainee erreur de
+    compilation on peut utiliser *M-g n*
+  - Autre options de compilation utilisées
+    - -o nomprogramme :: pour forcer le nom du programme (sinon a.out)
+    - -WAll :: tous les warnings
+  - En standard sur emacs, *M-x gdb*
+  - *r* pour lancer le programme
+  - *b main* pour mettre un point d'arrêt au début de la fonction
+    main(), on peut aussi préciser le no de ligne. On peut ajouter une
+    condition en ajoutant *if condition*
+  - condition bnum cond :: modifie la condition du breakpoint (voir
+       *info b* pour connaitre les bnum)
+  - *C-c C-c* pour l'interrompre
+  - *display NomVar* pour afficher à chaque arrêt le contenu d'une
+    variable (*p NomVar* l'affiche une seule fois).
+  - le *clic* devant une ligne en C y place un point d'arrêt, un nouveau
+    l'enlève.
+  - le *Ctrl-clic* devant une ligne en C permet de désactiver /
+    réactiver le point d'arrêt.
+  - *M-x speedbar* pour l'accès direct aux fonctions et structures.
+  - En GDB on y trouve l'affichage des watchs, qu'on crée avec *C-x C-a
+    C-w* (sur la variable, ou *C-u C-x C-a
+    C-w* pour la saisir)
+    
+*** Indentation et styles
+    Au delà du programme externe *indent* qui est plus pramétrale,
+    dans un source en c-mode
+    - C-c . :: choisir le style d'indentation (TAB pour afficher les
+               choix tels stroustrup, gnu, k&r, linux, bsd ...)
+    - C-x h C-M-\ :: Sélectionne tout le buffer et formate avec le
+                     style courant.
+
+** Python
+  - C-c C-z :: switch to python shell (si pas lancé, utiliser *C-c
+               C-p*)
+  - C-c C-c :: send current Buffer to python shell, donc execute le
+               programme si on est dans le module principale.
+  - C-c > :: indente la région sélectionnée
+  - C-c < :: désindente la région sélectionnée
+  - M-. :: Recherche de la définition d'une variable ou fonction
+    - doit être précédé par une étape de génération des TAGS our le
+      répertoire et les sous-répertoires concernés
+      #+begin_src bash
+      find . -type f -name '*.py' | xargs etags
+      #+end_src
+    - pour un simple répertoire, voir ~M-x compile RET etags *.py~
+
+  - Voir *PyCharm* comme IDE Python
+
+*** Debug
+  - Ajouter ~import pdb; set_trace();~ dans un code pour y placer un
+    point d'arrêt. En python 3.7 mini on peut faire ~breakpoint()~
+    - Noter que si on défini dans le programme ~PYTHONBREAKPOINT=0~ les
+      appels à breakpoint() sont ignorés
+  - M-x pdb :: Permet de lancer le programme dans le debugger, ma
+               séquence type est (dans la fenêtre pdb):
+    - b N , condition :: ajouter un breakpoint confitionnel à la ligne
+         *N* (ou *b nom-module:N* pour autre fichier)
+    - b nom_fonction :: est une alternative pour arrêter à l'entrée de
+      la fonction, et la version complète est ~b fichier.nom_fonction~
+    - r :: run pour lancer le programme jusqu'au retour de la fonction
+      courante
+    - disable / enable bp :: pour désactiver temporairement
+    - ignore bp NN :: le BP ne s'active qu'au bout de NN passage
+    - condition bp :: mettre une nouvelle condition au bp
+    - commands bp ::  taper une liste de cmd pdb à faire lors de
+      l'arrêt (finit par ~end~)
+    - c :: continue jusqu'au prochain bp
+    - p var :: affichage de la variable
+    - pp var :: pretty print affichage multiligne pour les
+      dictionnaires ou autre structures
+    - whatis expression :: affiche le type de expression
+    - display expression :: affiche la valeur de l'expression à chaque
+      arrêt (retirer avec ~undisplay exp~)
+    - l . :: affiche source autour du point
+    - a :: affichage des paramètres de la fonction courante
+  - customize :: rechercher *pdb* et remplacer si nécessaire *Gud pdb
+                 command name* par le chemin complet */usr/bin/pdb3*
+  - pdb depuis le buffer source ::
+    - F10 :: next, avance d'une ligne
+    - F11 :: step, idem mais entre dans les sous programmes
+    - F5 :: continue
+    - F12 :: break
+    - clic sur 1ière colonne d'une ligne :: ajout d'un breakpoint
+  - Alternative ~realgud~ et 
+
+*** Pony-mode
+   - installable via *package-list-package*, puis définie un
+     *pony-mode* à tester pour lancer le serveur et plus. Je note
+     qu'il est dispo de base sur Spacemacs MAIS ne fonctionne pas sur
+     mon PC:
+     - Semble se faire en ouvrant le fichier settings.py, mais
+       n'arrive pas à retrouver le répertoire racine du projet, ou le
+       pythonpath... mes essais ont tous échoués.
+     - nécessite de forcer l'interpréteur python à /usr/bin/python3
+     - n'arrive pas à utiliser le .ponyrc pour spécifier les infos du projet
+   - La lecture de pony.el et la page [[https://marmalade-repo.org/packages/pony-mode][d'un blog]] me donnent une piste pour
+     comprendre l'échec du lancement du serveur par pony: malgré un customize
+     qui précise d'utiliser python3... c'est toujours python 2.7. Il semble que
+     la création d'un fichier *.ponyrc* dans le répertoire root du projet, soit
+     le répertoire de manage.py, avec comme contenu:
+     #+BEGIN_SRC emacs-lisp
+       ;; Pony mode config for my project
+       (make-pony-project
+	:python "/usr/bin/python3")
+     #+END_SRC
+
+*** python-django
+   - Installer le package via *list-package* et MELPA.
+   - Après installation, utiliser *python-django-open-project* que
+     j'ai assigné sur Tosh à *C-c C-g*
+   - cette fonction fait référence à un *trouve.settings* qu'il faudrait
+     définir
+   - De nombreux raccourcis dans la fenêtre obtenue:
+     - crr :: pour lancer le serveur
+     - t :: pour reconstruire les tags (le fichier TAGS est à la
+            racine du projet)
+     - F10 :: voir le menu puis *Django* pour rappeler qq raccourcis
+   - voir la [[file:~/Documents/Django/retrouve/django-documentation.org][doc de retrouve]]
+
+** Perl
+   - M-x perldb :: lance le debugger sur le source perl du buffer en cours
+     - n :: next, exécute une ligne et se place sur la suivante
+     - s :: step, exécute une action élémentaire (entre si besoin dans
+            une fonction)
+     - { commande :: défini une commande à lancer avant chaque retour
+                     au prompt (penser à finir par ;)
+     - {{ commande :: ajoute une commande à lancer avant chaque retour au prompt
+     - { ? :: affiche les action définies
+     - { * :: efface les actions
+     - x var :: affiche le contenu d'un tableau ou d'un hash
+     - p var :: affiche une variable
+     - b N if (condition) :: pose un point d'arrêt conditionnel à la ligne N.
+       
+** elpy pour les programmes python
+*** Installation
+   - Voir le package elpy
+   - Voir l'utilisation sur [[https://github.com/jorgenschaefer/elpy/wiki/Installation][une page sur l'init]]
+   - Voir pdf [[https://media.readthedocs.org/pdf/elpy/latest/elpy.pdf][de documentation]] et peut-être [[http://onthecode.com/post/78817537628/emacs-on-steroids-for-python-elpy-el][un survol]] voir ~elpy-mode~.
+   - ~elpy-config~ permet de faire un point sur la config. Il semble
+     manquer un backend, rope par exemple via ~pip install --user rope~
+   - l'IDE est surtout tatasse dans ses suggestions, comme celles
+     concernant la longueur maxi des lignes (voir à changer le
+     paramètre pour augmenter la limite ?). Pour valider les modifs et
+     voir les suggestions qui restent, surtout si des lignes ont été
+     ajoutées, sauver le fichier.
+     
+*** Utilisation
+   - C-c C-n :: se positionner sur la suggestion suivante
+   - C-c C-p :: se positionner sur la suggestion précédente.
+   - M-X ~elpy_mode~ :: pour activer / désactiver elpy
+   - Esc-TAB :: completion auto de elpy
+   - import :: elpy n'aime pas les ~import *~ il faut lister les
+               objets qui sont utilisés (la complétion y aide, elle
+               propose les objets existants dans l'import).
+** java
+  - jde devenu jdee : pas trouvé par ou le configurer
+  - peut être https://github.com/iocanel/idee
+  - un package jetbrain bridge vers l'ide plus classique ??
+  - une démache appuyée sur eclipse !
+    http://www.goldsborough.me/emacs,/java/2016/02/24/22-54-16-setting_up_emacs_for_java_development/
+  - emacs lsp-java ???
+    https://xpressrazor.wordpress.com/2020/11/04/java-programming-in-emacs/
+** eLISP
+  Noter que pour common lisp les spécificités sont dans [[file:CommonLisp.org][un fichier dédié]]
+  - C-h-v :: pour afficher le contenu d'une variable
+  - C-M-x :: pour exécuter l'expression dans laquelle se trouve le point
+  - M-: :: pour évaluer l'expression tapée dans le minibuffer
+  - C-x e :: Exec, permet d'exécuter l'expression immédiatement avant
+    le curseur (en particulier dans scratch).
+  - C-j :: insére en plus le retour dans le buffer (pas en std ?)
+  - (interactive) :: dans une fonction *defun*, permet de la rendre
+                     accessible avec *M-x*
+    - (message "Voici %d raisons d'écrire du lisp %s" (+ 1 1) "WhiteHat")
+    - Un message ainsi envoyé apparaît dans la statusbar, mais on peut trouver
+      l'historique des messages avec *C-h e* dont on peut sortir par *q*.
+    - noter qu'on peut définir des paramètres avec prompt dans une string
+      type ~(interactive "sServeur: \nsChemin: ")~
+      #+begin_src elisp
+	(defun my-dired (srv chemin)
+	"Essai d'ouverture d'un répertoire distant avec adminpdedieu
+	 via tramp, yubikey et sudo"
+	(interactive "sServeur: \nsChemin: ")
+	(find-file
+	 (format "/ssh:adminpdedieu@%s.intranet.rouen.fr|sudo:%s.intranet.rouen.fr:%s"
+		 srv
+		 srv
+		 chemin)))
+      #+end_src
+  - C-M i :: Completion du mot commencé (variable, fonction ...)
+  - C-u C-M x :: instrumenter la fonction autour du point, qui permet
+    d'y mettre un point d'arrêt via *b*. l'appel de la fonction
+    instrumentée fait arrêter le debug à son entrée.
+    - Le debug peut se faire avec
+      - n ou SPC :: pour next,
+      - h :: here pour continuer jusqu'à la s-ex du curseur
+      - b :: breakpoint, pour poser un breakpoint
+      - g :: go jusqu'au prochain breakpoint (*G* pour finir le debug)
+      - i :: into pour faire du pas à pas dans la fonction en cours
+      - e :: eval
+      - d :: display backtrace
+      - ? :: aide
+  - Noter que j'ai pu planter emacs et *C-x e* retournait
+    régulièrement *no inferior list process* (seul la sortie d'emacs a
+    permis la correction)
+  - paredit-mode :: un package optionnel, qui permet la saisie
+    automatique de la deuxième parenthèse (voir Commmon-Lisp.org)
+    - C-M Space :: sélectionne la sexp courante
+    - C-M-e :: Se place à la fin du defun courant (pratique avant C-x
+      e pour la recompiler
+    - C-k :: efface jusqu'à la fin de ligne, sauf si elle contient des
+      fins d'expressions commencées avant le point
+    - M-/ :: complete le symbole commencé, y compris avec des noms déjà présents dans le fichier
+  - Exemples de code
+    #+BEGIN_SRC elisp
+      (defun delta(a b c)
+      "Retourne le discriminant de l'équation ax2+bx+c=0"
+      (-
+       (* b b)
+       (* 4 a c)))
+
+      (defun degre2(a b c)
+	"Retourne les deux racines de l'équation ax2+bx+c=0"
+	(let ((del (delta a b c))
+	      (den (* 2 a)))
+	  (list
+	   (/ (+ (- b) (sqrt del)) den)
+	   (/ (+ b (sqrt del)) den))))
+
+      (defun increment-number-at-point ()
+	"incrémente l'entier sur lequel se trouve le curseur"
+	(interactive)
+	(skip-chars-backward "0-9")
+	(or (looking-at "[0-9]+")
+	    (error "No number at point"))
+	(replace-match (number-to-string (1+ (string-to-number (match-string 0))))))
+      (global-set-key (kbd "C-c =") 'increment-number-at-point)
+     #+END_SRC
+    
+*** Minor-mode
+  Voir Writing GNU Emacs Extensions Chap 7
+  - Définir une variable locale au buffer *NOM-mode* ~(defvar-local NOM-mode)~
+  - Définir une fonction pour entrer/sortir du mode
+    #+begin_src elisp
+      (defun NOM-mode (&optional arg)
+	"NOM minor mode"
+	(interactive p)
+	(setq NOM-mode
+	      (if null arg
+		(not NOM-mode)
+		(> (prefix-numeric-value ar) 0))
+	(if NOM-mode
+	    ; entrée dans le mod
+	    ; sortie du mode))     
+    #+end_src
+  - Ajouter une association à la alist ~minor-mode-alist~ pour définir
+    un indicateur à afficher dans la modeline genre ~(NOM-mode . " NOM")~
+    #+begin_src elisp
+      (if (not (assq 'NOM-mode minor-mode-alist))
+	  (setq minor-mode-alist
+		(cons '(NOM-mode " NOM")
+                      minor-mode-alist)))
+    #+end_src
+*** Major_mode
+  Voir Writing GNU Emacs Extensions Chap 9
+  
+*** Major-mode basé sur un mode existant
+  Utilisation d'un package dédié pour une macro qui simplifie l'écriture du mode
+  
+*** Affichage des macros elisp
+    - Package à installer: *macrostep*
+    - fourni le minor-mode *macrostep-mode*
+    - quand activé
+      - e :: expand, permet de remplacer la macro courante par sa valeur
+      - c :: collapse, pour revenir à l'affichage normal
+      - q :: pour sortir de ce minor-mode (sinon read-only)
+    - les macros elisp se définissent avec ~(defmacro NOM ...)~
+
+*** Fabrication d'epub
+    Dans un premier temps des méthodes lisp m'ont été nécessaires
+    (gardées pour assimiler elisp). Maintenant j'ai trouvé le package
+    *ox-pandoc* qui me simplifie cela, avec la fonction
+    *org-pandoc-export-to-epub3*
+    
+    #+BEGIN_SRC emacs-lisp
+      (defun convert-md-2-epub ()
+	"Convertion de markdown en epub avec pandoc pour le buffer courant"
+	(interactive)
+	(let* (
+	       (debut (replace-regexp-in-string "\\..*" "" (buffer-file-name)))
+	       (cmd (format "pandoc -f markdown -t epub -o %s.epub %s"
+			    debut
+			    (buffer-file-name))))
+	  (message "Yapluka lancer %s" cmd)
+	  (shell-command cmd)))
+    #+END_SRC
+*** Conversions via pandoc sur Apple (org en texte MS Office et epub)
+    #+BEGIN_SRC emacs-lisp
+      ;; Suite à disparition export odt, interface à pandoc ...
+      (defun convert-org-to-docx ()
+	"Converti le buffer courant en MS-Office Word"
+	(interactive)
+	(let* ((dest (replace-regexp-in-string "\.org$" ".docx" (buffer-file-name)))
+	   (cmd (format "pandoc -f org -t docx %s -o %s" (buffer-file-name) dest)))
+	  (shell-command cmd)
+	  (message cmd)))
+      (defun convert-org-to-epub ()
+	"Converti le buffer courant en epub"
+	(interactive)
+	(let* ((dest (replace-regexp-in-string "\.org$" ".epub" (buffer-file-name)))
+	   (cmd (format "pandoc -f org -t epub %s -o %s" (buffer-file-name) dest)))
+	  (shell-command cmd)
+	  (message cmd)))
+    #+END_SRC
+    
+*** Buffer dired ouvers
+    Voir assoc ~dired-buffer~
+*** Buffer non associé à un fichier
+
+** SQL et CLI
+  - M-x sql-mysql :: Quand on édite un fichier SQL, pour précider le
+                     type de variante utilisée (interactif pour user,
+                     pwd, server)
+  - C-c C-z :: fait apparaitre le buffer *SQL* associé avec les
+               retours des commandes mysql
+  - M-x toggle-truncate-line :: Pour éviter les retours à la ligne
+  - C-c C-c :: Envoyer le paragraphe courant du buffer sql vers le
+               prompt
+  - C-c C-r :: idem pour la région sélectionnée
+  - M-x sql-product-interactive :: pour un buffer dont le type SQL
+       n'est pas correct
+  - En principe on peut corriger une ligne dans la table résultat d'un
+    select simple. Mais comment valider la modification ??
+    
+** TAGS
+  Pour indexer et rechercher dans les sources d'un répertoire
+  - C-c T :: pour compiler tous les tags dans le répertoire courant
+  - M-. :: pour rechercher le mot sous le curseur
+  - M-* :: pour revenir dans l'historique avant la dernière recherche de tag
+  - M-x tag-search :: pour rechercher toutes la première occurrences d'une regexp
+  - M-, :: permet de chercher la suivante ...+mail+reader+exchange&t=canonical&ia=qa
+	   
+** Folding
+   - C-c @ C-M-h :: Hide All, plie tous les niveaux
+   - C-c @ C-M-s :: Show All, déplie tous les niveaux
+   - C-c @ C-c :: bascule, le niveau courant
+		  
+** Docker
+   - Pré-requis: *docker.io* sur la machine et user dans le groupe
+     *docker*
+   - Installer via MELPA le package *Docker*
+   - Optionnellement ajouter *dockerfile-mode* qui autorise le build
+     via *C-c C-b* (depuis le fichier dockerfile, mais il faut passer
+     en *dockerfile-mode* avant.
+   - M-x docker-images :: liste les images disponibles sur le
+        système. Des commandes via une touche sont disponibles pour
+        l'image sélectionnée, puis *R* lance le run:
+     - h :: Aide sur le mode avec la liste des commandes
+     - R :: Run popup, permet de lancer un container avec aide à la
+            saisie des paramètres de *docker run*, les commandes
+            disponibles incluent (un historique est dispo avec haut/bas):
+       - =m :: pour préciser le nom de l'image
+       - -d :: pour detach
+       - =e :: pour ajouter des variables d'environnement comme
+               ~CONFIGFILE=configTEST.py~
+       - =p :: pour ports, par exemple 8080:80
+     - D :: Delete, pour effacement d'une image via pop-up
+     - C-x C-s :: permet de sauver les options du run
+   - M-x docker-containers :: liste les containers, avec commandes via
+        une touche, ma sélection:
+     - I :: Inspect popup, puis *C* pour afficher la commande complète du run
+     - L :: Log, voir les logs du container
+     - O :: stOp, arrêt du container
+     - S :: Start, lancer le container (qui doit être stoppé)
+     - b :: Shell sur l'image
+     - C :: Copy, choix entre *F* from et *T* to pour copie de fichier
+            ou répertoire d'un container vers localhost ou
+            réciproquement.
+     - D :: Delete, pour supprimer un container (-f possible si il est up)
+     - f :: file, ouvre un dired sur les fichier du container, un
+            return et on peut les voir et même modifier en live
+            (penser si OK à copier les fichiers modifier dans les
+            sources d'origine).
+     - R :: Restart du container
+	    
+** Puppet
+   - il existe un *puppet-mode* dispo sur le dépôt melpa optionnel
+   - une fois activé, il permet
+     - la coloration syntaxique et l'indentation auto (2 espaces)
+     - C-c C-a :: alignement des => pour la sélection
+     - C-M-a / e :: le déplacement sur la ressource pécédente / suivante
+     - C-c C-l :: vérification de syntaxe par puppet-lint (installer
+                  via ~apt install puppet-linl~
+		  
+** Comparaisons
+   - M-x ediff :: Après saisie des deux noms de fichiers, on a deux
+                  buffers et une petite fenêtre de commande.
+     - | :: pipe, permet d'afficher les deux buffers verticalement (bascule)
+     - n :: permet de se place sur la prochaine différence (*p* la
+            précédente)
+     - a :: copie la différence de A vers B
+     - b :: copie la différence de B vers A
+     - v et V :: scroll les deux buffers (vers le bas / haut)
+     - < et > :: scroll les deux buffers (vers la gauche / droite)
+   - C-x sd :: permet d'afficher les différences des buffers ouverts avec
+               leurs fichiers (puis de choisir de les sauvegarder ou pas)
+   - M-x ediff-current-buffer :: est une alternative à la commande
+	précédente, mieux présenté et c'est du ediff, voir son
+	fonctionnement.
+   - M-x ediff-compare-directories :: Lance une comparaison de deux
+	répertoires, taper ensuite *D* pour afficher les différences,
+	voir copier les fichiers qui seraient d'un seul côté via *C*
+	(demande une confirmation).
+   - M-x ediff-current-buffer :: Pour comparer le buffer courant avec
+     son fichier (avant de sauver, quelles sont les différences ?)
+       
+** Suivi des versions de sources
+*** Intégration dans emacs
+     Suivi des modification du fichier en cours (bzr par exemple ... mais marche avec git)
+     - C-x vv :: Next action de Version Control (enreg new file, new version ...)
+     - C-x vl :: Log de Version Control pour un fichier
+       - = :: Pour voir les différences amenée par cette version
+       - n p :: next/previous message
+       - < > :: début/fin du buffer
+       - g :: revert buffer (rafraîchi son état)
+       - e :: edit change comment
+       - q :: quit
+     - C-x vd :: Version Control pour un répertoire (edited/registered ...)
+       - L :: log de toutes les modifs. Pour chaque ligne *=* permet de
+	      voir les modifs du fichier concerné
+       - Return :: pour afficher le fichier
+       - o :: Visit file in other window
+       - v :: pour next-action sur la ligne courante (ou les sélections)
+       - = :: pour afficher ce qui a changé sur un fichier (edited !)
+	 - n :: pour se placer sur la prochaine différence
+	 - p :: pour se placer sur la précédente différence
+       - l :: log (voir les différent logs du fichier)
+       - m :: Mark pour sélectionner un fichier (M tous les fichiers dans le même état que le courant)
+       - u :: Unmark pour dé-sélectionner le fichier (U pour tous les fichiers dans le même état que le courant)
+       - P :: Push, mais échoue si on n'a pas stocké dans la config du
+	      répertoire courant de git le username/password. Soit dans le fichier .git/config
+	      #+BEGIN_EXAMPLE
+	      [remote "origin"]
+	      url = http://pdedieu:XXXXXXX@hdvgen15.intranet.rouen.fr/pdedieu/IKV.git
+	      #+END_EXAMPLE
+       - q :: pour sortir de vc-dir
+     - M-x vc-version-diff :: différences entre deux révisions pour un
+       fichier (voir si intéressant par rapport à *l --*)
+     - Pour utiliser ediff comme mergetool :: le choix n'existe pas
+	  sauf à ajouter dans *~/.gitconfig*
+	  #+BEGIN_EXAMPLE
+	  [mergetool "ediff"]
+	  cmd = emacs --eval "(ediff-merge-files-with-ancestor \"$LOCAL\" \"$REMOTE\" \"$BASE\" nil \"$MERGED\")"
+	  #+END_EXAMPLE
+	  et il est alors possible d'utiliser *git mergetool -t ediff FILE*
+     - Suggestions de config Git:
+       #+begin_src bash
+       git config --global pull.rebase true
+       git config --global fetch.prune true
+       git config --global diff.colorMoved zebra
+       #+end_src
+*** magit
+    - Installation via ~package-list-packages~
+    - commande initial ~magit-status~ (C-x g)
+      - si le répertoire n'est pas encore un projet git (pas de sous-dossier .git)
+	- propose de le créer
+	- pour ajouter le remote gitlab.rouen.fr utiliser *Ma* chez nous
+          le nommer *rouen* et donner l'URL du projet PREALABLEMENT créé
+          dans giltab (sans Readme par défaut svp, le créer dans notre rep local si besoin)
+	- propose d'en faire le remote.pushDefault par défaut: bonne idée
+    - Commencer par définir une nouvelle branche pour y inclure les
+      modifications envisagées (en générale basée sur dev)
+    - Une fois validées les modifications, les merger avec la branche
+      d'origine. Pour cela se placer sur la destination et merger la
+      branche plus avancée
+    - Commandes:
+      - g :: refresh
+      - ? :: aide sur les commandes disponibles (contextuelle)
+      - TAB :: pour étendre/reduire la section courante
+      - bl :: pour se placer sur une autre branche locale
+      - bc :: pour créer une nouvelle branche et faire un checkout
+      - lL :: graphe des branches locales
+      - l -- ::  Voir les modifications d'un fichier particulier du
+        projet (après *--* le nom du fichier est demandé, saisie avec
+        auto completion)
+      - s :: Stage, pour ajouter les modifications d'un fichier
+        existant au prochaine commit. Noter que si utilisé dans la
+        section *Untracked files*, cela permet d'ajouter un fichier ou
+        un répertoire au GIT lors du prochain commit.  Il est aussi
+        possible de ne *stager qu'une partie des modifications* d'un
+        fichier (selectionner via ~C-SPACE~ et flèches dans la liste des
+        modifications, avant d'utiliser ~s~)
+      - zz :: Creation d'un stash, qui permet de mettre en boite les
+        modifs unstaged. Nécessaire si on veut changer de branche avec
+        des modifs en attente de commit
+      - cc :: Commit (pousse les modifications staged sur le dép local
+	pour la branche courante)
+      - M a :: ajouter un remote (demande un nom et une URL
+      - Pu :: Push de la branche locale vers le GIT distant (pour
+	Rouen, ouvrir le VPN avant)
+    - La section *unmerged into* liste des modifications disponibles
+      dans le dépôt local et pas sur un distant (il manque un push
+      pour régulariser)
+      - Voir comment est déterminé le remote sur lequel on alerte
+        (quand il y en a deux je ne maitrise pas lequel est notifié)
+      
+*** Préparation du projet sur git
+   Issu de la doc IKV
+   - Il faut installer le paquet git.
+   - Avant de définir un dépot, il vous faut définir un *utilisateur*,
+     soit ~git config --global user.name "Pierre DEDIEU"~ et ~git
+     config --global user.email pdedieu@rouen.fr~
+   - Se placer dans le répertoire de l'application à pousser
+   - Optionnellement, créer un fichier ~.gitignore~ avec les noms des
+     fichiers à ignorer (... avec des commentaires commençant par
+     #). En fait il existe un *.git/info/exclude* qui semble avoir
+     ce but et est créé par le ~git init~.
+   - *Créer le dépôt* git local via ~git init~
+   - Pour ajouter tout *l'ensemble du répertoire* courant dans le dépôt
+     local: ~git add .~ (. peut être remplacé par le nom d'un fichier)
+   - Par défaut cela crée une seule branche *master*
+   - Il peut être intéressant de mettre en place deux branches, pour
+     moi *develop* via ~git checkout -b develop~
+   - Le *passage d'une branche à l'autre* se fait via ~git checkout nombranche~
+   - Pour incorporer les modifs de la branche dev dans la branche
+     master, se placer dans la branche master (~checkout master~) et
+     incorporer les modifs avec ~git merge develop --no-ff~ voir man
+     git-merge.
+   - Pour pousser le git local *sur un serveur*, et dans le cas du
+     dépôt GitLab de la mairie (créer le projet IKV sur l'interface web
+     avant), il faut
+     - Définir la destination par ~git remote add origin
+       http://hdvgen15.intranet.rouen.fr/pdedieu/IKV.git~
+     - Envoyer le contenu de prod par ~git push origin master~ (en
+       étant en checkout master)
+     - Envoyer le contenu de dev par ~git push origin develop~ (en étant en
+       checkout develop)
+   - Pour récupérer le contenu du git sur une *autre machine*, faire
+     dans un répertoire vide (pas trouvé comment éviter que ce
+     répertoire contienne le sous répertoire IKV du projet, à défaut je
+     déplace le répertorie après coup) ~git clone
+     http://hdvgen15.intranet.rouen.fr/pdedieu/IKV.git~
+   - Depuis une machine pour MAJ la branch courante avec un des
+     contenus distants, ~git pull origin master~
+   - Après une série de modifs sur le git local en dev, pour les déposer sur le
+     serveur (si branche dev sélectionnée en local) ~git push origin develop~
+   - Pour enregistrer les modifications du répertoire dans le git ~git
+     commit -m "ma description" -a~. Si c'est d'un seul fichier,
+     remplacer -a par le nom du fichier. Dans le cas d'emacs après
+     sauvegarde, *C-x vv* fait le commit du fichier, avec saisie du
+     message dans un buffer dynamique (validé par *C-c C-c*.)
+   - Pour travailler avec de multiples branch, s'inspirer des
+     explications de [[https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging][ce site]]
+     - git peut afficher l'état des différentes branches du projet et
+       les commits: ~git log --all --decorate --oneline --graph~
+   - Deux branches sont utilisées: master pour la prod et develop pour les
+     version pre-prod.
+     - pour supprimer les branches mortes distantes listées par
+       ~git branch -r~
+       - ~git push origin :dev~ pour supprimer dev mais semble sans effet
+       - ~git fetch --all --prune~ suffirait à lui seul et a supprimé deux branches
+
+*** emacs et WikiJS
+    - modifier les fichiers du dépôt local /home/pdedieu/wiki/data/repo
+      avec le user *wiki*
+    - En cas de conflit entre les version locales et gitlab, emacs est
+      en mode *smerge* et des raccourcis intéressants sont prévixés par
+      *C-c^*
+      - n :: différence suivante
+      - p :: différence précédente
+      - RETURN :: valide la version sur laquelle se trouve le curseur
+    - il est alors possible de sauver une version sans conflit et de
+      suivre les conseils fournis par *git status* (commandes git
+      manuelles multiples !)
+    - Ces manipulations sont complexes et militent en faveur d'une
+      édition sur le container en web !!
+
+* org-mode
+** Notes
+   Voir *C-h i* puis *m* org[fn:2] pour lire info sur org-mode[fn:1] ou un
+   article de LJ[fn:3]. Pour insérer des notes voir [fn:4]
+   - M-m :: place le curseur au premier caractère hors indentation
+   - C-c C-t :: pour circuler entre les modes d'un titre (Normal -
+		Todo - Done...)
+   - C-c C-q :: sur un *titre*, permet de lui assigner des TAGS, par
+		exemple le responsable de l'action
+   - C-c / r :: Retourne le buffer avec mise en évidence d'une regexp
+		(qu'on parcours par *M-g n* ou *p*)
+   - C-c C-c ::
+     - Sur une case à cocher, permet de cocher/décocher
+     - Sur un titre c'est aussi les TAGS
+   - C-u C-c C-c :: Tansforme un item de liste en ajoutant une case à cocher (bascule)
+   - Enrichissements :: Entourer des mots par des caractères / * _ ~ +
+	les affiche respectivement /italics/ *bold* _underline_ ~verbatim~
+	+strike-through+ Pour les cacher lors de l'éditon, penser à:
+	=(setq org-hide-emphasis-markers t)= sachant que la valeur par
+	défaut est =nil= mais le changement n'est pris en compte qu'à la
+	relecture du buffer (revert-buffer par exemple).
+	Verbatim permet d'afficher les caractères d'enrichissement au lieu de les interpréter.
+   - Affichage des Titre avec Bullets ::
+     - Installer le package *org-bullets*
+     - Ajouter dans *init.el*
+       #+begin_src elisp
+	 (use-package org-bullets
+	   :config
+	   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+       #+end_src
+   - Tab :: pour développer / compacter un sous arbre
+   - Shift-Tab :: idem mais pour tous les titres
+   - Shift-droite/gauche :: Sur un titre change état TODO, sur un item
+	de liste permet numérotation...
+   - Esc-Ret :: insère un item de même niveau que le courant... ou une
+		définition (idem *Alt-* Ret*)
+   - Esc-Up :: décale un item vers le haut (*Down* vers le bas)
+   - Esc-Right :: indente d'un niveau (*Left* désindente) - La région si
+		  sélection existe
+   - C-c C-n :: Titre suivant
+   - C-c C-p :: Titre précédent
+   - C-j :: Passe à la ligne suivante en maintenant l'indentation précédente.
+     + Noter qu'une ligne commençant par un *tiret* est une liste, et qu'un
+       espace entouré de crochets carrés est une case à cocher: ~[ ]~.
+     + On peut la cocher / décocher via *C-c C-c*.
+     + On peut insérer une nouvelle entrée de checkbox avec *S-M Return*
+     + Un *%* placé entre crochets remplacé par le pourcentage
+       d'avancement des cases à cocher: ~[%]~. Si c'est un ~[/]~ c'est la fraction
+
+       Noter que si on veut une liste numérotée, commencer par ~1.~ et
+       la numérotation se mettra à jour toute seule (de même en
+       insérant des lignes...mais pas en en supprimant).
+   - C-c - :: Sur une ligne de liste, fait changer le type de liste
+	      successivement - + 1. 1)
+   - C-c x f :: pour insérer une note de bas de page (footnote). Noter
+	le retour après saisie via *C-c &*
+   - M-q :: formate le paragraphe selon auto-fill (largeur définie par
+	    *C-x f*). Raccourci alternatif: *Esc-q*
+   - M-% :: remplace une chaîne par une autre avec confirmation. Avec *C-u*
+	    ce sont des regexp. Si on ne veut pas de confirmation il
+	    faut *M-x replace-string*.
+   - C-M-% :: remplace une regexp, en interactif (avec confirmation
+              pour chaque ou tous ...).
+              Exemple ~\(\w+\(_\w+\)+\)~ par ~~*\1*~~
+   - M-x replace-regexp :: pour le faire sans aucune confirmation
+	      entoure tous mots contenant des *_* avec des ***
+     - y :: remplace la première occurence et se place sur la suivante
+     - , :: remplace la première occurence et reste sur place pour voir
+     - ! :: remplace toutes les occurences restantes
+     - ? :: affiche et documente toutes les commandes possibles
+   - <e TAB :: insertion d'un bloc préformaté, donc pas interprété par org
+	       Ceci a disparu de org 9.2, si pas détecté essayer *C-c C-,* puis *e* ou *s*
+	       pire ensuite qui oblige à utiliser *M-x org-insert-structure-template*
+   - <s TAB :: template pour insérer une séquence de source dans le
+	       texte (prévoir de préciser le langage à la fin de la
+	       ligne initiale générée). Du type #+BEGIN_SRC. C'est la
+	       notion plus générale de squelette... voir l'aide via
+	       *C-h v org-structure-template-alist*	      
+   - Noter qu'on peut choisir d'ajouter ce qui est exporté en source,
+     et/ou en résultat avec le mot clef *:exports* suivi d'un *results* ou
+     *both*. On peut aussi utiliser *:file* pour spécifier un fichier de
+     sortie.  Il est aussi possible de contrôler le résultat exporté
+     - :result output :: affiche la sortie standard (celle des print ou des echo)
+     - :result scalar :: affiche la valeur de retour du script
+
+     Par défaut une confirmation est demandée avant
+     exécution, sauf si on ajoute soit ([[https://orgmode.org/manual/Evaluating-Code-Blocks.html#index-eval_002c-header-argument][doc org]] et [[https://org-babel.readthedocs.io/en/latest/header-args/?q=%3Aeval&check_keywords=yes&area=default#eval][doc readthedocs]])
+   - org-confirm-babel-evaluate ::  est *nil*
+   - :eval yes ::  dans la ligne du begin (en fait, pris en compte que
+     si org-confirm-babel-evaluate est nil ! mais c'est alors la
+     valeur par défaut. On peut au contraire ajouter un *eval: query*
+     pour un bloc plus dangeureux)
+   - #+PROPERTY:  :eval query :: au début du fichier, éventuellement à
+     valider par un *C-c C-c* (ne marche pas, à creuser)
+
+     Placé dans un tel bloc de code, *C-c C-c* affiche le résultat dans
+     un bloc RESULT. Mais il faut une section dans le .emacs du type
+     (on peut aussi mettre nil au lieu de t pour désactiver un langage)
+     #+BEGIN_SRC elisp
+       ;; active Babel languages
+       (org-babel-do-load-languages
+	'org-babel-load-languages
+	'((shell . t)
+	  (python . t)
+	  (sqlite . t)
+	  (emacs-lisp . t)
+	  ))
+       #+END_SRC
+
+   - C-c $ :: archive le sous arbre courant (le déplace dans le fichier
+	      d'archive, créé s'il n'existe pas).
+
+** Insertion de lien
+    - C-c C-l :: insère un lien vers une URL ou un fichier, commencer par *file:* et finir par
+     - ::ligne :: numéro de la ligne dans le fichier (pour le fichier
+		  courant F:::ligne ou File:::/regex/)
+     - ::/regex/ :: positionné sur la première occurrence de
+		    l'expression régulière (avec la liste des
+		    matchs). Exemple avec [[file:~/CloudStation/Org/TODO-sur-portable.org::/lien%20cr%C3%A9%C3%A9%20selon/][ceci]]. Si l'expression est
+		    trouvée en plusieurs endroits il sont tous
+		    affichés en surlignés. On passe alors d'un match à
+		    l'autre via *M-g n* ou *M-g p* (next/previous)
+   - C-c C-o :: ouvre un tel lien (dans un autre buffer)
+   - C-c l :: enregistre la position actuelle dans un fichier pour
+     l'utiliser dans un prochain lien. Lors de la saisie de l'URL,
+     utiliser *flèche haut* pour le récupérer.  Noter que dans les
+     dernières versions le raccourci ne fonctionne plus mais on peut
+     appeler la fonction *org-store-link*
+   - C-u C-c C-l :: insère un lien vers un fichier (permet d'utiliser
+		    l'autocomplétion)
+		    Noter aussi que c'est équivalent à *C-c C-l file Enter*
+
+** Navigation dans les titres
+    - C-c C-n :: Next, prochain titre (*p* pour précédent)
+    - C-c C-f :: Forward, prochain titre de même niveau (*b* backward)
+    - C-c C-u :: Up, titre de niveau supérieur
+    - C-c C-j :: Jump, permet de faire une recherche dans une copie du
+		 fichier courant (avec les titres développés au mini
+		 par rapport à la position courante) avant se
+		 repositionner dans le buffer d'origine. Noter qu'on
+		 peut retourner au point courant avec *C-c &*
+
+** Saisies agenda
+   - Le format des stamps peut être customisé/francisé en changeant deux
+     variables
+     #+BEGIN_SRC emacs-lisp
+       '(org-display-custom-times t)
+       '(org-time-stamp-custom-formats (quote ("<%a %d/%m/%y>" . "<%a %d/%m/%y %H:%M>")))
+     #+END_SRC
+   - La liste de mes fichiers à prendre en compte pour l'agenda est
+      #+BEGIN_SRC emacs-lisp
+	(setq org-agenda-files
+	      '("~/CloudStation/Org/Contacts.org"
+		"~/CloudStation/Org/Projets.org"
+		"~/CloudStation/Org/Procedures.org"
+		"~/CloudStation/Org/todo-2024.org"
+		"~/CloudStation/Org/todo-2024.org_org"))
+      #+END_SRC
+
+   - C-c . :: choix d'une date (*Shift Rigth/Left/Up/Down* pour
+	      déplacer la date). en précédent par *C-u* on insère date
+	      et heure courante. Noter le dépalcement dans le
+	      calendrier proposé par *S-right* et *S-left*.
+	      On peut aussi mettre un délai relatif avec
+	      +45m +2h +1d +2w +1M +5y
+	      (45minutes 2heures 1jour 2wemaines 1mois 5ans)
+	      ou 3 lettres d'un jour de la semaine en anglais
+   - C-u C-c . :: insère la date et heure courante
+     - Noter que *C-c .* permet de modifier un time stamp et d'y ajouter
+       un HH:MM voir si nécessaire un HH:MM-HH:MM pour un intervalle,
+       qui peut aussi se noter HH:MM+NN:XX
+       enfin un intervalle de dates séparées par --
+   - C-c C-d :: choix d'une deadline
+   - C-c C-s :: choix d'un schedule. En plus de se déplacer, on peut
+		taper NN pour aller à la date NN du mois courant, ou
+		+1m pour aller à dans 1 mois (ou d jour, w semaine) En
+		complément, on peut faire des répétitions (en ajoutant
+		un +1m pour mensuel), plus -5d pour faire un warning 5
+		jours avant. Noter qu'un *C-c t* ne fait le todo que
+		pour l'occurence actuelle.
+
+   - C-c / d :: pour rechercher des dates de *deadlines* selon type,
+		keyword, ...  en préfixant via *C-n* on recherche les
+		date jusqu'à Today+n
+   - C-c / a :: pour une recherche des dates *after* une date
+   - C-c a L :: Liste les dates du buffer courant
+   - C-c a :: Le menu des différentes synthèse de dates du fichier courant
+     - v :: permet de changer de vue (mensuelle, annuelle par exemple)
+     - b/f :: de voir la période précédente / suivante
+   - C-c [ :: marque le fichier courant comme étant à prendre en compte
+     	      comme un fichier à analyser pour les agendas (pour la session en cours))
+   - C-c / :: Sparce tree - highlight matches. Précédé d'un *C-u* on
+	      ajoute les matchs à ceux de la recherche précédente. La
+	      suppression de tout match se fait par *C-c C-c*.
+     - r :: Regexp - pour surligner les matchs. On peut ensuite se
+	    placer sur le match suivant avec *Alt-g n* ou *p* pour
+	    précédent
+
+** Affichage des agendas
+   Ajouté le <2017-04-23 dim. 14:01>
+   - C-c a :: préfixe des commandes de l'*agenda*. Attention suppose
+	      l'activation dans le fichier init soit:
+	      ~(global-set-key "\C-ca" 'org-agenda)~
+     - t :: liste tous les todo du fichier
+     - a :: agenda pour la semaine courante
+     - n :: agenda pour la semaine courante et autres TODO (moins urgents)
+   - g :: reconstruit l'affichage suite à des modifs des fichiers d'origine
+   - s :: sauve tous les buffers d'origine suite à modif sur agenda
+   - TAB :: pour afficher la date dans son contexte
+   - f :: forward, affiche la période suiante (week, month...), précédente avec *b*
+   - j :: pour choisir la date de la vue choisie
+   - v :: permet de choisir d'autres affichages que la semaine
+     - m :: pour un mois
+     - e :: Permet d'afficher dans l'agenda le texte des entrées
+   - C-c C-t :: Permet de changer de TODO en DONE ou Std. Noter que si
+	      l'entrée est répétée, cela schedule la prochaine
+	      occurence.
+
+** Chronométrage
+   - C-c C-x C-i :: (in) Démarre le chronométrage du temps sur une tâche
+   - C-c C-x C-o :: (out) Arrête le chronométrage du temps sur une tâche
+   - C-c C-x C-d :: (display) Affiche le cumul du temps de chaque tâche
+
+** org-roam
+    -Voir [[file:../Org/org-roam/20201226174008-org_roam_memento.org][Org-Roam-Memento]] découvert le [[file:../Org/org-roam/daily/2020-12-26.org][2020-12-26]]
+   - M-x org-roam-insert :: pour inserer un lien vers une note
+     existante ou nouvelle (ex: retour au [[file:20201226160626-debut.org][home]] qui est aussi la page
+     [[file:20201226160626-debut.org][debut]])
+   - M-x org-roam :: pour afficher les backlinks de la note en cours
+   - M-x org-roam-graph :: pour générer avec graphwiz et dans le navigateur les liens entre les notes.
+   - M-x org-roam-dailies-find-date :: pour ouvrir les notes d'une journée (today par defaut)
+   - C-c C-O :: ouverture du lien
+   - C-c C-l :: édition du lien (destination puis libellé)
+   - Raccourcis clavier suggérés :: Mais pb au démarrage
+     #+BEGIN_SRC elisp
+       (define-key org-mode-map (kbd "C-c c") 'org-capture)
+       ;;(define-key org-mode-map (kbd "C-c r") 'org-roam-insert) BUG, faire avec M-x
+       (define-key org-mode-map (kbd "C-c t") 'org-roam-dailies-find-today)
+       (define-key org-mode-map (kbd "<f12>") 'org-roam)    
+     #+END_SRC
+     Du coup en raccourcis globaux
+     #+BEGIN_SRC elisp
+       (global-set-key "\C-ct" 'org-roam-dailies-find-today) ; roam to today's note
+       ;;(global-set-key "\C-ci" 'org-roam-insert) ; création de sous note
+       (global-set-key "\C-cx" 'org-roam) ; roam display links to page toggle
+     #+END_SRC
+   - Compléter avec des recherches via l'agenda org-mode *C-c as*
+
+** org-capture
+    - org-capture :: Capture, à partir d'un des templates définis dans la
+      variable *org-capture-template*
+      #+BEGIN_EXAMPLE
+       (org-capture-templates
+	 (quote
+	   (("m" "Contact mail" item
+	     (file "~/CloudStation/Org/Contacts.org")
+	     "%^{Type de contact|Perso|Rouen|Famille} %T %i %?" :prepend t)
+	   ("t" "Tâche" entry
+	     (file "~/CloudStation/Org/Engagements.org")
+	     "* TODO %i\\n  SCHEDULED: %^t\\n  %?" :prepend t)
+	   ("p" "Procédure par date" entry
+	   (file+olp "~/CloudStation/Org/Procedures.org" "Vrac")
+	   "%i")
+	 ("j" "ProJets" entry
+	   (file+olp "~/CloudStation/Org/Projets.org" "Liste")
+	   "%i%?" :prepend t))))
+      #+END_EXAMPLE
+
+** Tableaux
+*** Départs
+     - C-u M-! :: pour récupérer le résultat d'une commande shell 
+     - C-c | :: transformer la région sélectionnée en tableau via la
+		  conversion auto (champs séparé par des comma, ou TAB
+		  ou espaces)
+
+*** Saisies
+     Un exemple de tableau (juste pour vérifier), pour le taper il suffit:
+
+    - de commencer par ~|-+~ et de taper *TAB*.
+    - de taper les différents titres séparés par des ~|~
+    - après un *C-j* taper les différentes cases et les séparer par des *TAB*
+    - noter que la largeur est adaptée automatiquement pour pouvoir
+      contenir le contenu le plus large.
+
+    - C-c - :: pour insérer une ligne horizontale de séparation
+    - C-c * :: permet de recalculer la ligne courante. (C-u pour toutes
+	       les formules)
+    - C-c C-c :: sur la ligne TBLFM permet de recalculer les formules
+    - C-c = :: pour permettre d'insérer une formule, les cases sont
+	       notée genre par ~@2$3~ pour la deuxième ligne, troisième
+	       case. Une zone par *@1$1..@4$5*
+    - S-Enter :: complète la case en dessous en incrémentant valeur la
+		 courante
+    - <NN> :: dans une case signifie qu'on veut une largeur de NN caractères
+    - <c> :: center, centre la colonne
+    - <l> :: left, aligne la colonne à gauche
+
+*** Manipulation lignes et colonnes
+     - M-Down :: déplace la ligne vers le bas (Up, vers le haut)
+     - M-Right :: déplace la colonne vers la droite (*Left*, vers la gauche)
+     - C-c ^ :: Trie les lignes selon la colonne courante, saisir le
+		type de tri (en majuscule pour un tri inverse). Noter
+		que le tri s'arrête à la première séparation
+		horizontale.
+       - a :: Alphabétique
+       - n :: Numérique
+       - t :: Time
+     - S-M-Left :: supprime la colonne courante
+     - S-M-Right :: Insère une colonne avant la courante
+     - M-x org-export-table :: permet d'exporter la tableau en cours dans un csv
+
+*** Formules
+     Les formules sont de type algébrique. Pour faire du elisp il faut
+     les commencer par *'*
+
+     Commencer par ~=~ pour une formule qui
+     s'applique à toute la colonne, par ~:=~ pour une seule case.
+
+     Pour recalculer la case courante *C-c C-c* (tout le tableau si
+     placé sur la ligne des formules)
+
+     Les cases de la ligne courante sont *$1* à *$n si besoin de préciser
+     la ligne *@m$n*. L'avant dernière ligne peut se noter *@-1*.
+
+     Deux notations possibles pour les cases, soit *A1* et *C5* pour @1$1 et @5$3
+
+     Pour préciser un format l'ajouter après la formule, ~;%.1f %%~
+     pour afficher un pourcentage à 0.1 près.
+
+     Pour calculer sur des durée on peut préciser le format à la fin
+     de la formule, exemple ~:=vsum(@2..@-1);T~
+
+     - C-c + :: Permet de faire la somme des cases de la colonne au dessus
+     - sum :: pour la somme d'une région ???
+     - vsum :: pour la somme du vecteur
+     - vmean :: pour la moyenne du vecteur
+     - C-c ? :: permet d'afficher dans mini buffer les noms de la case
+		du curseur
+     - C-c ' :: pour éditer dans un buffer spécial l'ensemble des
+		formules de la table. Noter que les références des
+		cellules sont mis en sur-brillance dans le buffer normal
+		de la table. Sortie par *C-c C-c* (abort par *C-c q*)
+		*S-Left/Right/Up/Down* permet de sélectionner une ref !
+     - C-c } :: permet d'afficher les lettres et chiffres des cases du
+		tableau
+     - C-c { :: permet de passer en debug (bascule). Ouvre un buffer
+		avec les étapes du calcul de la formule
+
+       |---------+----------------+-------+-----------------------------|
+       |   <c>   |                |  <c>  |                             |
+       | Prénom  | Surnom         |  Age  | Commentaire                 |
+       |---------+----------------+-------+-----------------------------|
+       |   Moi   | Me             |  56   | NA                          |
+       |   Toi   | mon toi        |  54   | pas utile de préciser       |
+       | Barbara | mon bébé       |  22   | qui a passé son permis!     |
+       |   Kro   | mon petit bébé |  17   | qui pourrait devenir grande |
+       |---------+----------------+-------+-----------------------------|
+       |  Somme  |                |  149  | Age cumulé                  |
+       | Moyenne |                | 37.25 | Age moyen                   |
+       |---------+----------------+-------+-----------------------------|
+       #+TBLFM: @7$3=vsum(@3$3..@6$3)::@8$3=vmean(@3..@6)
+
+** Présentation reveal.js
+    - Télécharger le tar.gz sur le [[https://github.com/hakimel/reveal.js/releases][site de ref]]
+    - Télécharger le package *ox-reveal*
+    - Ajouter du paramétrage dans *init.el*
+
+** Pour aller plus loin
+    [[http://doc.norang.ca/org-mode.html#HowToUseThisDocument][Une config très complète]]
+** Org-babel et inclusion de sources
+ Il faut une définition dans init.el du type
+ #+begin_src elisp
+   (org-babel-do-load-languages
+    'org-babel-load-languages
+    '(
+      (python . t)
+      (shell . t)
+      (sql . t)
+      ))
+ #+end_src
+ 
+** Inclusion de requêtes mysql
+   - Voir [[https://orgmode.org/worg//org-contrib/babel/languages/ob-doc-sql.html][référence]]
+   - suppose le package emacs *org-sql*
+   - quelques exemples
+     #+name:  req-preliminaire
+     #+begin_src sql :engine "mysql" :dbhost hdvdb117 :dbuser IKVadm :dbpassword laLongueurCompteBeaucoupPourSecuriser :database IKV
+	      -- SHOW TABLES;
+	      EXPLAIN user;
+	      -- EXPLAIN archive;
+     #+end_src
+
+     #+RESULTS: req-preliminaire
+     | Field      | Type        | Null | Key | Default | Extra          |
+     |------------+-------------+------+-----+---------+----------------|
+     | id         | int(11)     | NO   | PRI | NULL    | auto_increment |
+     | name       | varchar(80) | YES  | UNI | NULL    |                |
+     | login      | varchar(40) | YES  | UNI | NULL    |                |
+     | email      | varchar(80) | YES  |     | NULL    |                |
+     | dist       | int(11)     | YES  |     | NULL    |                |
+     | gprhid     | int(11)     | YES  | MUL | NULL    |                |
+     | pointageid | int(11)     | YES  | MUL | NULL    |                |
+     | creation   | date        | YES  |     | NULL    |                |
+
+     #+name: historique-primes
+     #+begin_src sql :engine "mysql" :dbhost hdvdb117 :dbuser IKVadm :dbpassword laLongueurCompteBeaucoupPourSecuriser :database IKV
+	       SELECT * FROM archive LIMIT 10;
+     #+end_src
+
+     #+RESULTS: historique-primes
+     | id | annee | cumul_dist | cumul_trajets | nb_primes | dist_mini | dist_maxi | prime_moyenne | nb_primes_maxi | agents_actifs |
+     |----+-------+------------+---------------+-----------+-----------+-----------+---------------+----------------+---------------|
+     |  1 |  2019 |      69754 |          7533 |       103 |        27 |      6005 |         11235 |             28 |           103 |
+     |  2 |  2020 |      83101 |          8877 |       114 |         2 |      6033 |         12280 |             37 |           117 |
+     |  3 |  2021 |     110083 |         11963 |       130 |         5 |      6206 |         13655 |             55 |           127 |
+     |  4 |  2022 |     109879 |         13198 |       149 |         7 |      4201 |         14593 |             70 |           147 |
+
+   - les paramètres peuvent être définis dans le fichier .org avec un
+     en-tête du type suivant (en fait c'est une autre façon de placer
+     les paramètres, mais ils ne sont pas factorisés entre deux
+     requêtes)
+     #+header: :engine mysql
+     #+header: :dbhost hdvdb117
+     #+header: :dbuser IKVadm
+     #+header: :dbpassword laLongueurCompteBeaucoupPourSecuriser
+     #+header: :database IKV     
+     #+name: 8-derniers-users-crees
+     #+begin_src sql
+     SELECT id, name, dist FROM user ORDER BY id DESC LIMIT 8;
+     #+end_src
+
+     #+RESULTS: 8-derniers-users-crees
+     |  id | name               | dist |
+     |-----+--------------------+------|
+     | 542 | Virginie TOURNADRE | 4900 |
+     | 541 | Wilfried INGER     | 1600 |
+     | 540 | Armelle HAUDUC     | 2800 |
+     | 539 | Sebastien FOURNIER | 3000 |
+     | 538 | Laetitia DEBRAY    | 2900 |
+     | 537 | Xavier CORDIER     | 3000 |
+     | 536 | Jerome DUBOIS      | 7000 |
+     | 535 | Aboubacar SAVANE   | 5600 |
+
+     #+header: :engine mysql
+     #+header: :dbhost hdvdb117
+     #+header: :dbuser IKVadm
+     #+header: :dbpassword laLongueurCompteBeaucoupPourSecuriser
+     #+header: :database IKV     
+     #+name: 10-plus-grandes-distances
+     #+begin_src sql
+     SELECT id, name, dist FROM user ORDER BY dist DESC LIMIT 15;
+     #+end_src
+
+     #+RESULTS: 10-plus-grandes-distances
+     |  id | name                 |  dist |
+     |-----+----------------------+-------|
+     |   2 | Denis WENDLING       | 34400 |
+     | 158 | Norbert TOUZET       | 30200 |
+     | 434 | Sophie CORNIERE      | 21700 |
+     | 425 | herve GREBOVAL       | 20600 |
+     | 497 | Sebastien DUPUICH    | 20600 |
+     | 532 | Amanda LYSCENCZUK    | 19300 |
+     | 466 | Armelle BARETTE      | 18000 |
+     | 289 | Julien DUBOIS        | 17000 |
+     | 533 | Kevin BOUTEILLER     | 14100 |
+     |   1 | Pierre DEDIEU        | 13550 |
+     | 498 | Dominique KERVELLA   | 11000 |
+     | 447 | Lionel GROULT        | 10500 |
+     | 151 | Vincent DANIEL       | 10100 |
+     | 510 | Thomas DASSONNEVILLE | 10000 |
+     | 426 | Vincent VIALLEFOND   |  9900 |
+
+** Inclusion de code SQLite
+    - Un exemple sur la base de IKV pour du CSV en sortie dans un
+      fichier et l'affichage du nb de trajets
+      #+header: :dir ~/python/IKV/app
+      #+header: :db ikv.db
+      #+BEGIN_SRC sqlite 
+	.headers on
+	.mode csv
+	.output ikv-trajets.csv
+	SELECT date, login, user.id FROM trajet LEFT JOIN user ON trajet.userid=user.id ORDER BY login;
+	.output stdout
+	SELECT count(date) as nb_trajet FROM trajet LEFT JOIN user ON trajet.userid=user.id ORDER BY login;
+      #+END_SRC
+
+      #+RESULTS:
+      | nb_trajet |
+      |        14 |
+
+    - Une variante avec sortie par défaut
+      #+BEGIN_SRC sqlite :db ~/python/IKV/app/ikv.db :colnames yes :exports both
+		SELECT login,count(date) FROM trajet LEFT JOIN user ON trajet.userid=user.id GROUP BY user.login;
+      #+END_SRC
+
+      #+RESULTS:
+      | login     | count(date) |
+      |-----------+-------------|
+      | csageot   |           1 |
+      | dwendling |           4 |
+      | pdedieu   |           9 |
+
+    - Contenu d'une table, avec une variable (peut-être plus court ?):
+      #+BEGIN_SRC sqlite :db ~/python/IKV/app/ikv.db :var nomtable="user" :colnames yes :exports both
+		SELECT * FROM $nomtable;
+      #+END_SRC
+
+      #+RESULTS:
+      | id | name             | login     | email              |  dist |
+      |----+------------------+-----------+--------------------+-------|
+      |  1 | Pierre DEDIEU    | pdedieu   | pdedieu@rouen.fr   | 13800 |
+      |  2 | Denis WENDLING   | dwendling | dwendling@rouen.fr | 29000 |
+      |  3 | Corine SAGEOT    | csageot   | csageot@rouen.fr   |  7000 |
+      |  4 | Emmanuel HAMELET | ehamelet  | ehamelet@rouen.fr  |  8000 |
+
+    - Une requête courte
+      #+BEGIN_SRC sqlite :db ~/python/IKV/app/ikv.db :colnames yes :exports both
+		SELECT name, login, dist/1000.0 FROM user;
+      #+END_SRC
+
+      #+RESULTS:
+      | name             | login     | dist/1000.0 |
+      |------------------+-----------+-------------|
+      | Pierre DEDIEU    | pdedieu   |        13.8 |
+      | Denis WENDLING   | dwendling |        29.0 |
+      | Corine SAGEOT    | csageot   |         7.0 |
+      | Emmanuel HAMELET | ehamelet  |         8.0 |
+      
+** Inclusion de diagrammes Ditaa
+   Voir http://ehneilsen.net/notebook/orgExamples/org-examples.html#sec-2-6
+
+   Noter qu'il faut installer le package ditaa (par apt ou yum) ET
+   faire un lien symbolique depuis le chemin où il est cherché par
+   emacs.
+
+   Lors d'un export, le message est affiché du type
+   ~org-babel-execute:ditaa: Could not find ditaa.jar at
+   /usr/share/emacs/25.1/lisp/contrib/scripts/ditaa.jar~ .
+	     
+   Créer le répertoire et faire un lien symbolique vers le fichier
+   ditaa.jar
+	     
+   Le code suivant est peut être nécessaire:
+   #+BEGIN_SRC emacs-lisp
+     (org-babel-do-load-languages
+      'org-babel-load-languages
+      '((ditaa . t)))
+     (setq org-ditaa-eps-jar-path "/usr/share/ditta/ditaa.jar")
+   #+END_SRC
+
+   Voir l'exemple suivant:
+   
+   #+BEGIN_SRC ditaa :file ditaa-simpleboxes.png :exports both
+     +---------+
+     |         |	
+     | Foo     |	
+     |         |	
+     +----+----+---+
+     |Bar |Baz     |
+     |    |        |
+     +----+--------+
+   #+END_SRC
+
+#+RESULTS:
+[[file:ditaa-simpleboxes.png]]
+
+   #+begin_src ditaa :file ditaa-seqboxes.png :exports both
+     +------+   +-----+   +-----+   +-----+
+     |{io}  |   |{d}  |   |{s}  |   |cBLU |
+     | Toto +---+ Bar +---+ Baz +-=-+ Moo |
+     |      |   |     |   |     |   |     |
+     +------+   +-----+   +--+--+   +-----+
+			     |
+		/-----\      |      +------+
+		|cF00 |      |      | c1AB |	
+		| Goo +------+---=--+ Shoo |
+		\-----/             |      |
+				    +------+
+   #+end_src
+
+** Inclusion de shémas UML
+   Il faut installer le package *plantuml* via apt ou yum. Mais il
+   semble aussi qu'il faille un *plantuml.jar* et indiquer son chemin.
+	     
+   Le code suivant est peut être nécessaire:
+   #+BEGIN_SRC emacs-lisp
+   (org-babel-do-load-languages
+    'org-babel-load-languages
+     '((plantuml . t)))
+    (setq org-plantuml-eps-jar-path "/usr/share/plantuml/plantuml.jar")
+    #+END_SRC
+
+    #+begin_src plantuml :file class_diagram.png :exports none
+    skinparam monochrome true
+    FitsHdu <|-- PrimaryHdu
+    FitsHdu <|-- ExtensionHdu
+
+    FitsHdu : header
+    FitsHdu : getHeaderKeyword()
+
+    ExtensionHdu <|-- ImageHdu
+    ImageHdu : image
+    ImageHdu : getPixel(row, column)
+
+    ExtensionHdu <|-- BinaryTableHdu
+    BinaryTableHdu : table
+    BinaryTableHdu : getRow(row)
+    BinaryTableHdu : getColumn(column)
+    #+end_src
+** Exportation
+   Il est possible de changer le format d'exportation des stime stamp
+   via la variable *org-export-date-timestamp-format* par exemple
+   #+begin_src elisp
+   (setq org-display-custom-times t)
+   (setq org-time-stamp-custom-formats '("<%A %d/%m/%Y>" . "<%A %d/%m/%Y %H:%M>"))
+   #+end_src
+   Mais il faut utiliser la bascule entre std et custom par ~C-c C-x
+   C-t~ soit ~(org-toggle-time-stamp-overlays)~ trouvé le
+   <2023-01-09 lun. 19:24> ou en tout cas <2023-01-09 lun.>
+*** Sans pandoc
+   Pour produire de la bureautique, des pdf ou des présentations à
+   partir de fichiers Org. Attention, il semble que pour le traitement
+   de texte, seul l'export en docx continue de marcher, il faut prévoir
+   dans *Customize* de changer *Org Odt Preferred Output format* en
+   *docx* au lieu d'*odt*.
+
+   Les exports ont été plusieurs fois cassés, et une correction magique
+   a été *C-u M-x org-reload* soit *C-u C-c C-x !*. Plus radical sur
+   Ubuntu: ré-installation de *org* à partir de melpa.
+
+   Noter qu'il est utile de préciser la langue du document org, en
+   particulier pour le titre de la table des matières: ~#+LANGUAGE: fr~
+
+   Pour ignorer un titre, lui ajouter un tag *noexport* via *C-c C-c*
+   sur le titre.
+
+   - C-c C-e E e :: Exporte en epub (nécessite *ox-epub* de melpa et
+                    l'ajout de *epub* dans la ligne du .emacs:
+		    ~(org-export-backends (quote (epub html5slide html latex odt)))~
+
+		    J'ai plusieurs fois eu des échecs lors des exports,
+                    et il semble qu'en dernier recours, un effacement
+                    des versions compilées des sources elisp fasse
+                    surmonter cela:
+		    #+begin_src bash
+		    for dir in "$HOME/.emacs.d/elpa/org-"*/; do find $dir -name "*.elc" -delete; done
+		    #+end_src
+
+     - Noter les remarques de l'auteur du module sur les variables
+       *obligatoires* pour un fichier org à convertir:
+       - There are some required export options that need
+	  to be set. These are:
+	 - UID :: a unique id of the document, otherwise known as uri,
+		  may be a url
+	 - DATE :: the date of the document, for valid values see
+            https://www.w3.org/TR/NOTE-datetime
+	 - AUTHOR :: the document author or editor, the creator in the
+              EPUB spec
+	 - TITLE :: the document title
+       - Furthermore there are some properties which are optional:
+	 - Subject :: the subject matter of the book
+	 - Description :: a description of the book
+	 - Publisher :: the publisher of the book
+	 - License :: the rights associated with this book, the
+               copyright notice and further rights may be included in
+               this option.
+
+   - C-c C-e o O :: Exporte en OpenOffice Texte et l'ouvre (sauf dans
+                    une version plus récente d'emacs, où la fonction
+                    n'est plus disponible en raccourci / menu mais via
+                    *Alt-x org-odt-export-to-odt* (pour le revoir il
+                    faut ajouter un ~(setq
+                    org-export-dispatch-use-expert-ui 1)~) Voir aussi
+                    le paramétrage détaillé via *M-x org-customize* et
+                    l'activation de *odt* dans les exports.
+   - C-c C-e h o :: pour afficher le résultat d'une conversion en HTML
+   - C-c C-e l o :: pour faire du Latex puis pdf ... et l'ouvrir noter
+		  qu'il est intéressant de préciser ~#+LATEX_HEADER:
+		  \usepackage[french]{babel}~ pour avoir les dates, les
+		  titres francisés !
+	       
+		  Noter que la conversion en latex puis pdf
+		  nécessite *texlive* (gros !), *texlive-latex-extra* (très
+		  gros aussi !!). et la prévisu dans emacs *dvipng*. emacs
+		  semble bien s'améliorer pour Tex avec *AUCTex* (pour
+		  ouvrir les .tex mais je ne trouve pas qu'en faire)
+		 
+		  Si on veut faire du XSLT pour DocBook, il faut
+                  ajouter *xsltproc*... mais là c'est pire que tout
+                  (Erreur: ... à analyser)
+   - C-c C-e C-v ... :: idem mais n'affiche que ce qui est *visible* à l'écran
+       
+*** Configuration de pandoc
+    - Commencer par installer le paquet =apt install pandoc=
+    - Installer le package MELPA =ox-pandoc=
+    - Il est ensuite possible d'appeler =M-x org-pandoc-export-*= pour
+      produire les différents format supportés (j'aime html5, epub3,
+      slidy pour présentation HTML, ppx, docx)
+    - Les variables disponibles sont [[https://github.com/kawabata/ox-pandoc][dans le git de ox-pandoc]]
+    - Pour des pdf beamer, il faut installer en plus des paquets
+      texlive et perso je n'ai pas abouti
+      - *texlive-pictures*
+      - *texlive-plain-generic*
+      - *texlive-xetex*
+	- Pour identifier les paquets contenant des fichiers manquants,
+	  noter qu'il peut être utile d'installer *apt-file* puis de faire
+	  une ~apt-file search XXX.sty~
+	- Après quoi j'ai un message qui me suggère de changer de
+	  pdf-engine
+	  ~(setq org-pandoc-options-for-beamer-pdf '((pdf-engine . "xelatex")))~
+*** Suite à disparition export odt, interface à pandoc
+    #+BEGIN_SRC elisp
+      (defun convert-org-to-docx ()
+	"Converti le buffer courant en MS-Office Word"
+	(interactive)
+	(let* ((dest (replace-regexp-in-string "\.org$" ".docx" (buffer-file-name)))
+	       (cmd (format "pandoc -f org -t docx %s -o %s" (buffer-file-name) dest)))
+	  (shell-command cmd)
+	  (message cmd)))
+      (defun convert-org-to-epub ()
+	"Converti le buffer courant en epub"
+	(interactive)
+	(let* ((dest (replace-regexp-in-string "\.org$" ".epub" (buffer-file-name)))
+	       (cmd (format "pandoc -f org -t epub %s -o %s" (buffer-file-name) dest)))
+	  (shell-command cmd)
+	  (message cmd)))
+    #+END_SRC
+** Formules mathématiques:
+
+\(\frac{\pi}{4} = \int_0^1{\sqrt{1-x^2}^2 dx}\) et \(U_n=\sum_{i=0}^n{ \frac{i . x_i}{1+x_i^2} }\)
+
+Qui est obtenu par: ~\(\frac{\pi}{4} = \int_0^1{\sqrt{1-x^2}^2 dx}\)~ et ~\(U_n=\sum_{i=0}^n{ \frac{i . x_i}{1+x_i^2} }\)~
+
+Autre essai \(\int_{-1}^{72}{\frac{1+log(x)}{x+\frac{1}{\sqrt{x}^3}}}\)
+avec ~\(\int_{-1}^{72}{\frac{1+log(x)}{x+\frac{1}{\sqrt{x}^3}}}\)~
+
+** Inclure des diagrammes
+   - avec graphviz: voir http://www.tonyballantyne.com/graphs.html
+   - en ligne de commande *dot -Tpng filename.dot -o outfile.ps*
+     
+** Produire un export Word avec un template
+   One of my less enjoyable tasks is to produce a weekly status report
+   following a particular look. This then gets emailed off and
+   compiled with others. Unsurprisingly the format has to be Microsoft
+   Word and no one ever gets the use of format styles correct.
+
+   Editing the pro-forma always has me cursing: delete one character
+   too many and fonts change, bullets appear or disappear, all the
+   usual joys of Word. Emacs, and more specifically org-mode to the
+   rescue. Org has had the ability to export in several formats
+   (typically \latex and HTML) for quite some time but now boasts
+   support for OpenDocument format too.
+
+   So my status reports are now written using Emacs with a line
+   setting ~(setq org-export-odt-styles-file ~/MonTemplate)~ to point
+   at a hand handcrafted OpenDocument template file. That sorts out
+   the presentation aspects of the final document. C-c C-e o exports
+   my text to OpenDocument then open that in LibreOffice and save as
+   Microsoft Word format. The conversion from ODT to docx format can
+   be automated: ~soffice --headless --convert-to docx myfilename.~
+
+   I wouldn't say that I actually enjoy writing my status reports now,
+   but at least it's considerably less painful, I can just get on with
+   writing information and not with fighting the tool.
+   
+* Tramp
+Généralisation de noms de fichiers pour une utillisation de ressources
+sitées sur d'autres machine.
+** ssh
+Les URL sont du type ~/ssh:user@host:/repertoire/fichier~
+** ftp
+Les URL sont du type ~/ftp:user@host:/repertoire/fichier~
+** sudo
+Les URL sont du type ~/sudo:user@host:/repertoire/fichier~
+Pour un fichier local en root ~/sudo::/repertoire/fichier~
+Il est aussi possible de combiner avec SSH par ~/ssh:user@host|sudo:host:/repertoire/fichier~
+** rclone Google Drive
+   - Après une installation du pacquet de la distribution et la
+     configuration d'un storage de type 18 via ~rclone config~
+   -URL ~/rclone:storage:/repertoire/fichier~
+** Stockage des mots de passe
+- Lors des accès il est proposé de stocker dans ~/.authinfo
+  Cela permet d'accélérer la connexion, mais il faut préférer le Passcode
+  duo, qui varie à chaque connexion et donc est redemandé
+  (contrairement à un simple mot de passe).Le cas de Duo sur téléphone
+  présente le même avantage
+- Pour éviter ce fichier présent en clair, utiliser ~/.authinfo.gpg,
+  et pour qu'il soit proposé en premier pour y ajouter les nouveaux
+  MDP penser à modifier la variable auth-source pour lui retirer la
+  version .authinfo (ou la placer après .authinfo.gpg)
+- Pour une saisie de la passphrase sans fausses frappes (!) préférer
+  la saisie intégrée dans emacs soit les modifications suivante
+  - ajouter une ligne ~allow-loopback-entry~ dans ~~/.gnupg/gpg-agent.conf~
+  - modififier la variable *epa-pinentry-mode* et choisir *'loopback*
+    (j'ai choisi de le faire via *C-h v epa-pinentry-mode* puis choisir *Customize* et enfin
+    *Save for future sessions)*
+  - selon la version d'emacs ce peut être *epa-pinentry-mode* et la
+    ligne peut-être ~allow-loopback-pinentry~ (voir pour des versions
+    plus récentes de GnuPG ne plus être nécessaire) !
+  - dans une occurence suivante c'est devenu ~epg-pinentry-mode~
+    
+** Copie de fichiers entre deux répertoires tramp dired
+   - Commencer par copier le répertoire de destination avec ~w~ sur la
+     première ligne du répertoire dired
+   - Se placer sur le dired de la source et utiliser ~C~ puis ~C-y~ (ou
+     ~M-y~ si pas le premier)
+   - Plus pratique avec ~(setq dired-dwim-target t)~ si on a ouvert 2
+     dired (un pour la source et un pour la destination) il suffit de
+     taper ~C~ sur le fichier source et la destination est proposée par
+     défaut (accepter par Return)
+     
+* Installation initiale pour Ubuntu sur HyperV
+  - HyperV activé, vswitch externe créé, iso ubuntu desktop présenté
+  - reste figé après un écran initial encourageant (semble lié à
+    l'utilisation non judicieuse du console mode enhanced)
+  - faute de mieux j'ai utilisé l'assistant de création de VM Ubuntu 22.04 de Hyperv
+  - Je le met en IP fixe avec ma 103.16 précédente qui a le droit de sortir sur internet
+  - La mise à jour vers 23.04 semble Ok, mais il faut penser à
+    agrandir le HD (13 Go par défaut passé à 40)
+  - Pour le réseau, en plus de définir un vSwitch externe il faut
+    penser à le connecter sur la bonne interface réseau du PC (pour
+    moi Lenovo USB)
+  - J'utilise voir pour passer en mode enhanced console comme
+    précisé dans
+    https://www.nakivo.com/blog/install-ubuntu-20-04-on-hyper-v-with-enhanced-session/
+    en particulier cela nécessite une installation complémentaire dans la VM Ubuntu
+    - le enhanced mode permet de gérer le multi écran et le *copier-coller*
+  - emacs penser à ajouter melpa et les packages:
+    - use-package
+    - paredit
+    - magit
+    - highlight-parentheses
+    - helm
+    - sudo-edit
+    - projectile
+  - récupérer l'essentiel de mon init.el dont
+    - la conf clavier de helm
+    - desktop-save-mode
+  - Telecharger configurer synlology-drive-client pour mon DS216+
+    - Le nom public:
+    - mon login:
+
+* Liens externes
+  - Un cookbook pour faire des [[http://ehneilsen.net/notebook/orgExamples/org-examples.html][notebooks dans org]]
+  - Une piste pour faire des [[http://jr0cket.co.uk/2013/10/create-html5-presentations-emacs-revealjs.html.html][exports org en présentation]] avec reveal.js
+  - Voir le package elscreen et l'utilisation de plusieurs sessions,
+    dont sudo et la compatibilité aptitude ?
+  - Un PPA pour avoir un GlobalProtect avec GUI dans Ubuntu (aucun rapport ?)
+    https://launchpad.net/~yuezk/+archive/ubuntu/globalprotect-openconnect
+    
+* Footnotes
+[fn:2] La vrai documentation est à trouver via google ??
+[fn:1] Ce sujet mériterait un fichier dédié ... voir pour le créer plus tard ?
+[fn:3] Si on veut relire une description en anglais:
+http://www.linuxjournal.com/article/9116?page=0,2
+http://emacsclub.github.io/html/org_tutorial.html
+[fn:4] Le bas de page n'est pas toujours ce qu'on voudrait, Mais voir
+*C-c C-x f* dans cette même doc.
+
+#  LocalWords:  incrementale cliquer
