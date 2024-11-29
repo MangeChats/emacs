@@ -6,6 +6,10 @@
 ** ssh-add clef.privee et saisir la passphrase
 * DONE Créer un repository local
 ** DONE Lui définir un remote origin avec comme URL git@github.com:MangeChats/emacs.git
+** DONE Renommer la branche par défaut locale
+   de master en main pour être en accord avec le défaut de github
+   git branch -m main
+
 ** DONE Faire un premier Push vers ce remote
    - dans un premier temps
      Les mises à jour ont été rejetées car le sommet de la branche
@@ -13,5 +17,3 @@
      intégrer les changements distants, utilisez 'git pull' avant de
      pousser à nouveau.
    - Mais mes essais de git pull échouent SAUF avec un --rebase
-
-     
