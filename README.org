@@ -1,0 +1,17 @@
+* Petites contributions à emacs
+
+** emacs-documentation.org
+Surtout un mémo que j'ai créé pour moi pour l'utilisation d'emacs et de ses raccourcis clavier
+disponible en version org pour le faire évoluer (c'est sous cette forme que je l'utilise le plus).
+Il est aussi fourni en version EPub pour consultation hors d'emacs.
+
+** pde-mail.el
+Mes réglages pour utiliser notmuch dans la consultation de comptes mails
+
+** pde-trans.el
+Des variations sur l'utilisation de transcient, interface défnie par
+le développement de magit (l'interface emacs à Git)
+
+** init-T460.org
+Une version org pour documenter ma configuration emacs et la générer
+avec des options activables/désactivable
