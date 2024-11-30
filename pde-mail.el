@@ -19,8 +19,13 @@
 (setq message-directory "~/mail/")
 
 (global-set-key (kbd "C-c m") 'notmuch-hello)
-(global-set-key (kbd "C-c M") 'notmuch-exec-offlineimap)
-(global-set-key (kbd "C-c d") 'notmuch-remove-deleted)
+(defun assign-mail-keys ()
+  "Assigner en une fois des touches utiles à notmuch"
+  (interactive)
+  (local-set-key (kbd "C-c M") 'notmuch-exec-offlineimap)
+  (local-set-key (kbd "C-c D") 'notmuch-remove-deleted))
+(add-hook 'notmuch-hello-mode-hook 'assign-mail-keys)
+(add-hook 'notmuch-search-mode-hook 'assign-mail-keys)
 
 ;;-----------------------------------------------------------------------------
 (defun notmuch-exec-offlineimap-simplex ()

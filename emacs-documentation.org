@@ -1587,6 +1587,10 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
     - les macros elisp se définissent avec ~(defmacro NOM ...)~
 
 *** Fabrication d'epub
+**** Actuellement
+   installer le package *ox-epub* et après un ~(require 'ox-epub)~ le
+   raccourci *C-c C-e* propose la conversion org en epub
+**** Historique
     Dans un premier temps des méthodes lisp m'ont été nécessaires
     (gardées pour assimiler elisp). Maintenant j'ai trouvé le package
     *ox-pandoc* qui me simplifie cela, avec la fonction
@@ -1604,7 +1608,7 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
 	  (message "Yapluka lancer %s" cmd)
 	  (shell-command cmd)))
     #+END_SRC
-*** Conversions via pandoc sur Apple (org en texte MS Office et epub)
+**** Conversions via pandoc sur Apple (org en texte MS Office et epub)
     #+BEGIN_SRC emacs-lisp
       ;; Suite à disparition export odt, interface à pandoc ...
       (defun convert-org-to-docx ()
@@ -1623,8 +1627,8 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
 	  (message cmd)))
     #+END_SRC
     
-*** Buffer dired ouvers
-    Voir assoc ~dired-buffer~
+** Buffer dired ouverts
+   Voir assoc ~dired-buffer~ pour une liste en elisp
 *** Buffer non associé à un fichier
 
 ** SQL et CLI
