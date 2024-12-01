@@ -6,12 +6,12 @@
 ** ssh-add clef.privee et saisir la passphrase
    En principe il est possible que keepass ouvert contenant cette clef
    suffise à être identifié, mais à défaut on peut l'ajouter
-   manuellement ainsi.  Lors des essais suivants je pense que si
+   manuellement ainsi.  Lors des essais suivants, même  si
    keepassxc est ouvert avant de lancer emacs
-   - le login est bien OK
-   - pour la lecture des mails sur les 2 serveurs.
+   - le login pour la consultation des mails sur les 2 serveurs est bien OK
    - l'envoi de mail demande bien le déverrouillage de *.authinfo.gpg*
-     et l'envoi qui suis a fonctionné (après un retry ?)
+     et l'envoi qui suis fonctionne (après un retry ?)
+   - mais pour un push github e ~ssh-add pdedieu.priv~ reste indispensable
 * DONE Créer un repository local
 ** DONE Lui définir un remote origin avec comme URL git@github.com:MangeChats/emacs.git
 ** DONE Renommer la branche par défaut locale
@@ -24,4 +24,5 @@
      intégrer les changements distants, utilisez 'git pull' avant de
      pousser à nouveau.
    - Mais mes essais de git pull échouent SAUF avec un --rebase
-* Pour les push suivant if faut que l'agent ait la clef SSH pdedieu chargée
+* Pour les push suivants
+  il faut que l'agent ait la clef SSH pdedieu chargée manuellement
