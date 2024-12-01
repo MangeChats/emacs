@@ -4,12 +4,13 @@
   - Sans un README
 * DONE Ajouter la clef publique dans la console
 ** ssh-add clef.privee et saisir la passphrase
+   En principe il est possible que keepass ouvert contenant cette clef
+   suffise à être identifié, mais à féfaut on peut l'ajouter manuellement ainsi
 * DONE Créer un repository local
 ** DONE Lui définir un remote origin avec comme URL git@github.com:MangeChats/emacs.git
 ** DONE Renommer la branche par défaut locale
    de master en main pour être en accord avec le défaut de github
-   git branch -m main
-
+   ~git branch -m main~
 ** DONE Faire un premier Push vers ce remote
    - dans un premier temps
      Les mises à jour ont été rejetées car le sommet de la branche
@@ -17,3 +18,4 @@
      intégrer les changements distants, utilisez 'git pull' avant de
      pousser à nouveau.
    - Mais mes essais de git pull échouent SAUF avec un --rebase
+* Pour les push suivant if faut que l'agent ait la clef SSH pdedieu chargée
