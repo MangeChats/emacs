@@ -5,7 +5,13 @@
 * DONE Ajouter la clef publique dans la console
 ** ssh-add clef.privee et saisir la passphrase
    En principe il est possible que keepass ouvert contenant cette clef
-   suffise à être identifié, mais à féfaut on peut l'ajouter manuellement ainsi
+   suffise à être identifié, mais à défaut on peut l'ajouter
+   manuellement ainsi.  Lors des essais suivants je pense que si
+   keepassxc est ouvert avant de lancer emacs
+   - le login est bien OK
+   - pour la lecture des mails sur les 2 serveurs.
+   - l'envoi de mail demande bien le déverrouillage de *.authinfo.gpg*
+     et l'envoi qui suis a fonctionné (après un retry ?)
 * DONE Créer un repository local
 ** DONE Lui définir un remote origin avec comme URL git@github.com:MangeChats/emacs.git
 ** DONE Renommer la branche par défaut locale

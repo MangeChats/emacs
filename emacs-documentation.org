@@ -51,8 +51,8 @@
 	retrouve le comportement habituel avec un autre *C-f*. Pour les
 	répertoires on redécouvre *C-x d* (Dired), mais noter que pour
 	ouvrir un répertoire comme un dossier, il est aussi possible
-	d'utiliser *C-x f C-f*.
-   - find-file-at-point :: peut être appelé via *M-x*, ou
+	d'utiliser *C-x f C-f* (alternative que je préfère: *helm*).
+   - find-file-at-point :: (alias *ffap*) peut être appelé via *M-x*, ou
 	ajouté *.emacs* via *(setq ido-use-filename-at-point 'guess)*
 	bien plus confortable: on mixte les avantage ido et *ffap*.
    - emacsclient :: il faut avoir lancé le serveur dans une session
@@ -112,7 +112,7 @@
 		affiche le résultat temporairement, et l'envoi dans le
 		buffer *Shell Command Output*)
    - C-u M-! :: insère le résultat d'une commande shell dans le buffer
-		courant
+		courant (sans *C-u* affiche juste le résultat)
    - desktop-save-mode :: ajouter dans init.el (desktop-save-mode 1)
 	pour retrouver les buffers ouverts et leurs position lors du
 	prochain démarrage.
@@ -165,7 +165,8 @@
               le prochain match.
    - M-s w :: recherche un mot (*C-w* pour le mot courant) dans le
               buffer.
-   - M-s h r :: Highlight Regexp, avec choix de couleur
+   - M-s h r :: Highlight Regexp, avec choix de couleur (voir
+     *hi-lock-unface-buffer* pour retirer un des highlight)
    - M-x grep :: préciser la regexp puis le filtre de fichiers
    - M-x rgrep :: recursive, idem mais plus interactif
    - M-x lgrep :: local, idem mais un seul niveau de répertoire
@@ -177,7 +178,7 @@
 		speedbar via *C-c C-j * Tab Enter Enter* puis réouvrir
 		speedbar.
    - M-g g :: goto-line
-   - M-g c :: goto-char (position en nombre de caractères, utile dans certaines erreurs elis)
+   - M-g c :: goto-char (position en nombre de caractères, utile dans certaines erreurs elisp)
    - M-x speedbar :: permet une fenếtre qui affiche sous forme d'arbre
                      le répertoire courant ou les buffers ouverts. Dans
                      le cas de sources, utilise imenu pour afficher les
@@ -191,7 +192,7 @@
      - q :: pour quitter
 	   
 ** Marquage de position dans des fichiers
-   - C-c % :: marque la position courante du fichier en court
+   - C-c % :: marque la position courante du fichier en cours
    - C-c & :: retourne à la dernière position marquée. Si utilisé
      plusieurs fois propose les précédentss
     
@@ -307,7 +308,7 @@
    - Suppose l'installation du package *helm*
    - Voir une prise en main dans https://boruch-baum.github.io/emacs_mini_manual/helm-intro.html
    - Affiche des listes dynamiquement mises à jour en fonction du pattern tapé
-   - possibilité de plusieurs pattern séparés par espacs, et de *!*
+   - possibilité de plusieurs pattern séparés par des espaces, et de *!*
      pour exclure. Et d'échapper des caractères spéciaux avec *\*,
      comme pour SPACE.
      - @xx :: recherche xx dans le contenu des buffers
@@ -371,7 +372,7 @@
    - Pour revenir à une police fixe ~(set-frame-font "DejaVu Sans Mono-14" nil t)~
       
 ** Rectangles
-    Le rectangle est définit par ses deux coins (Mark et Point) et les
+    Le rectangle est défini par ses deux coins (Mark et Point) et les
     commandes suivantes sont disponibles:
     - C-x r M-w :: copier la sélection en tant que rectangle
     - C-x r k :: kill, supprime le rectangle et le garde dans le kill ring
@@ -393,7 +394,7 @@
    - C-x r C-SPC :: Stocker la position courante dans un registre
 		    (chosir une lettre)
    - C-x r j :: Jump, retourner au point stocké dans le registre (taper
-		la lettre chosie comme registre)
+		la lettre choisie comme registre)
    - Nautilus :: le fichier définissant les bookmarks Ubuntu est dans
 		 ~/.config/gtk-3.0/bookmarks et il est rechargé dès sa
 		 sauvegarde.
@@ -435,6 +436,9 @@
      - > :: augmente l'indentation (si cela a un sens dans le mode courant)
      - \n :: insère un saut de ligne
      - -NN :: recule de NN caractères
+
+   - Après définition on a une fonction interactive (ici
+     *hello-world-skeleton*) qui insère le squelette
 
    - Exemples:
      #+BEGIN_SRC emacs-lisp
