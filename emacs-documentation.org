@@ -1118,6 +1118,15 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
     - Installer le paquet notmuch sous linux (dnf ou apt)
     - L'installer aussi dans emacs (package-list-packages)
     - Installer le package ~bbdb~ pour gérer la base des contacts
+    - Se définir un mot de passe d'application dans son compte Google
+      - Dans Gmail cliquer en haut à droite sur l'icône du compte,
+        puis sur *Gérer votre compte Google*
+      - Rechercher *app* pour avoir l'écran Mot de passe des application
+      - Donner un nom d'application (emacs-mail ?) puis bouton *Créer*
+      - Copier le mot de passe généré par Google et le coller dans votre *~/.authinfo* ou plutôt *~/.authinfo.gpg*
+      - la nouvelle ligne sera du type
+	~machine smtp.gmail.com login MangeChats password blbablabla~
+      - Attention il faut retirer les espaces du mot de passe fourni par Google
     - Configurer notmuch et l'envoi de mails dans default.el ou .emacs
       #+begin_src elisp
 	(setq mail-user-agent 'message-user-agent)
@@ -2677,7 +2686,7 @@ Il est aussi possible de combiner avec SSH par ~/ssh:user@host|sudo:host:/repert
   présente le même avantage
 - Pour éviter ce fichier présent en clair, utiliser ~/.authinfo.gpg,
   et pour qu'il soit proposé en premier pour y ajouter les nouveaux
-  MDP penser à modifier la variable auth-source pour lui retirer la
+  MDP penser à modifier la variable *auth-sources* pour lui retirer la
   version .authinfo (ou la placer après .authinfo.gpg)
 - Pour une saisie de la passphrase sans fausses frappes (!) préférer
   la saisie intégrée dans emacs soit les modifications suivante
