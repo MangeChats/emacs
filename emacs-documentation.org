@@ -6,15 +6,9 @@
 #+AUTHOR: Pierre DEDIEU
 #+Email: MangeChats@gmail.com
 #+UID: emacs-doc-pde
-## #+SETUPFILE: theme-bigblow-local.setup
-#+SETUPFILE: theme-readtheorg-local.setup
 #+Subject: Notes pour retrouver les raccourcis des fonctions que j'ai utilisées
 #+PANDOC_OPTIONS: "epub-cover-image:3d-gnu-head.jpg" standalone:nil
 #+roam_alias: emacs
-:RESOURCES:
-- Utilisation de GitLab avec [[magit][magit]]
-- Prise de notes [[org-mode][Org]]
-:END:
 
 * Editeur
 ** Ouverture de fichiers
@@ -2454,7 +2448,7 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
 
    Voir l'exemple suivant:
    
-   #+BEGIN_SRC ditaa :file ditaa-simpleboxes.png :exports both
+   #+BEGIN_SRC ditaa :file ditaa-simpleboxes.png :exports none
      +---------+
      |         |	
      | Foo     |	
@@ -2464,23 +2458,6 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
      |    |        |
      +----+--------+
    #+END_SRC
-
-#+RESULTS:
-[[file:ditaa-simpleboxes.png]]
-
-   #+begin_src ditaa :file ditaa-seqboxes.png :exports both
-     +------+   +-----+   +-----+   +-----+
-     |{io}  |   |{d}  |   |{s}  |   |cBLU |
-     | Toto +---+ Bar +---+ Baz +-=-+ Moo |
-     |      |   |     |   |     |   |     |
-     +------+   +-----+   +--+--+   +-----+
-			     |
-		/-----\      |      +------+
-		|cF00 |      |      | c1AB |	
-		| Goo +------+---=--+ Shoo |
-		\-----/             |      |
-				    +------+
-   #+end_src
 
 ** Inclusion de shémas UML
    Il faut installer le package *plantuml* via apt ou yum. Mais il
