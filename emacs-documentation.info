@@ -10,6 +10,8 @@ Aide mémoire emacs
 * Menu:
 
 * Editeur::
+* Modes majeurs::
+* Modes mineurs::
 * Intégration OS::
 * Macros::
 * Programmation et debug::
@@ -38,9 +40,6 @@ Editeur
 * Sauvegarde de layouts avec workgroup2::
 * Vérification de l'orthographe::
 * Packages::
-* Documentation en Markdown::
-* Affichage des commandes::
-* God mode::
 * multiple-cursors::
 * Autre::
 * Installer emacs sur un Ubuntu neuf::
@@ -65,13 +64,30 @@ Packages
 
 * Détail::
 
-multiple-cursors
-
-* cua-mode pour curseurs multiples::
-
 Installer emacs sur un Ubuntu neuf
 
 * Installer une version plus récente::
+
+Modes majeurs
+
+* markdown-mode::
+* yaml-ts-mode::
+
+Modes mineurs
+
+* linum-mode::
+* column-number-mode::
+* winner-mode::
+* show-parent-mode::
+* which-key-mode::
+* prettify-symbols-mode::
+* auto-revert-tail-mode::
+* white-space-mode::
+* command-log-mode::
+* ido-mode::
+* desktop-save-mode::
+* cua-mode::
+* god-mode::
 
 Intégration OS
 
@@ -214,7 +230,7 @@ Tramp
 
 
 
-File: emacs-documentation.info,  Node: Editeur,  Next: Intégration OS,  Prev: Top,  Up: Top
+File: emacs-documentation.info,  Node: Editeur,  Next: Modes majeurs,  Prev: Top,  Up: Top
 
 1 Editeur
 *********
@@ -237,9 +253,6 @@ File: emacs-documentation.info,  Node: Editeur,  Next: Intégration OS,  Prev: T
 * Sauvegarde de layouts avec workgroup2::
 * Vérification de l'orthographe::
 * Packages::
-* Documentation en Markdown::
-* Affichage des commandes::
-* God mode::
 * multiple-cursors::
 * Autre::
 * Installer emacs sur un Ubuntu neuf::
@@ -284,14 +297,6 @@ C-x 52
 C-x b
      buffer, afficher un buffer, avec ido noter que *C-k* permet de
      fermer un buffer.
-ido-mode
-     ajouter dans init.el ‘(require 'ido)(ido-mode t)’ permet une
-     completion améliorée pour les ouvertures de fichiers et les switchs
-     de buffer.  Pour les cas où c'est gênant, on retrouve le
-     comportement habituel avec un autre *C-f*.  Pour les répertoires on
-     redécouvre *C-x d* (Dired), mais noter que pour ouvrir un
-     répertoire comme un dossier, il est aussi possible d'utiliser *C-x
-     f C-f* (alternative que je préfère: *helm*).
 find-file-at-point
      (alias *ffap*) peut être appelé via *M-x*, ou ajouté *.emacs* via
      *(setq ido-use-filename-at-point 'guess)* bien plus confortable: on
@@ -327,9 +332,6 @@ Keys C-h F1
      liste tout les raccourcis commençants par *keys*.  Mais installer
      le package *which-key* est mieux et l'activer par défaut via
      (which-key-mode t)
-which-key-mode
-     après une demi seconde suite à un préfixe affiche toutes les
-     possibilités de fonctions...
 helm-descbinds
      pour une description pratique des key bindings, mais nécessite
      l'installation du package *helm-descbinds* depuis MELPA.  Si aimé
@@ -382,9 +384,6 @@ C-u M-|
 C-u M-!
      insère le résultat d'une commande shell dans le buffer courant
      (sans *C-u* affiche juste le résultat)
-desktop-save-mode
-     ajouter dans init.el (desktop-save-mode 1) pour retrouver les
-     buffers ouverts et leurs position lors du prochain démarrage.
 M-x revert-buffer-with-coding-system
      (C-x RET r) en précisant au prompt l'encodage en *UTF-8* permet de
      lire des fichier org issus de Linux dans Windows.  Noter que pour
@@ -409,12 +408,9 @@ C-x C-q
      bascule le mode Read-Only (de oui à non)
 M-x revert-buffer
      pour revenir à la version enregistrée du buffer.
-        • pour un revert sans confirmation piste d'ajout dans init.el de
+        • pour un revert sans confirmation ajouter dans init.el de
           ‘(global-set-key (kbd "C-c !") (lambda () (interactive)
           (revert-buffer t t)))’
-M-x auto-revert-tail-mode
-     pour un fichier de log permet de se maintenir à la fin et d'en
-     afficher le contenu toujours à jour
 
 * Menu:
 
@@ -443,9 +439,6 @@ File: emacs-documentation.info,  Node: Recherches,  Next: Marquage de position d
 1.3 Recherches
 ==============
 
-M-x show-parent-mode
-     permet l'affichage de l'autre parenthèse... pour s'y déplacer on a
-     *C-M-n* et *C-M-p*
 C-s/r
      recherche incrementale (r pour reverse), noter qu'on retourne au
      point de départ par *C-g* et que *C-w* insère le mot sous le
@@ -571,7 +564,7 @@ File: emacs-documentation.info,  Node: assignation de touches,  Next: Couleurs e
 
   2. Ouvrir le répertoire du fichier courant
 
-     (global-set-key "-xj" 'dired-jump) ;
+     (global-set-key "\C-xj" 'dired-jump) ;
 
 
 File: emacs-documentation.info,  Node: Couleurs et masquage du menu / icônes,  Next: use-package pour chargement différé de packages,  Prev: assignation de touches,  Up: Fichier de configuration emacs et emacsd/initel
@@ -581,8 +574,6 @@ File: emacs-documentation.info,  Node: Couleurs et masquage du menu / icônes,  
 
    • Pour éviter le fond noir en mode texte, essayer *M-x load-theme
      whitheboard* ou *dichromacy*
-   • pour afficher la colonne courante: *M-x column-number-mode*
-   • M-x linum-mode ::affiche les no de lignes du buffer.
    • Si c'est en mode texte (-nw ou serveur en SSH) il faut ajouter
         • dans .bashrc ‘export TERM=xterm-256color’
         • ou son équivallent zsh ‘.zshrc’ les thèmes qui semblent bien
@@ -872,6 +863,7 @@ File: emacs-documentation.info,  Node: Squelettes,  Next: Sauvegarde de layouts 
      >
           augmente l'indentation (si cela a un sens dans le mode
           courant)
+     \n
           insère un saut de ligne
      -NN
           recule de NN caractères
@@ -914,10 +906,7 @@ File: emacs-documentation.info,  Node: Sauvegarde de layouts avec workgroup2,  N
      sauvés
    • En complément ‘(desktop-save-mode 1)’ dans *init.el* permet de
      restaurer les buffers ouverts au démarage d'emacs
-   • Plus léger et efficace *winner-mode* qui permet via *C-<left>* et
-     *C-<right>* de retrouver le layout précédent / suivant.
-   • En complément, *ace-window* permet de passer par no d'une des
-     fenêtres à une autre (raccourci suggéré *M-o*)
+   • Voir plutôt *note winner-mode:: plus léger et efficace
 
 
 File: emacs-documentation.info,  Node: Vérification de l'orthographe,  Next: Packages,  Prev: Sauvegarde de layouts avec workgroup2,  Up: Editeur
@@ -950,7 +939,7 @@ M-x flyspell-correct-word-before-point
      marchent pour cela sur mon PC HP !).
 
 
-File: emacs-documentation.info,  Node: Packages,  Next: Documentation en Markdown,  Prev: Vérification de l'orthographe,  Up: Editeur
+File: emacs-documentation.info,  Node: Packages,  Next: multiple-cursors,  Prev: Vérification de l'orthographe,  Up: Editeur
 
 1.16 Packages
 =============
@@ -994,44 +983,9 @@ dans init.el ... puis via l'accès internet l'installation se fait via la
 commande *package-list-packages*.  Voir mode-php, python-django ...
 
 
-File: emacs-documentation.info,  Node: Documentation en Markdown,  Next: Affichage des commandes,  Prev: Packages,  Up: Editeur
+File: emacs-documentation.info,  Node: multiple-cursors,  Next: Autre,  Prev: Packages,  Up: Editeur
 
-1.17 Documentation en Markdown
-==============================
-
-   • installer *markdown-mode*
-   • permet surtout un affichage des enrichissements
-
-
-File: emacs-documentation.info,  Node: Affichage des commandes,  Next: God mode,  Prev: Documentation en Markdown,  Up: Editeur
-
-1.18 Affichage des commandes
-============================
-
-   • Installer le package *command-log*
-   • Lancer commande *command-log-mode*
-   • C-c o Bascule l'affichage ou non des dernières commandes
-
-
-File: emacs-documentation.info,  Node: God mode,  Next: multiple-cursors,  Prev: Affichage des commandes,  Up: Editeur
-
-1.19 God mode
-=============
-
-Avec le paquet *god-mode* pour taper directement le commandes
-nécessitant l'utilisation de la touche *Control*
-   • Bascule de ce mode mineur avec ‘(god-mode-all)’ ou
-     ‘(god-local-mode)’
-        • Je propose ‘(global-set-key "C-²" 'god-local-mode)’
-   • précéder une LETTRE de *g* pour insérer *M-LETTRE*
-   • précéder une lettre de *G* pour insérer *C-M-LETTRE*
-   • pour taper une suite de *lettres sans Control*, les préfixer d'un
-     espace
-
-
-File: emacs-documentation.info,  Node: multiple-cursors,  Next: Autre,  Prev: God mode,  Up: Editeur
-
-1.20 multiple-cursors
+1.17 multiple-cursors
 =====================
 
    • Voir le README (https://github.com/magnars/multiple-cursors.el) du
@@ -1049,27 +1003,10 @@ File: emacs-documentation.info,  Node: multiple-cursors,  Next: Autre,  Prev: Go
           (global-set-key (kbd "C-c à a") 'mc/mark-all-like-this)
           (global-set-key (kbd "C-c à n") 'mc/mark-next-like-this)
 
-* Menu:
-
-* cua-mode pour curseurs multiples::
-
-
-File: emacs-documentation.info,  Node: cua-mode pour curseurs multiples,  Up: multiple-cursors
-
-1.20.1 cua-mode pour curseurs multiples
----------------------------------------
-
-M-x cua-mode
-     activer le mode (toggle, attention aux conflits des touches std
-     emacs)
-C-Enter
-     marquer le début de la sélection cua, puis déplacer le curseur avec
-     les flèches pour étendre la sélection et terminer par *M-Enter*
-
 
 File: emacs-documentation.info,  Node: Autre,  Next: Installer emacs sur un Ubuntu neuf,  Prev: multiple-cursors,  Up: Editeur
 
-1.21 Autre
+1.18 Autre
 ==========
 
 M-x toggle-truncate-lines
@@ -1078,22 +1015,12 @@ C-h l
      view-loosage, affiche un buffer avec les dernières commandes tapées
 M-x : (buffer-file-name)
      affiche le chmin complet du fichier associé au buffer courant
-M-x white-space-mode
-     toggle, permet d'afficher les espaces (gros points) et les fins de
-     ligne ($)
 M-x find-name-dired
      affiche dans un dired tout les fichiers à partir d'un répertoire de
      départ dont le nom correspond à un nom (avec * comme wildcar)
 M-:
      évaluer du code elisp, exemple ‘(current-buffer)’ mais pour avoir
      le répertoire *C-x b* est plus complet
-M-x prettify-symbols-mode
-     permet l'affichage de symboles UTF-8 à la place de leur noms pour
-     les modes qui le supportent, par exemple pour afficher lambda λ
-     dans un source lisp on a *prettify-symbols-alist* qui vaut
-     ‘(("lambda" . 955))’ car code 955 en décimal
-        • utiliser ‘(global-prettify-symbols-mode 1)’ dans init.el pour
-          le généralser
 C-x 8 Ret
      Lit un caractère UTF8 par nom ou no et l'insère
         • on peut taper ‘*substring’ puis tabulation pour la complétion
@@ -1107,11 +1034,14 @@ C-x 8 Ret
                "sg"               1    "😎"
                "tdo"               1    "👎"
                "tup"               1    "👍"
+C-h i
+     oDemande un nom de fichier info et l'ouvre (avec helm il est très
+     simple de le retrouver avec une partie de son nom)
 
 
 File: emacs-documentation.info,  Node: Installer emacs sur un Ubuntu neuf,  Prev: Autre,  Up: Editeur
 
-1.22 Installer emacs sur un Ubuntu neuf
+1.19 Installer emacs sur un Ubuntu neuf
 =======================================
 
    • installer le paquet emacs
@@ -1132,7 +1062,7 @@ File: emacs-documentation.info,  Node: Installer emacs sur un Ubuntu neuf,  Prev
 
 File: emacs-documentation.info,  Node: Installer une version plus récente,  Up: Installer emacs sur un Ubuntu neuf
 
-1.22.1 Installer une version plus récente
+1.19.1 Installer une version plus récente
 -----------------------------------------
 
    • avec un dépôt spécifique ‘apt-add-repository ppa:ubuntu-elisp/ppa’
@@ -1148,9 +1078,205 @@ File: emacs-documentation.info,  Node: Installer une version plus récente,  Up:
      <https://learnubuntu.com/install-emacs/>
 
 
-File: emacs-documentation.info,  Node: Intégration OS,  Next: Macros,  Prev: Editeur,  Up: Top
+File: emacs-documentation.info,  Node: Modes majeurs,  Next: Modes mineurs,  Prev: Editeur,  Up: Top
 
-2 Intégration OS
+2 Modes majeurs
+***************
+
+Un seul mode majeur peut être actif dans un buffer
+
+* Menu:
+
+* markdown-mode::
+* yaml-ts-mode::
+
+
+File: emacs-documentation.info,  Node: markdown-mode,  Next: yaml-ts-mode,  Up: Modes majeurs
+
+2.1 markdown-mode
+=================
+
+Documentation en Markdown.  Installer le package, puis ce mode permet
+surtout un affichage des enrichissements
+
+
+File: emacs-documentation.info,  Node: yaml-ts-mode,  Prev: markdown-mode,  Up: Modes majeurs
+
+2.2 yaml-ts-mode
+================
+
+Pour édition de fichiers YAML
+
+
+File: emacs-documentation.info,  Node: Modes mineurs,  Next: Intégration OS,  Prev: Modes majeurs,  Up: Top
+
+3 Modes mineurs
+***************
+
+on peut cumuler les modes mineurs.  Je liste par oardre d"intérêt
+personnel décroissant (très subjectif)
+
+* Menu:
+
+* linum-mode::
+* column-number-mode::
+* winner-mode::
+* show-parent-mode::
+* which-key-mode::
+* prettify-symbols-mode::
+* auto-revert-tail-mode::
+* white-space-mode::
+* command-log-mode::
+* ido-mode::
+* desktop-save-mode::
+* cua-mode::
+* god-mode::
+
+
+File: emacs-documentation.info,  Node: linum-mode,  Next: column-number-mode,  Up: Modes mineurs
+
+3.1 linum-mode
+==============
+
+affiche les no de lignes du buffer.
+
+
+File: emacs-documentation.info,  Node: column-number-mode,  Next: winner-mode,  Prev: linum-mode,  Up: Modes mineurs
+
+3.2 column-number-mode
+======================
+
+pour afficher la colonne courante
+
+
+File: emacs-documentation.info,  Node: winner-mode,  Next: show-parent-mode,  Prev: column-number-mode,  Up: Modes mineurs
+
+3.3 winner-mode
+===============
+
+Permet via *C-<left>* et *C-<right>* de retrouver le layout précédent /
+suivant.  Le layout est la taille et position des différentes fenêtres
+dans un écran.
+   • En complément, *ace-window* permet de passer par no d'une des
+     fenêtres à une autre (raccourci suggéré *M-o*)
+
+
+File: emacs-documentation.info,  Node: show-parent-mode,  Next: which-key-mode,  Prev: winner-mode,  Up: Modes mineurs
+
+3.4 show-parent-mode
+====================
+
+Affichage de l'autre parenthèse... pour s'y déplacer on a *C-M-n* et
+*C-M-p*
+
+
+File: emacs-documentation.info,  Node: which-key-mode,  Next: prettify-symbols-mode,  Prev: show-parent-mode,  Up: Modes mineurs
+
+3.5 which-key-mode
+==================
+
+Après une demi seconde suite à un préfixe affiche toutes les
+possibilités de touches pour appeler des fonctions
+
+
+File: emacs-documentation.info,  Node: prettify-symbols-mode,  Next: auto-revert-tail-mode,  Prev: which-key-mode,  Up: Modes mineurs
+
+3.6 prettify-symbols-mode
+=========================
+
+Affichage de symboles UTF-8 à la place de leur noms pour les modes qui
+le supportent.  Par exemple pour afficher lambda λ dans un source lisp
+on a *prettify-symbols-alist* qui vaut ‘(("lambda" . 955))’ car code 955
+en décimal
+   • utiliser ‘(global-prettify-symbols-mode 1)’ dans init.el pour le
+     généralser
+
+
+File: emacs-documentation.info,  Node: auto-revert-tail-mode,  Next: white-space-mode,  Prev: prettify-symbols-mode,  Up: Modes mineurs
+
+3.7 auto-revert-tail-mode
+=========================
+
+Pour un fichier de log permet de se maintenir à la fin et d'en afficher
+le contenu toujours à jour
+
+
+File: emacs-documentation.info,  Node: white-space-mode,  Next: command-log-mode,  Prev: auto-revert-tail-mode,  Up: Modes mineurs
+
+3.8 white-space-mode
+====================
+
+toggle, permet d'afficher les espaces (gros points) et les fins de ligne
+($).  Utile pour débug de fichiers yaml par exemple.
+
+
+File: emacs-documentation.info,  Node: command-log-mode,  Next: ido-mode,  Prev: white-space-mode,  Up: Modes mineurs
+
+3.9 command-log-mode
+====================
+
+Affichage des commandes
+   • Installer le package *command-log*
+   • Lancer commande *command-log-mode*
+   • C-c o Bascule l'affichage ou non des dernières commandes
+
+
+File: emacs-documentation.info,  Node: ido-mode,  Next: desktop-save-mode,  Prev: command-log-mode,  Up: Modes mineurs
+
+3.10 ido-mode
+=============
+
+Ajouter dans init.el ‘(require 'ido)(ido-mode t)’ permet une completion
+améliorée pour les ouvertures de fichiers et les switchs de buffer.
+Pour les cas où c'est gênant, on retrouve le comportement habituel avec
+un autre *C-f*.  Pour les répertoires on redécouvre *C-x d* (Dired),
+mais noter que pour ouvrir un répertoire comme un dossier, il est aussi
+possible d'utiliser *C-x f C-f* (alternative que je préfère: *helm*).
+
+
+File: emacs-documentation.info,  Node: desktop-save-mode,  Next: cua-mode,  Prev: ido-mode,  Up: Modes mineurs
+
+3.11 desktop-save-mode
+======================
+
+Ajouter dans init.el ‘(desktop-save-mode 1)’ pour retrouver les buffers
+ouverts et leurs positions lors du prochain démarrage d'emacs
+(finalement pas gardé, je ne travaille pas assez sur les mêmes
+fichiers).
+
+
+File: emacs-documentation.info,  Node: cua-mode,  Next: god-mode,  Prev: desktop-save-mode,  Up: Modes mineurs
+
+3.12 cua-mode
+=============
+
+pour curseurs multiples
+M-x cua-mode
+     activer le mode (toggle, attention aux conflits des touches std
+     emacs)
+C-Enter
+     marquer le début de la sélection cua, puis déplacer le curseur avec
+     les flèches pour étendre la sélection et terminer par *M-Enter*
+
+
+File: emacs-documentation.info,  Node: god-mode,  Prev: cua-mode,  Up: Modes mineurs
+
+3.13 god-mode
+=============
+
+Avec le paquet *god-mode* pour taper directement le commandes
+nécessitant l'utilisation de la touche *Control*
+   • Bascule avec ‘(god-mode-all)’ ou ‘(god-local-mode)’
+        • Je propose ‘(global-set-key "C-²" 'god-local-mode)’
+   • précéder une LETTRE de *g* pour insérer *M-LETTRE*
+   • précéder une lettre de *G* pour insérer *C-M-LETTRE*
+   • pour taper une suite de *lettres sans Control*, les préfixer d'un
+     espace
+
+
+File: emacs-documentation.info,  Node: Intégration OS,  Next: Macros,  Prev: Modes mineurs,  Up: Top
+
+4 Intégration OS
 ****************
 
 * Menu:
@@ -1169,7 +1295,7 @@ File: emacs-documentation.info,  Node: Intégration OS,  Next: Macros,  Prev: Ed
 
 File: emacs-documentation.info,  Node: Répertoires,  Next: Impressions,  Up: Intégration OS
 
-2.1 Répertoires
+4.1 Répertoires
 ===============
 
 C-x d
@@ -1232,7 +1358,7 @@ M-x find-grep-dired
 
 File: emacs-documentation.info,  Node: Impressions,  Next: Calculatrices,  Prev: Répertoires,  Up: Intégration OS
 
-2.2 Impressions
+4.2 Impressions
 ===============
 
    • Je recommande la fonction *ps-print-with-faces*
@@ -1253,7 +1379,7 @@ File: emacs-documentation.info,  Node: Impressions,  Next: Calculatrices,  Prev:
 
 File: emacs-documentation.info,  Node: Calculatrices,  Next: Terminaux et Man,  Prev: Impressions,  Up: Intégration OS
 
-2.3 Calculatrices
+4.3 Calculatrices
 =================
 
 * Menu:
@@ -1266,7 +1392,7 @@ File: emacs-documentation.info,  Node: Calculatrices,  Next: Terminaux et Man,  
 
 File: emacs-documentation.info,  Node: Calculatrice RPN,  Next: Quick calc,  Up: Calculatrices
 
-2.3.1 Calculatrice RPN
+4.3.1 Calculatrice RPN
 ----------------------
 
 accès par *C-x * c*
@@ -1356,7 +1482,7 @@ hk tN
 
 File: emacs-documentation.info,  Node: Quick calc,  Next: Calculatrice Embedded,  Prev: Calculatrice RPN,  Up: Calculatrices
 
-2.3.2 Quick calc
+4.3.2 Quick calc
 ----------------
 
 M-x quick-calc
@@ -1366,7 +1492,7 @@ M-x quick-calc
 
 File: emacs-documentation.info,  Node: Calculatrice Embedded,  Next: helm-calcul-expression,  Prev: Quick calc,  Up: Calculatrices
 
-2.3.3 Calculatrice Embedded
+4.3.3 Calculatrice Embedded
 ---------------------------
 
 Pour écrire des devoirs de math ou physique.  On rédige un document
@@ -1409,7 +1535,7 @@ C-x * :
 
 File: emacs-documentation.info,  Node: helm-calcul-expression,  Prev: Calculatrice Embedded,  Up: Calculatrices
 
-2.3.4 helm-calcul-expression
+4.3.4 helm-calcul-expression
 ----------------------------
 
 Pour un rapide calcul avec *Enter* pour récupérer le résultat dans le
@@ -1418,7 +1544,7 @@ kill-ring (j'associe à F5)
 
 File: emacs-documentation.info,  Node: Terminaux et Man,  Next: Serveur emacs,  Prev: Calculatrices,  Up: Intégration OS
 
-2.4 Terminaux et Man
+4.4 Terminaux et Man
 ====================
 
 M-x shell
@@ -1464,7 +1590,7 @@ ssh-agent
 
 File: emacs-documentation.info,  Node: eshell,  Up: Terminaux et Man
 
-2.4.1 eshell
+4.4.1 eshell
 ------------
 
 Terminal elisp
@@ -1532,7 +1658,7 @@ Terminal elisp
 
 File: emacs-documentation.info,  Node: Serveur emacs,  Next: Scripts sur un serveur distant depuis emacs,  Prev: Terminaux et Man,  Up: Intégration OS
 
-2.5 Serveur emacs
+4.5 Serveur emacs
 =================
 
    • Permet d'avoir un emacs qui tourne en arrière plan à qui on envoi
@@ -1546,7 +1672,7 @@ File: emacs-documentation.info,  Node: Serveur emacs,  Next: Scripts sur un serv
 
 File: emacs-documentation.info,  Node: Scripts sur un serveur distant depuis emacs,  Next: EIN - Emacs IPython Notebook,  Prev: Serveur emacs,  Up: Intégration OS
 
-2.6 Scripts sur un serveur distant depuis emacs
+4.6 Scripts sur un serveur distant depuis emacs
 ===============================================
 
 Noter qu'on se sert de la clef SSH qui évite le MDP, et que le compte
@@ -1559,7 +1685,7 @@ root utilisé doit utliiser bash (zsh ne se connecte pas)
 
 File: emacs-documentation.info,  Node: Examples,  Up: Scripts sur un serveur distant depuis emacs
 
-2.6.1 Examples
+4.6.1 Examples
 --------------
 
      df -h /
@@ -1567,7 +1693,7 @@ File: emacs-documentation.info,  Node: Examples,  Up: Scripts sur un serveur dis
 
 File: emacs-documentation.info,  Node: EIN - Emacs IPython Notebook,  Next: Navigateur web interne - eww,  Prev: Scripts sur un serveur distant depuis emacs,  Up: Intégration OS
 
-2.7 EIN - Emacs IPython Notebook
+4.7 EIN - Emacs IPython Notebook
 ================================
 
    • Voir un site (http://millejoh.github.io/emacs-ipython-notebook/)
@@ -1576,7 +1702,7 @@ File: emacs-documentation.info,  Node: EIN - Emacs IPython Notebook,  Next: Navi
 
 File: emacs-documentation.info,  Node: Navigateur web interne - eww,  Next: Gestion des mails mu4e - Messagerie Exchange,  Prev: EIN - Emacs IPython Notebook,  Up: Intégration OS
 
-2.8 Navigateur web interne - eww
+4.8 Navigateur web interne - eww
 ================================
 
 M-x eww
@@ -1597,7 +1723,7 @@ q
 
 File: emacs-documentation.info,  Node: Gestion des mails mu4e - Messagerie Exchange,  Next: Gestion des mails notmuch - Free/GMail,  Prev: Navigateur web interne - eww,  Up: Intégration OS
 
-2.9 Gestion des mails mu4e - Messagerie Exchange
+4.9 Gestion des mails mu4e - Messagerie Exchange
 ================================================
 
 * Menu:
@@ -1612,7 +1738,7 @@ File: emacs-documentation.info,  Node: Gestion des mails mu4e - Messagerie Excha
 
 File: emacs-documentation.info,  Node: Accepter le certificat du serveur Exchange,  Next: Autre méthode pour accepter un certificat refusé,  Up: Gestion des mails mu4e - Messagerie Exchange
 
-2.9.1 Accepter le certificat du serveur Exchange
+4.9.1 Accepter le certificat du serveur Exchange
 ------------------------------------------------
 
    • Copier Wildcard.pem dans _usr/share/ca-certificates_
@@ -1621,7 +1747,7 @@ File: emacs-documentation.info,  Node: Accepter le certificat du serveur Exchang
 
 File: emacs-documentation.info,  Node: Autre méthode pour accepter un certificat refusé,  Next: Méthode plus directe,  Prev: Accepter le certificat du serveur Exchange,  Up: Gestion des mails mu4e - Messagerie Exchange
 
-2.9.2 Autre méthode pour accepter un certificat refusé
+4.9.2 Autre méthode pour accepter un certificat refusé
 ------------------------------------------------------
 
    • Récupérer le certificat à problème, par exemple via ‘openssl
@@ -1639,7 +1765,7 @@ File: emacs-documentation.info,  Node: Autre méthode pour accepter un certifica
 
 File: emacs-documentation.info,  Node: Méthode plus directe,  Next: Récupération des mails avec offlineimap,  Prev: Autre méthode pour accepter un certificat refusé,  Up: Gestion des mails mu4e - Messagerie Exchange
 
-2.9.3 Méthode plus directe
+4.9.3 Méthode plus directe
 --------------------------
 
    • En cas de pb de signature, lancer ‘offilneimap’ et trouver la
@@ -1648,7 +1774,7 @@ File: emacs-documentation.info,  Node: Méthode plus directe,  Next: Récupérat
 
 File: emacs-documentation.info,  Node: Récupération des mails avec offlineimap,  Next: Quelques raccourcis clavier,  Prev: Méthode plus directe,  Up: Gestion des mails mu4e - Messagerie Exchange
 
-2.9.4 Récupération des mails avec offlineimap
+4.9.4 Récupération des mails avec offlineimap
 ---------------------------------------------
 
    • installer le paquet *offlineimap*
@@ -1800,7 +1926,7 @@ File: emacs-documentation.info,  Node: Récupération des mails avec offlineimap
 
 File: emacs-documentation.info,  Node: Quelques raccourcis clavier,  Next: Filtre de recherche avec mu,  Prev: Récupération des mails avec offlineimap,  Up: Gestion des mails mu4e - Messagerie Exchange
 
-2.9.5 Quelques raccourcis clavier
+4.9.5 Quelques raccourcis clavier
 ---------------------------------
 
 O
@@ -1829,7 +1955,7 @@ e
 
 File: emacs-documentation.info,  Node: Filtre de recherche avec mu,  Prev: Quelques raccourcis clavier,  Up: Gestion des mails mu4e - Messagerie Exchange
 
-2.9.6 Filtre de recherche avec mu
+4.9.6 Filtre de recherche avec mu
 ---------------------------------
 
    • La documentation la plus complète est dans *man mu-find*
@@ -1852,7 +1978,7 @@ File: emacs-documentation.info,  Node: Filtre de recherche avec mu,  Prev: Quelq
 
 File: emacs-documentation.info,  Node: Gestion des mails notmuch - Free/GMail,  Prev: Gestion des mails mu4e - Messagerie Exchange,  Up: Intégration OS
 
-2.10 Gestion des mails notmuch - Free/GMail
+4.10 Gestion des mails notmuch - Free/GMail
 ===========================================
 
 * Menu:
@@ -1863,7 +1989,7 @@ File: emacs-documentation.info,  Node: Gestion des mails notmuch - Free/GMail,  
 
 File: emacs-documentation.info,  Node: Installation (1),  Next: Utilisation,  Up: Gestion des mails notmuch - Free/GMail
 
-2.10.1 Installation
+4.10.1 Installation
 -------------------
 
    • paquet offlineimap sous linux (dnf ou apt)
@@ -2000,7 +2126,7 @@ File: emacs-documentation.info,  Node: Installation (1),  Next: Utilisation,  Up
 
 File: emacs-documentation.info,  Node: Utilisation,  Prev: Installation (1),  Up: Gestion des mails notmuch - Free/GMail
 
-2.10.2 Utilisation
+4.10.2 Utilisation
 ------------------
 
    • lancement par ‘notmuch-hello’ (ou définir un raccourci clavier)
@@ -2080,7 +2206,7 @@ File: emacs-documentation.info,  Node: Utilisation,  Prev: Installation (1),  Up
 
 File: emacs-documentation.info,  Node: Macros,  Next: Programmation et debug,  Prev: Intégration OS,  Up: Top
 
-3 Macros
+5 Macros
 ********
 
 Enregistrer avec *F3* puis fin par *F4*, exécution via *F4* avec préfixe
@@ -2128,7 +2254,7 @@ utilisant ‘C-u M-: nom-variable’
 
 File: emacs-documentation.info,  Node: Programmation et debug,  Next: org-mode,  Prev: Macros,  Up: Top
 
-4 Programmation et debug
+6 Programmation et debug
 ************************
 
 * Menu:
@@ -2152,7 +2278,7 @@ File: emacs-documentation.info,  Node: Programmation et debug,  Next: org-mode, 
 
 File: emacs-documentation.info,  Node: Debug de Bash,  Next: Debug de C et C++,  Up: Programmation et debug
 
-4.1 Debug de Bash
+6.1 Debug de Bash
 =================
 
    • installer *bashdb* (apt-get ou rpm)
@@ -2198,7 +2324,7 @@ File: emacs-documentation.info,  Node: Debug de Bash,  Next: Debug de C et C++, 
 
 File: emacs-documentation.info,  Node: Debug de C et C++,  Next: Python,  Prev: Debug de Bash,  Up: Programmation et debug
 
-4.2 Debug de C et C++
+6.2 Debug de C et C++
 =====================
 
    • Penser à compiler en debug , soit pour un seul fichier *M-x
@@ -2235,7 +2361,7 @@ File: emacs-documentation.info,  Node: Debug de C et C++,  Next: Python,  Prev: 
 
 File: emacs-documentation.info,  Node: Indentation et styles,  Up: Debug de C et C++
 
-4.2.1 Indentation et styles
+6.2.1 Indentation et styles
 ---------------------------
 
 Au delà du programme externe *indent* qui est plus pramétrale, dans un
@@ -2249,7 +2375,7 @@ C-x h C-M-\
 
 File: emacs-documentation.info,  Node: Python,  Next: Perl,  Prev: Debug de C et C++,  Up: Programmation et debug
 
-4.3 Python
+6.3 Python
 ==========
 
 C-c C-z
@@ -2279,7 +2405,7 @@ M-.
 
 File: emacs-documentation.info,  Node: Debug,  Next: Pony-mode,  Up: Python
 
-4.3.1 Debug
+6.3.1 Debug
 -----------
 
    • Ajouter ‘import pdb; set_trace();’ dans un code pour y placer un
@@ -2340,7 +2466,7 @@ File: emacs-documentation.info,  Node: Debug,  Next: Pony-mode,  Up: Python
 
 File: emacs-documentation.info,  Node: Pony-mode,  Next: python-django,  Prev: Debug,  Up: Python
 
-4.3.2 Pony-mode
+6.3.2 Pony-mode
 ---------------
 
    • installable via *package-list-package*, puis définie un *pony-mode*
@@ -2366,7 +2492,7 @@ File: emacs-documentation.info,  Node: Pony-mode,  Next: python-django,  Prev: D
 
 File: emacs-documentation.info,  Node: python-django,  Prev: Pony-mode,  Up: Python
 
-4.3.3 python-django
+6.3.3 python-django
 -------------------
 
    • Installer le package via *list-package* et MELPA.
@@ -2388,7 +2514,7 @@ File: emacs-documentation.info,  Node: python-django,  Prev: Pony-mode,  Up: Pyt
 
 File: emacs-documentation.info,  Node: Perl,  Next: elpy pour les programmes python,  Prev: Python,  Up: Programmation et debug
 
-4.4 Perl
+6.4 Perl
 ========
 
 M-x perldb
@@ -2417,7 +2543,7 @@ M-x perldb
 
 File: emacs-documentation.info,  Node: elpy pour les programmes python,  Next: java,  Prev: Perl,  Up: Programmation et debug
 
-4.5 elpy pour les programmes python
+6.5 elpy pour les programmes python
 ===================================
 
 * Menu:
@@ -2428,7 +2554,7 @@ File: emacs-documentation.info,  Node: elpy pour les programmes python,  Next: j
 
 File: emacs-documentation.info,  Node: Installation (2),  Next: Utilisation (1),  Up: elpy pour les programmes python
 
-4.5.1 Installation
+6.5.1 Installation
 ------------------
 
    • Voir le package elpy
@@ -2450,7 +2576,7 @@ File: emacs-documentation.info,  Node: Installation (2),  Next: Utilisation (1),
 
 File: emacs-documentation.info,  Node: Utilisation (1),  Prev: Installation (2),  Up: elpy pour les programmes python
 
-4.5.2 Utilisation
+6.5.2 Utilisation
 -----------------
 
 C-c C-n
@@ -2469,7 +2595,7 @@ import
 
 File: emacs-documentation.info,  Node: java,  Next: eLISP,  Prev: elpy pour les programmes python,  Up: Programmation et debug
 
-4.6 java
+6.6 java
 ========
 
    • jde devenu jdee : pas trouvé par ou le configurer
@@ -2484,7 +2610,7 @@ File: emacs-documentation.info,  Node: java,  Next: eLISP,  Prev: elpy pour les 
 
 File: emacs-documentation.info,  Node: eLISP,  Next: Buffer dired ouverts,  Prev: java,  Up: Programmation et debug
 
-4.7 eLISP
+6.7 eLISP
 =========
 
 Noter que pour common lisp les spécificités sont dans un fichier dédié
@@ -2594,7 +2720,7 @@ paredit-mode
 
 File: emacs-documentation.info,  Node: Minor-mode,  Next: Major_mode,  Up: eLISP
 
-4.7.1 Minor-mode
+6.7.1 Minor-mode
 ----------------
 
 Voir Writing GNU Emacs Extensions Chap 7
@@ -2622,7 +2748,7 @@ Voir Writing GNU Emacs Extensions Chap 7
 
 File: emacs-documentation.info,  Node: Major_mode,  Next: Major-mode basé sur un mode existant,  Prev: Minor-mode,  Up: eLISP
 
-4.7.2 Major_mode
+6.7.2 Major_mode
 ----------------
 
 Voir Writing GNU Emacs Extensions Chap 9
@@ -2630,7 +2756,7 @@ Voir Writing GNU Emacs Extensions Chap 9
 
 File: emacs-documentation.info,  Node: Major-mode basé sur un mode existant,  Next: Affichage des macros elisp,  Prev: Major_mode,  Up: eLISP
 
-4.7.3 Major-mode basé sur un mode existant
+6.7.3 Major-mode basé sur un mode existant
 ------------------------------------------
 
 Utilisation d'un package dédié pour une macro qui simplifie l'écriture
@@ -2639,7 +2765,7 @@ du mode
 
 File: emacs-documentation.info,  Node: Affichage des macros elisp,  Next: Fabrication d'epub,  Prev: Major-mode basé sur un mode existant,  Up: eLISP
 
-4.7.4 Affichage des macros elisp
+6.7.4 Affichage des macros elisp
 --------------------------------
 
    • Package à installer: *macrostep*
@@ -2656,7 +2782,7 @@ File: emacs-documentation.info,  Node: Affichage des macros elisp,  Next: Fabric
 
 File: emacs-documentation.info,  Node: Fabrication d'epub,  Prev: Affichage des macros elisp,  Up: eLISP
 
-4.7.5 Fabrication d'epub
+6.7.5 Fabrication d'epub
 ------------------------
 
   1. Actuellement
@@ -2703,7 +2829,7 @@ File: emacs-documentation.info,  Node: Fabrication d'epub,  Prev: Affichage des 
 
 File: emacs-documentation.info,  Node: Buffer dired ouverts,  Next: SQL et CLI,  Prev: eLISP,  Up: Programmation et debug
 
-4.8 Buffer dired ouverts
+6.8 Buffer dired ouverts
 ========================
 
 Voir assoc ‘dired-buffer’ pour une liste en elisp
@@ -2715,13 +2841,13 @@ Voir assoc ‘dired-buffer’ pour une liste en elisp
 
 File: emacs-documentation.info,  Node: Buffer non associé à un fichier,  Up: Buffer dired ouverts
 
-4.8.1 Buffer non associé à un fichier
+6.8.1 Buffer non associé à un fichier
 -------------------------------------
 
 
 File: emacs-documentation.info,  Node: SQL et CLI,  Next: TAGS,  Prev: Buffer dired ouverts,  Up: Programmation et debug
 
-4.9 SQL et CLI
+6.9 SQL et CLI
 ==============
 
 M-x sql-mysql
@@ -2744,7 +2870,7 @@ M-x sql-product-interactive
 
 File: emacs-documentation.info,  Node: TAGS,  Next: Folding,  Prev: SQL et CLI,  Up: Programmation et debug
 
-4.10 TAGS
+6.10 TAGS
 =========
 
 Pour indexer et rechercher dans les sources d'un répertoire
@@ -2763,7 +2889,7 @@ M-,
 
 File: emacs-documentation.info,  Node: Folding,  Next: Docker,  Prev: TAGS,  Up: Programmation et debug
 
-4.11 Folding
+6.11 Folding
 ============
 
 C-c @ C-M-h
@@ -2776,7 +2902,7 @@ C-c @ C-c
 
 File: emacs-documentation.info,  Node: Docker,  Next: Puppet,  Prev: Folding,  Up: Programmation et debug
 
-4.12 Docker
+6.12 Docker
 ===========
 
    • Pré-requis: *docker.io* sur la machine et user dans le groupe
@@ -2835,7 +2961,7 @@ File: emacs-documentation.info,  Node: Docker,  Next: Puppet,  Prev: Folding,  U
 
 File: emacs-documentation.info,  Node: Puppet,  Next: Comparaisons,  Prev: Docker,  Up: Programmation et debug
 
-4.13 Puppet
+6.13 Puppet
 ===========
 
    • il existe un *puppet-mode* dispo sur le dépôt melpa optionnel
@@ -2849,7 +2975,7 @@ File: emacs-documentation.info,  Node: Puppet,  Next: Comparaisons,  Prev: Docke
 
 File: emacs-documentation.info,  Node: Comparaisons,  Next: Suivi des versions de sources,  Prev: Puppet,  Up: Programmation et debug
 
-4.14 Comparaisons
+6.14 Comparaisons
 =================
 
 M-x ediff
@@ -2872,21 +2998,18 @@ M-x ediff
 C-x sd
      permet d'afficher les différences des buffers ouverts avec leurs
      fichiers (puis de choisir de les sauvegarder ou pas)
-M-x ediff-current-buffer
-     est une alternative à la commande précédente, mieux présenté et
-     c'est du ediff, voir son fonctionnement.
 M-x ediff-compare-directories
      Lance une comparaison de deux répertoires, taper ensuite *D* pour
      afficher les différences, voir copier les fichiers qui seraient
      d'un seul côté via *C* (demande une confirmation).
-M-x ediff-current-buffer
+M-x ediff-current-file
      Pour comparer le buffer courant avec son fichier (avant de sauver,
      quelles sont les différences ?)
 
 
 File: emacs-documentation.info,  Node: Suivi des versions de sources,  Prev: Comparaisons,  Up: Programmation et debug
 
-4.15 Suivi des versions de sources
+6.15 Suivi des versions de sources
 ==================================
 
 * Menu:
@@ -2899,7 +3022,7 @@ File: emacs-documentation.info,  Node: Suivi des versions de sources,  Prev: Com
 
 File: emacs-documentation.info,  Node: Intégration dans emacs,  Next: magit,  Up: Suivi des versions de sources
 
-4.15.1 Intégration dans emacs
+6.15.1 Intégration dans emacs
 -----------------------------
 
 Suivi des modification du fichier en cours (bzr par exemple ... mais
@@ -2969,7 +3092,7 @@ Pour utiliser ediff comme mergetool
 
 File: emacs-documentation.info,  Node: magit,  Next: Préparation du projet sur git,  Prev: Intégration dans emacs,  Up: Suivi des versions de sources
 
-4.15.2 magit
+6.15.2 magit
 ------------
 
    • Installation via ‘package-list-packages’
@@ -3034,7 +3157,7 @@ File: emacs-documentation.info,  Node: magit,  Next: Préparation du projet sur 
 
 File: emacs-documentation.info,  Node: Préparation du projet sur git,  Next: emacs et WikiJS,  Prev: magit,  Up: Suivi des versions de sources
 
-4.15.3 Préparation du projet sur git
+6.15.3 Préparation du projet sur git
 ------------------------------------
 
 Issu de la doc IKV
@@ -3100,7 +3223,7 @@ Issu de la doc IKV
 
 File: emacs-documentation.info,  Node: emacs et WikiJS,  Prev: Préparation du projet sur git,  Up: Suivi des versions de sources
 
-4.15.4 emacs et WikiJS
+6.15.4 emacs et WikiJS
 ----------------------
 
    • modifier les fichiers du dépôt local /home/pdedieu/wiki/data/repo
@@ -3123,7 +3246,7 @@ File: emacs-documentation.info,  Node: emacs et WikiJS,  Prev: Préparation du p
 
 File: emacs-documentation.info,  Node: org-mode,  Next: Tramp,  Prev: Programmation et debug,  Up: Top
 
-5 org-mode
+7 org-mode
 **********
 
 * Menu:
@@ -3152,7 +3275,7 @@ File: emacs-documentation.info,  Node: org-mode,  Next: Tramp,  Prev: Programmat
 
 File: emacs-documentation.info,  Node: Notes,  Next: Insertion de lien,  Up: org-mode
 
-5.1 Notes
+7.1 Notes
 =========
 
 Voir *C-h i* puis *m* org(1) pour lire info sur org-mode(2) ou un
@@ -3316,7 +3439,7 @@ tard ?
 
 File: emacs-documentation.info,  Node: Insertion de lien,  Next: Navigation dans les titres,  Prev: Notes,  Up: org-mode
 
-5.2 Insertion de lien
+7.2 Insertion de lien
 =====================
 
 C-c C-l
@@ -3347,7 +3470,7 @@ C-u C-c C-l
 
 File: emacs-documentation.info,  Node: Navigation dans les titres,  Next: Saisies agenda,  Prev: Insertion de lien,  Up: org-mode
 
-5.3 Navigation dans les titres
+7.3 Navigation dans les titres
 ==============================
 
 C-c C-n
@@ -3365,7 +3488,7 @@ C-c C-j
 
 File: emacs-documentation.info,  Node: Saisies agenda,  Next: Affichage des agendas,  Prev: Navigation dans les titres,  Up: org-mode
 
-5.4 Saisies agenda
+7.4 Saisies agenda
 ==================
 
    • Le format des stamps peut être customisé/francisé en changeant deux
@@ -3422,7 +3545,7 @@ File: emacs-documentation.info,  Node: Saisies agenda,  Next: Affichage des agen
 
 File: emacs-documentation.info,  Node: Affichage des agendas,  Next: Chronométrage,  Prev: Saisies agenda,  Up: org-mode
 
-5.5 Affichage des agendas
+7.5 Affichage des agendas
 =========================
 
 Ajouté le _<2017-04-23 dim.  14:01>_
@@ -3460,7 +3583,7 @@ C-c C-t
 
 File: emacs-documentation.info,  Node: Chronométrage,  Next: org-roam,  Prev: Affichage des agendas,  Up: org-mode
 
-5.6 Chronométrage
+7.6 Chronométrage
 =================
 
 C-c C-x C-i
@@ -3473,7 +3596,7 @@ C-c C-x C-d
 
 File: emacs-documentation.info,  Node: org-roam,  Next: org-capture,  Prev: Chronométrage,  Up: org-mode
 
-5.7 org-roam
+7.7 org-roam
 ============
 
 -Voir Org-Roam-Memento
@@ -3509,7 +3632,7 @@ Raccourcis clavier suggérés
 
 File: emacs-documentation.info,  Node: org-capture,  Next: Tableaux,  Prev: org-roam,  Up: org-mode
 
-5.8 org-capture
+7.8 org-capture
 ===============
 
 org-capture
@@ -3533,7 +3656,7 @@ org-capture
 
 File: emacs-documentation.info,  Node: Tableaux,  Next: Présentation revealjs,  Prev: org-capture,  Up: org-mode
 
-5.9 Tableaux
+7.9 Tableaux
 ============
 
 * Menu:
@@ -3546,7 +3669,7 @@ File: emacs-documentation.info,  Node: Tableaux,  Next: Présentation revealjs, 
 
 File: emacs-documentation.info,  Node: Départs,  Next: Saisies,  Up: Tableaux
 
-5.9.1 Départs
+7.9.1 Départs
 -------------
 
 C-u M-!
@@ -3558,7 +3681,7 @@ C-c |
 
 File: emacs-documentation.info,  Node: Saisies,  Next: Manipulation lignes et colonnes,  Prev: Départs,  Up: Tableaux
 
-5.9.2 Saisies
+7.9.2 Saisies
 -------------
 
 Un exemple de tableau (juste pour vérifier), pour le taper il suffit:
@@ -3586,7 +3709,7 @@ Un exemple de tableau (juste pour vérifier), pour le taper il suffit:
 
 File: emacs-documentation.info,  Node: Manipulation lignes et colonnes,  Next: Formules,  Prev: Saisies,  Up: Tableaux
 
-5.9.3 Manipulation lignes et colonnes
+7.9.3 Manipulation lignes et colonnes
 -------------------------------------
 
 M-Down
@@ -3613,7 +3736,7 @@ M-x org-export-table
 
 File: emacs-documentation.info,  Node: Formules,  Prev: Manipulation lignes et colonnes,  Up: Tableaux
 
-5.9.4 Formules
+7.9.4 Formules
 --------------
 
 Les formules sont de type algébrique.  Pour faire du elisp il faut les
@@ -3671,7 +3794,7 @@ C-c {
 
 File: emacs-documentation.info,  Node: Présentation revealjs,  Next: Pour aller plus loin,  Prev: Tableaux,  Up: org-mode
 
-5.10 Présentation reveal.js
+7.10 Présentation reveal.js
 ===========================
 
    • Télécharger le tar.gz sur le site de ref
@@ -3682,7 +3805,7 @@ File: emacs-documentation.info,  Node: Présentation revealjs,  Next: Pour aller
 
 File: emacs-documentation.info,  Node: Pour aller plus loin,  Next: Org-babel et inclusion de sources,  Prev: Présentation revealjs,  Up: org-mode
 
-5.11 Pour aller plus loin
+7.11 Pour aller plus loin
 =========================
 
 Une config très complète
@@ -3691,7 +3814,7 @@ Une config très complète
 
 File: emacs-documentation.info,  Node: Org-babel et inclusion de sources,  Next: Inclusion de requêtes mysql,  Prev: Pour aller plus loin,  Up: org-mode
 
-5.12 Org-babel et inclusion de sources
+7.12 Org-babel et inclusion de sources
 ======================================
 
 Il faut une définition dans init.el du type
@@ -3706,7 +3829,7 @@ Il faut une définition dans init.el du type
 
 File: emacs-documentation.info,  Node: Inclusion de requêtes mysql,  Next: Inclusion de code SQLite,  Prev: Org-babel et inclusion de sources,  Up: org-mode
 
-5.13 Inclusion de requêtes mysql
+7.13 Inclusion de requêtes mysql
 ================================
 
    • Voir référence
@@ -3730,7 +3853,7 @@ File: emacs-documentation.info,  Node: Inclusion de requêtes mysql,  Next: Incl
 
 File: emacs-documentation.info,  Node: Inclusion de code SQLite,  Next: Inclusion de diagrammes Ditaa,  Prev: Inclusion de requêtes mysql,  Up: org-mode
 
-5.14 Inclusion de code SQLite
+7.14 Inclusion de code SQLite
 =============================
 
    • Un exemple sur la base de IKV pour du CSV en sortie dans un fichier
@@ -3774,7 +3897,7 @@ File: emacs-documentation.info,  Node: Inclusion de code SQLite,  Next: Inclusio
 
 File: emacs-documentation.info,  Node: Inclusion de diagrammes Ditaa,  Next: Inclusion de shémas UML,  Prev: Inclusion de code SQLite,  Up: org-mode
 
-5.15 Inclusion de diagrammes Ditaa
+7.15 Inclusion de diagrammes Ditaa
 ==================================
 
 Voir
@@ -3801,7 +3924,7 @@ ditaa.jar
 
 File: emacs-documentation.info,  Node: Inclusion de shémas UML,  Next: Exportation,  Prev: Inclusion de diagrammes Ditaa,  Up: org-mode
 
-5.16 Inclusion de shémas UML
+7.16 Inclusion de shémas UML
 ============================
 
 Il faut installer le package *plantuml* via apt ou yum.  Mais il semble
@@ -3816,11 +3939,11 @@ aussi qu'il faille un *plantuml.jar* et indiquer son chemin.
 
 File: emacs-documentation.info,  Node: Exportation,  Next: Formules mathématiques,  Prev: Inclusion de shémas UML,  Up: org-mode
 
-5.17 Exportation
+7.17 Exportation
 ================
 
-Il est possible de changer le format d'exportation des stime stamp via
-la variable *org-export-date-timestamp-format* par exemple
+Il est possible de changer le format d'exportation des time stamp via la
+variable *org-export-date-timestamp-format* par exemple
      (setq org-display-custom-times t)
      (setq org-time-stamp-custom-formats '("<%A %d/%m/%Y>" . "<%A %d/%m/%Y %H:%M>"))
    Mais il faut utiliser la bascule entre std et custom par ‘C-c C-x
@@ -3836,7 +3959,7 @@ C-t’ soit ‘(org-toggle-time-stamp-overlays)’ trouvé le _<2023-01-09 lun.
 
 File: emacs-documentation.info,  Node: Sans pandoc,  Next: Configuration de pandoc,  Up: Exportation
 
-5.17.1 Sans pandoc
+7.17.1 Sans pandoc
 ------------------
 
 Pour produire de la bureautique, des pdf ou des présentations à partir
@@ -3901,6 +4024,16 @@ C-c C-e o O
      l'activation de *odt* dans les exports.
 C-c C-e h o
      pour afficher le résultat d'une conversion en HTML
+C-c C-e i i
+     exporte comme un fichier info.  Nécessite d'installer *makeinfo* le
+     fichier est optionnellement à déposer dans *_usr/share/info_* (un
+     hardlink est encore mmieux qu'une copie) et pour le rendre
+     accessible l'ajouter dans le menu */usr/share/info/dir* avec une
+     ligne du type
+          * Emacs français: (emacs-documentation).        Ma synthèse en français
+     avant *:* le titre qui apparaît dans la page info par défaut entre
+     parenthèses le nom du fichier info (sans son extension) après un
+     *.*  la description du contenu du fichier info.
 C-c C-e l o
      pour faire du Latex puis pdf ... et l'ouvrir noter qu'il est
      intéressant de préciser ‘#+LATEX_HEADER:
@@ -3920,7 +4053,7 @@ C-c C-e C-v ...
 
 File: emacs-documentation.info,  Node: Configuration de pandoc,  Next: Suite à disparition export odt interface à pandoc,  Prev: Sans pandoc,  Up: Exportation
 
-5.17.2 Configuration de pandoc
+7.17.2 Configuration de pandoc
 ------------------------------
 
    • Commencer par installer le paquet ‘apt install pandoc’
@@ -3945,7 +4078,7 @@ File: emacs-documentation.info,  Node: Configuration de pandoc,  Next: Suite à 
 
 File: emacs-documentation.info,  Node: Suite à disparition export odt interface à pandoc,  Prev: Configuration de pandoc,  Up: Exportation
 
-5.17.3 Suite à disparition export odt, interface à pandoc
+7.17.3 Suite à disparition export odt, interface à pandoc
 ---------------------------------------------------------
 
      (defun convert-org-to-docx ()
@@ -3966,21 +4099,22 @@ File: emacs-documentation.info,  Node: Suite à disparition export odt interface
 
 File: emacs-documentation.info,  Node: Formules mathématiques,  Next: Inclure des diagrammes,  Prev: Exportation,  Up: org-mode
 
-5.18 Formules mathématiques:
+7.18 Formules mathématiques:
 ============================
 
-et
+\frac{\pi}{4} = \int_0^1{\sqrt{1-x^2}^2 dx} et U_n=\sum_{i=0}^n{ \frac{i
+. x_i}{1+x_i^2} }
 
    Qui est obtenu par: ‘\(\frac{\pi}{4} = \int_0^1{\sqrt{1-x^2}^2 dx}\)’
 et ‘\(U_n=\sum_{i=0}^n{ \frac{i . x_i}{1+x_i^2} }\)’
 
-   Autre essai avec
-‘\(\int_{-1}^{72}{\frac{1+log(x)}{x+\frac{1}{\sqrt{x}^3}}}\)’
+   Autre essai \int_{-1}^{72}{\frac{1+log(x)}{x+\frac{1}{\sqrt{x}^3}}}
+avec ‘\(\int_{-1}^{72}{\frac{1+log(x)}{x+\frac{1}{\sqrt{x}^3}}}\)’
 
 
 File: emacs-documentation.info,  Node: Inclure des diagrammes,  Next: Produire un export Word avec un template,  Prev: Formules mathématiques,  Up: org-mode
 
-5.19 Inclure des diagrammes
+7.19 Inclure des diagrammes
 ===========================
 
    • avec graphviz: voir <http://www.tonyballantyne.com/graphs.html>
@@ -3989,7 +4123,7 @@ File: emacs-documentation.info,  Node: Inclure des diagrammes,  Next: Produire u
 
 File: emacs-documentation.info,  Node: Produire un export Word avec un template,  Prev: Inclure des diagrammes,  Up: org-mode
 
-5.20 Produire un export Word avec un template
+7.20 Produire un export Word avec un template
 =============================================
 
 One of my less enjoyable tasks is to produce a weekly status report
@@ -4000,8 +4134,8 @@ one ever gets the use of format styles correct.
    Editing the pro-forma always has me cursing: delete one character too
 many and fonts change, bullets appear or disappear, all the usual joys
 of Word.  Emacs, and more specifically org-mode to the rescue.  Org has
-had the ability to export in several formats (typically and HTML) for
-quite some time but now boasts support for OpenDocument format too.
+had the ability to export in several formats (typically \latex and HTML)
+for quite some time but now boasts support for OpenDocument format too.
 
    So my status reports are now written using Emacs with a line setting
 ‘(setq org-export-odt-styles-file ~/MonTemplate)’ to point at a hand
@@ -4018,7 +4152,7 @@ writing information and not with fighting the tool.
 
 File: emacs-documentation.info,  Node: Tramp,  Next: Installation initiale pour Ubuntu sur HyperV,  Prev: org-mode,  Up: Top
 
-6 Tramp
+8 Tramp
 *******
 
 Généralisation de noms de fichiers pour une utillisation de ressources
@@ -4036,7 +4170,7 @@ sitées sur d'autres machine.
 
 File: emacs-documentation.info,  Node: ssh,  Next: ftp,  Up: Tramp
 
-6.1 ssh
+8.1 ssh
 =======
 
 Les URL sont du type ‘/ssh:user@host:/repertoire/fichier’
@@ -4044,7 +4178,7 @@ Les URL sont du type ‘/ssh:user@host:/repertoire/fichier’
 
 File: emacs-documentation.info,  Node: ftp,  Next: sudo,  Prev: ssh,  Up: Tramp
 
-6.2 ftp
+8.2 ftp
 =======
 
 Les URL sont du type ‘/ftp:user@host:/repertoire/fichier’
@@ -4052,7 +4186,7 @@ Les URL sont du type ‘/ftp:user@host:/repertoire/fichier’
 
 File: emacs-documentation.info,  Node: sudo,  Next: rclone Google Drive,  Prev: ftp,  Up: Tramp
 
-6.3 sudo
+8.3 sudo
 ========
 
 Les URL sont du type ‘/sudo:user@host:/repertoire/fichier’ Pour un
@@ -4062,7 +4196,7 @@ de combiner avec SSH par ‘/ssh:user@host|sudo:host:/repertoire/fichier’
 
 File: emacs-documentation.info,  Node: rclone Google Drive,  Next: Stockage des mots de passe,  Prev: sudo,  Up: Tramp
 
-6.4 rclone Google Drive
+8.4 rclone Google Drive
 =======================
 
    • Après une installation du pacquet de la distribution et la
@@ -4072,7 +4206,7 @@ File: emacs-documentation.info,  Node: rclone Google Drive,  Next: Stockage des 
 
 File: emacs-documentation.info,  Node: Stockage des mots de passe,  Next: Copie de fichiers entre deux répertoires tramp dired,  Prev: rclone Google Drive,  Up: Tramp
 
-6.5 Stockage des mots de passe
+8.5 Stockage des mots de passe
 ==============================
 
    • Lors des accès il est proposé de stocker dans ~/.authinfo Cela
@@ -4100,7 +4234,7 @@ File: emacs-documentation.info,  Node: Stockage des mots de passe,  Next: Copie 
 
 File: emacs-documentation.info,  Node: Copie de fichiers entre deux répertoires tramp dired,  Prev: Stockage des mots de passe,  Up: Tramp
 
-6.6 Copie de fichiers entre deux répertoires tramp dired
+8.6 Copie de fichiers entre deux répertoires tramp dired
 ========================================================
 
    • Commencer par copier le répertoire de destination avec ‘w’ sur la
@@ -4115,7 +4249,7 @@ File: emacs-documentation.info,  Node: Copie de fichiers entre deux répertoires
 
 File: emacs-documentation.info,  Node: Installation initiale pour Ubuntu sur HyperV,  Next: Liens externes,  Prev: Tramp,  Up: Top
 
-7 Installation initiale pour Ubuntu sur HyperV
+9 Installation initiale pour Ubuntu sur HyperV
 **********************************************
 
    • HyperV activé, vswitch externe créé, iso ubuntu desktop présenté
@@ -4155,8 +4289,8 @@ File: emacs-documentation.info,  Node: Installation initiale pour Ubuntu sur Hyp
 
 File: emacs-documentation.info,  Node: Liens externes,  Prev: Installation initiale pour Ubuntu sur HyperV,  Up: Top
 
-8 Liens externes
-****************
+10 Liens externes
+*****************
 
    • Un cookbook pour faire des notebooks dans org
      (http://ehneilsen.net/notebook/orgExamples/org-examples.html)
@@ -4173,144 +4307,157 @@ File: emacs-documentation.info,  Node: Liens externes,  Prev: Installation initi
 
 Tag Table:
 Node: Top99
-Node: Editeur4126
-Node: Ouverture de fichiers4843
-Node: Edition7697
-Node: Narrowing11937
-Node: Recherches12419
-Node: Marquage de position dans des fichiers14501
-Node: Fenêtres multiples14904
-Node: Fichier de configuration emacs et emacsd/initel15985
-Node: assignation de touches16450
-Ref: Pour projet python16680
-Ref: Ouvrir le répertoire du fichier courant16867
-Node: Couleurs et masquage du menu / icônes16952
-Node: use-package pour chargement différé de packages17875
-Node: Divers autre18495
-Node: Exemple avec helm+magit19137
-Node: helm et listes plus puissantes21248
-Node: Ecrire une extension à Helm23187
-Node: Themes et Font24618
-Node: Rectangles25614
-Node: Bookmarks26370
-Node: Onglets - tabs27235
-Node: Abréviations27788
-Node: Squelettes28402
-Node: Sauvegarde de layouts avec workgroup230106
-Node: Vérification de l'orthographe30941
-Node: Packages32152
-Node: Détail33605
-Node: Documentation en Markdown33916
-Node: Affichage des commandes34199
-Node: God mode34539
-Node: multiple-cursors35172
-Node: cua-mode pour curseurs multiples36126
-Node: Autre36556
-Node: Installer emacs sur un Ubuntu neuf38403
-Node: Installer une version plus récente39158
-Node: Intégration OS39952
-Node: Répertoires40423
-Node: Impressions42719
-Node: Calculatrices43570
-Node: Calculatrice RPN43829
-Node: Quick calc46468
-Node: Calculatrice Embedded46791
-Node: helm-calcul-expression48594
-Node: Terminaux et Man48870
-Node: eshell50486
-Node: Serveur emacs53360
-Node: Scripts sur un serveur distant depuis emacs53960
-Node: Examples54377
-Node: EIN - Emacs IPython Notebook54523
-Node: Navigateur web interne - eww54868
-Node: Gestion des mails mu4e - Messagerie Exchange55330
-Node: Accepter le certificat du serveur Exchange55870
-Node: Autre méthode pour accepter un certificat refusé56285
-Node: Méthode plus directe57330
-Node: Récupération des mails avec offlineimap57744
-Ref: Installation59303
-Node: Quelques raccourcis clavier64595
-Node: Filtre de recherche avec mu65476
-Node: Gestion des mails notmuch - Free/GMail66521
-Node: Installation (1)66826
-Node: Utilisation72968
-Node: Macros76175
-Node: Programmation et debug77938
-Node: Debug de Bash78355
-Node: Debug de C et C++80136
-Node: Indentation et styles81662
-Node: Python82096
-Node: Debug82949
-Node: Pony-mode85097
-Node: python-django86355
-Node: Perl87125
-Node: elpy pour les programmes python88008
-Node: Installation (2)88286
-Node: Utilisation (1)89285
-Node: java89829
-Node: eLISP90410
-Node: Minor-mode94403
-Node: Major_mode95402
-Node: Major-mode basé sur un mode existant95609
-Node: Affichage des macros elisp95926
-Node: Fabrication d'epub96528
-Ref: Actuellement96692
-Ref: Historique96848
-Ref: Conversions via pandoc sur Apple (org en texte MS Office et epub)97602
-Node: Buffer dired ouverts98462
-Node: Buffer non associé à un fichier98741
-Node: SQL et CLI98923
-Node: TAGS99717
-Node: Folding100271
-Node: Docker100549
-Node: Puppet102728
-Node: Comparaisons103296
-Node: Suivi des versions de sources104660
-Node: Intégration dans emacs104956
-Node: magit107458
-Node: Préparation du projet sur git110338
-Node: emacs et WikiJS114085
-Node: org-mode114950
-Node: Notes115613
-Ref: Notes-Footnote-1121844
-Ref: Notes-Footnote-2121903
-Ref: Notes-Footnote-3121987
-Ref: Notes-Footnote-4122145
-Node: Insertion de lien122250
-Node: Navigation dans les titres123563
-Node: Saisies agenda124208
-Node: Affichage des agendas127117
-Node: Chronométrage128295
-Node: org-roam128669
-Node: org-capture130193
-Node: Tableaux131097
-Node: Départs131325
-Node: Saisies131641
-Node: Manipulation lignes et colonnes132820
-Node: Formules133598
-Node: Présentation revealjs135716
-Node: Pour aller plus loin136094
-Node: Org-babel et inclusion de sources136384
-Node: Inclusion de requêtes mysql136811
-Node: Inclusion de code SQLite137702
-Node: Inclusion de diagrammes Ditaa139483
-Node: Inclusion de shémas UML140400
-Node: Exportation140948
-Node: Sans pandoc141730
-Node: Configuration de pandoc145433
-Node: Suite à disparition export odt interface à pandoc146680
-Node: Formules mathématiques147604
-Node: Inclure des diagrammes148022
-Node: Produire un export Word avec un template148379
-Node: Tramp149878
-Node: ssh150275
-Node: ftp150425
-Node: sudo150588
-Node: rclone Google Drive150931
-Node: Stockage des mots de passe151287
-Node: Copie de fichiers entre deux répertoires tramp dired152896
-Node: Installation initiale pour Ubuntu sur HyperV153650
-Node: Liens externes155377
+Node: Editeur4351
+Node: Ouverture de fichiers4995
+Node: Edition7368
+Node: Narrowing11193
+Node: Recherches11675
+Node: Marquage de position dans des fichiers13638
+Node: Fenêtres multiples14041
+Node: Fichier de configuration emacs et emacsd/initel15122
+Node: assignation de touches15587
+Ref: Pour projet python15817
+Ref: Ouvrir le répertoire du fichier courant16004
+Node: Couleurs et masquage du menu / icônes16091
+Node: use-package pour chargement différé de packages16887
+Node: Divers autre17507
+Node: Exemple avec helm+magit18149
+Node: helm et listes plus puissantes20260
+Node: Ecrire une extension à Helm22199
+Node: Themes et Font23630
+Node: Rectangles24626
+Node: Bookmarks25382
+Node: Onglets - tabs26247
+Node: Abréviations26800
+Node: Squelettes27414
+Node: Sauvegarde de layouts avec workgroup229126
+Node: Vérification de l'orthographe29762
+Node: Packages30973
+Node: Détail32417
+Node: multiple-cursors32728
+Node: Autre33635
+Node: Installer emacs sur un Ubuntu neuf35117
+Node: Installer une version plus récente35872
+Node: Modes majeurs36666
+Node: markdown-mode36901
+Node: yaml-ts-mode37147
+Node: Modes mineurs37311
+Node: linum-mode37825
+Node: column-number-mode37993
+Node: winner-mode38195
+Node: show-parent-mode38644
+Node: which-key-mode38889
+Node: prettify-symbols-mode39177
+Node: auto-revert-tail-mode39695
+Node: white-space-mode39989
+Node: command-log-mode40294
+Node: ido-mode40632
+Node: desktop-save-mode41220
+Node: cua-mode41597
+Node: god-mode42015
+Node: Intégration OS42591
+Node: Répertoires43068
+Node: Impressions45364
+Node: Calculatrices46215
+Node: Calculatrice RPN46474
+Node: Quick calc49113
+Node: Calculatrice Embedded49436
+Node: helm-calcul-expression51239
+Node: Terminaux et Man51515
+Node: eshell53131
+Node: Serveur emacs56005
+Node: Scripts sur un serveur distant depuis emacs56605
+Node: Examples57022
+Node: EIN - Emacs IPython Notebook57168
+Node: Navigateur web interne - eww57513
+Node: Gestion des mails mu4e - Messagerie Exchange57975
+Node: Accepter le certificat du serveur Exchange58515
+Node: Autre méthode pour accepter un certificat refusé58930
+Node: Méthode plus directe59975
+Node: Récupération des mails avec offlineimap60389
+Ref: Installation61948
+Node: Quelques raccourcis clavier67240
+Node: Filtre de recherche avec mu68121
+Node: Gestion des mails notmuch - Free/GMail69166
+Node: Installation (1)69471
+Node: Utilisation75613
+Node: Macros78820
+Node: Programmation et debug80583
+Node: Debug de Bash81000
+Node: Debug de C et C++82781
+Node: Indentation et styles84307
+Node: Python84741
+Node: Debug85594
+Node: Pony-mode87742
+Node: python-django89000
+Node: Perl89770
+Node: elpy pour les programmes python90653
+Node: Installation (2)90931
+Node: Utilisation (1)91930
+Node: java92474
+Node: eLISP93055
+Node: Minor-mode97048
+Node: Major_mode98047
+Node: Major-mode basé sur un mode existant98254
+Node: Affichage des macros elisp98571
+Node: Fabrication d'epub99173
+Ref: Actuellement99337
+Ref: Historique99493
+Ref: Conversions via pandoc sur Apple (org en texte MS Office et epub)100247
+Node: Buffer dired ouverts101107
+Node: Buffer non associé à un fichier101386
+Node: SQL et CLI101568
+Node: TAGS102362
+Node: Folding102916
+Node: Docker103194
+Node: Puppet105373
+Node: Comparaisons105941
+Node: Suivi des versions de sources107158
+Node: Intégration dans emacs107454
+Node: magit109956
+Node: Préparation du projet sur git112836
+Node: emacs et WikiJS116583
+Node: org-mode117448
+Node: Notes118111
+Ref: Notes-Footnote-1124342
+Ref: Notes-Footnote-2124401
+Ref: Notes-Footnote-3124485
+Ref: Notes-Footnote-4124643
+Node: Insertion de lien124748
+Node: Navigation dans les titres126061
+Node: Saisies agenda126706
+Node: Affichage des agendas129615
+Node: Chronométrage130793
+Node: org-roam131167
+Node: org-capture132691
+Node: Tableaux133595
+Node: Départs133823
+Node: Saisies134139
+Node: Manipulation lignes et colonnes135318
+Node: Formules136096
+Node: Présentation revealjs138214
+Node: Pour aller plus loin138592
+Node: Org-babel et inclusion de sources138882
+Node: Inclusion de requêtes mysql139309
+Node: Inclusion de code SQLite140200
+Node: Inclusion de diagrammes Ditaa141981
+Node: Inclusion de shémas UML142898
+Node: Exportation143446
+Node: Sans pandoc144227
+Node: Configuration de pandoc148526
+Node: Suite à disparition export odt interface à pandoc149773
+Node: Formules mathématiques150697
+Node: Inclure des diagrammes151259
+Node: Produire un export Word avec un template151616
+Node: Tramp153122
+Node: ssh153519
+Node: ftp153669
+Node: sudo153832
+Node: rclone Google Drive154175
+Node: Stockage des mots de passe154531
+Node: Copie de fichiers entre deux répertoires tramp dired156140
+Node: Installation initiale pour Ubuntu sur HyperV156894
+Node: Liens externes158621
 
 End Tag Table
 

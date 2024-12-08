@@ -11,7 +11,7 @@
    - le login pour la consultation des mails sur les 2 serveurs est bien OK
    - l'envoi de mail demande bien le déverrouillage de *.authinfo.gpg*
      et l'envoi qui suis fonctionne (après un retry ?)
-   - mais pour un push github e ~ssh-add pdedieu.priv~ reste indispensable
+   - mais pour un push github le ~ssh-add pdedieu.priv~ reste indispensable
 * DONE Créer un repository local
 ** DONE Lui définir un remote origin avec comme URL git@github.com:MangeChats/emacs.git
 ** DONE Renommer la branche par défaut locale

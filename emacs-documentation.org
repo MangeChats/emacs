@@ -39,13 +39,6 @@
      - C-x 51 :: pour ne garder que la frame en cours
    - C-x b :: buffer, afficher un buffer, avec ido noter que *C-k* permet
               de fermer un buffer.
-   - ido-mode :: ajouter dans init.el ~(require 'ido)(ido-mode t)~
-	permet une completion améliorée pour les ouvertures de fichiers
-	et les switchs de buffer. Pour les cas où c'est gênant, on
-	retrouve le comportement habituel avec un autre *C-f*. Pour les
-	répertoires on redécouvre *C-x d* (Dired), mais noter que pour
-	ouvrir un répertoire comme un dossier, il est aussi possible
-	d'utiliser *C-x f C-f* (alternative que je préfère: *helm*).
    - find-file-at-point :: (alias *ffap*) peut être appelé via *M-x*, ou
 	ajouté *.emacs* via *(setq ido-use-filename-at-point 'guess)*
 	bien plus confortable: on mixte les avantage ido et *ffap*.
@@ -70,8 +63,6 @@
    - Keys C-h F1 :: liste tout les raccourcis commençants par
                     *keys*. Mais installer le package *which-key* est
                     mieux et l'activer par défaut via (which-key-mode t)
-   - which-key-mode :: après une demi seconde suite à un préfixe affiche
-                    toutes les possibilités de fonctions...
    - helm-descbinds ::
      pour une description pratique des key bindings, mais nécessite
      l'installation du package *helm-descbinds* depuis MELPA. Si aimé
@@ -107,9 +98,6 @@
 		buffer *Shell Command Output*)
    - C-u M-! :: insère le résultat d'une commande shell dans le buffer
 		courant (sans *C-u* affiche juste le résultat)
-   - desktop-save-mode :: ajouter dans init.el (desktop-save-mode 1)
-	pour retrouver les buffers ouverts et leurs position lors du
-	prochain démarrage.
    - M-x revert-buffer-with-coding-system :: (C-x RET r) en précisant au prompt
 	l'encodage en *UTF-8* permet de lire des fichier org issus de
 	Linux dans Windows. Noter que pour ne plus se poser la
@@ -131,11 +119,9 @@
               ...) et *M-C-V* dans l'autre sens.
    - C-x C-q :: bascule le mode Read-Only (de oui à non)
    - M-x revert-buffer :: pour revenir à la version enregistrée du buffer.
-     - pour un revert sans confirmation piste d'ajout dans init.el de
+     - pour un revert sans confirmation ajouter dans init.el de
        ~(global-set-key (kbd "C-c !") (lambda () (interactive)
        (revert-buffer t t)))~
-   - M-x auto-revert-tail-mode :: pour un fichier de log permet de se
-	maintenir à la fin et d'en afficher le contenu toujours à jour
 
 *** Narrowing
     Pour se concentrer sur une partie du buffer en cours.
@@ -145,8 +131,6 @@
       - w :: widen pour ne plus restreindre et retrouver le buffer complet
        
 ** Recherches
-   - M-x show-parent-mode  :: permet l'affichage de l'autre
-	parenthèse... pour s'y déplacer on a *C-M-n* et *C-M-p*
    - C-s/r :: recherche incrementale (r pour reverse), noter qu'on
               retourne au point de départ par *C-g* et que *C-w* insère le
               mot sous le curseur (répété plusieurs fois, ajoute le mot
@@ -222,8 +206,6 @@
 *** Couleurs et masquage du menu / icônes
     - Pour éviter le fond noir en mode texte, essayer *M-x load-theme
       whitheboard* ou *dichromacy*
-    - pour afficher la colonne courante: *M-x column-number-mode*
-    - M-x linum-mode ::affiche les no de lignes du buffer.
     - Si c'est en mode texte (-nw ou serveur en SSH) il faut ajouter
       - dans .bashrc ~export TERM=xterm-256color~
       - ou son équivallent zsh ~.zshrc~ les thèmes qui semblent bien
@@ -464,10 +446,7 @@
    - C-c z C-c :: create wg, demande un nom pour sauver le layout courant
    - C-c z C-v :: open wg, permet de choisir et de restaurer un des layouts sauvés
    - En complément ~(desktop-save-mode 1)~ dans *init.el* permet de restaurer les buffers ouverts au démarage d'emacs
-   - Plus léger et efficace *winner-mode* qui permet via *C-<left>* et
-     *C-<right>* de retrouver le layout précédent / suivant.
-   - En complément, *ace-window* permet de passer par no d'une des
-     fenêtres à une autre (raccourci suggéré *M-o*)
+   - Voir plutôt [[*winner-mode][winner-mode]] plus léger et efficace 
     
 ** Vérification de l'orthographe
    via les paquet *ispell* et *aspell-fr*.
@@ -518,24 +497,7 @@
   l'ajouter dans init.el ... puis via l'accès internet l'installation
   se fait via la commande *package-list-packages*. Voir mode-php,
   python-django ...
-
-** Documentation en Markdown
-   - installer *markdown-mode*
-   - permet surtout un affichage des enrichissements
-     
-** Affichage des commandes
-   - Installer le package *command-log*
-   - Lancer commande *command-log-mode*
-   - C-c o :: Bascule l'affichage ou non des dernières commandes
-
-** God mode
-   Avec le paquet *god-mode* pour taper directement le commandes nécessitant l'utilisation de la touche *Control*
-   - Bascule de ce mode mineur avec ~(god-mode-all)~ ou ~(god-local-mode)~
-     - Je propose ~(global-set-key "C-²" 'god-local-mode)~
-   - précéder une LETTRE de *g* pour insérer *M-LETTRE*
-   - précéder une lettre de *G* pour insérer *C-M-LETTRE*
-   - pour taper une suite de *lettres sans Control*, les préfixer d'un espace
-     
+  
 ** multiple-cursors
    - Voir le [[https://github.com/magnars/multiple-cursors.el][README]] du Git
    - ajouter dans *init.el* ~(require 'multiple-cursors)~
@@ -550,30 +512,16 @@
        (global-set-key (kbd "C-c à a") 'mc/mark-all-like-this)
        (global-set-key (kbd "C-c à n") 'mc/mark-next-like-this)
      #+end_src
-     
-*** cua-mode pour curseurs multiples
-   - M-x cua-mode :: activer le mode (toggle, attention aux conflits des touches std emacs)
-   - C-Enter :: marquer le début de la sélection cua,
-    puis déplacer le curseur avec les flèches pour étendre la sélection
-    et terminer par *M-Enter*
-		    
+     		    
 ** Autre
    - M-x toggle-truncate-lines :: Pour changer la coupure des lignes longues
    - C-h l :: view-loosage, affiche un buffer avec les dernières commandes tapées
    - M-x : (buffer-file-name) :: affiche le chmin complet du fichier associé au buffer courant
-   - M-x white-space-mode :: toggle, permet d'afficher les espaces (gros points) et les fins de ligne ($)
    - M-x find-name-dired :: affiche dans un dired tout les fichiers à
      partir d'un répertoire de départ dont le nom correspond à un nom
      (avec * comme wildcar)
    - M-: :: évaluer du code elisp, exemple ~(current-buffer)~ mais pour
      avoir le répertoire *C-x b* est plus complet
-   - M-x prettify-symbols-mode :: permet l'affichage de symboles UTF-8
-     à la place de leur noms pour les modes qui le supportent, par
-     exemple pour afficher lambda λ dans un source lisp on a
-     *prettify-symbols-alist* qui vaut ~(("lambda" . 955))~ car code 955
-     en décimal
-     - utiliser ~(global-prettify-symbols-mode 1)~ dans init.el pour le
-       généralser
    - C-x 8 Ret :: Lit un caractère UTF8 par nom ou no et l'insère
      - on peut taper ~*substring~ puis tabulation pour la complétion
      - 😉 ou 🧐 😢 👍 👎 💋 😎 🤭 sont possibles
@@ -587,6 +535,8 @@
        "tdo"	       1    "👎"
        "tup"	       1    "👍"
        #+end_example
+   - C-h i :: oDemande un nom de fichier info et l'ouvre (avec helm il
+     est très simple de le retrouver avec une partie de son nom)
 ** Installer emacs sur un Ubuntu neuf
  - installer le paquet emacs
  - Ajouter les lignes pour avoir Melpa (dans *~/.emacs.d/init.el*)
@@ -606,6 +556,70 @@
      - ~apt remove emacs emacs-gui~ puis ~snap install emacs --classic~
      - et pour la désinstallation ~snap remove emacs~
    - il est aussi possible de le faire via flatpack, voir https://learnubuntu.com/install-emacs/
+* Modes majeurs
+  Un seul mode majeur peut être actif dans un buffer
+** markdown-mode
+   Documentation en Markdown. Installer le package, puis ce mode
+   permet surtout un affichage des enrichissements
+** yaml-ts-mode
+   Pour édition de fichiers YAML
+* Modes mineurs
+  on peut cumuler les modes mineurs. Je liste par oardre d"intérêt personnel décroissant (très subjectif)
+** linum-mode
+   affiche les no de lignes du buffer.
+** column-number-mode
+   pour afficher la colonne courante
+** winner-mode
+   Permet via *C-<left>* et *C-<right>* de retrouver le layout précédent / suivant.
+   Le layout est la taille et position des différentes fenêtres dans un écran.
+   - En complément, *ace-window* permet de passer par no d'une des fenêtres à une autre (raccourci suggéré *M-o*)
+** show-parent-mode
+   Affichage de l'autre parenthèse... pour s'y déplacer on a *C-M-n* et *C-M-p*
+** which-key-mode
+   Après une demi seconde suite à un préfixe affiche
+   toutes les possibilités de touches pour appeler des fonctions
+** prettify-symbols-mode
+   Affichage de symboles UTF-8 à la place de leur noms pour les modes qui le supportent.
+   Par exemple pour afficher lambda λ dans un source lisp on a
+   *prettify-symbols-alist* qui vaut ~(("lambda" . 955))~ car code 955
+   en décimal
+   - utiliser ~(global-prettify-symbols-mode 1)~ dans init.el pour le généralser
+** auto-revert-tail-mode
+   Pour un fichier de log permet de se maintenir à la fin et d'en afficher le contenu toujours à jour
+** white-space-mode
+   toggle, permet d'afficher les espaces (gros points) et les fins de
+   ligne ($). Utile pour débug de fichiers yaml par exemple.
+** command-log-mode
+   Affichage des commandes
+   - Installer le package *command-log*
+   - Lancer commande *command-log-mode*
+   - C-c o :: Bascule l'affichage ou non des dernières commandes
+** ido-mode
+   Ajouter dans init.el ~(require 'ido)(ido-mode t)~
+   permet une completion améliorée pour les ouvertures de fichiers
+   et les switchs de buffer. Pour les cas où c'est gênant, on
+   retrouve le comportement habituel avec un autre *C-f*. Pour les
+   répertoires on redécouvre *C-x d* (Dired), mais noter que pour
+   ouvrir un répertoire comme un dossier, il est aussi possible
+   d'utiliser *C-x f C-f* (alternative que je préfère: *helm*).
+** desktop-save-mode
+   Ajouter dans init.el ~(desktop-save-mode 1)~ pour retrouver les
+   buffers ouverts et leurs positions lors du prochain démarrage
+   d'emacs (finalement pas gardé, je ne travaille pas assez sur les
+   mêmes fichiers).
+** cua-mode
+   pour curseurs multiples
+   - M-x cua-mode :: activer le mode (toggle, attention aux conflits des touches std emacs)
+   - C-Enter :: marquer le début de la sélection cua,
+    puis déplacer le curseur avec les flèches pour étendre la sélection
+    et terminer par *M-Enter*
+** god-mode
+   Avec le paquet *god-mode* pour taper directement le commandes nécessitant l'utilisation de la touche *Control*
+   - Bascule avec ~(god-mode-all)~ ou ~(god-local-mode)~
+     - Je propose ~(global-set-key "C-²" 'god-local-mode)~
+   - précéder une LETTRE de *g* pour insérer *M-LETTRE*
+   - précéder une lettre de *G* pour insérer *C-M-LETTRE*
+   - pour taper une suite de *lettres sans Control*, les préfixer d'un espace
 * Intégration OS
 ** Répertoires
    - C-x d :: Dired, Directory Edition. Si on veut on peut préciser un
@@ -1725,14 +1739,11 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
      - < et > :: scroll les deux buffers (vers la gauche / droite)
    - C-x sd :: permet d'afficher les différences des buffers ouverts avec
                leurs fichiers (puis de choisir de les sauvegarder ou pas)
-   - M-x ediff-current-buffer :: est une alternative à la commande
-	précédente, mieux présenté et c'est du ediff, voir son
-	fonctionnement.
    - M-x ediff-compare-directories :: Lance une comparaison de deux
 	répertoires, taper ensuite *D* pour afficher les différences,
 	voir copier les fichiers qui seraient d'un seul côté via *C*
 	(demande une confirmation).
-   - M-x ediff-current-buffer :: Pour comparer le buffer courant avec
+   - M-x ediff-current-file :: Pour comparer le buffer courant avec
      son fichier (avant de sauver, quelles sont les différences ?)
        
 ** Suivi des versions de sources
@@ -2489,7 +2500,7 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
     BinaryTableHdu : getColumn(column)
     #+end_src
 ** Exportation
-   Il est possible de changer le format d'exportation des stime stamp
+   Il est possible de changer le format d'exportation des time stamp
    via la variable *org-export-date-timestamp-format* par exemple
    #+begin_src elisp
    (setq org-display-custom-times t)
@@ -2555,6 +2566,17 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
                     le paramétrage détaillé via *M-x org-customize* et
                     l'activation de *odt* dans les exports.
    - C-c C-e h o :: pour afficher le résultat d'une conversion en HTML
+   - C-c C-e i i :: exporte comme un fichier info. Nécessite
+		    d'installer *makeinfo* le fichier est optionnellement à déposer
+		    dans */usr/share/info/* (un hardlink est encore mmieux qu'une
+		    copie) et pour le rendre accessible l'ajouter dans le menu
+		    */usr/share/info/dir* avec une ligne du type
+		    #+begin_example
+		    * Emacs français: (emacs-documentation).	Ma synthèse en français
+	            #+end_example
+		    avant *:* le titre qui apparaît dans la page info par défaut
+		    entre parenthèses le nom du fichier info (sans son extension)
+		    après un *.* la description du contenu du fichier info.
    - C-c C-e l o :: pour faire du Latex puis pdf ... et l'ouvrir noter
 		  qu'il est intéressant de préciser ~#+LATEX_HEADER:
 		  \usepackage[french]{babel}~ pour avoir les dates, les
