@@ -25,4 +25,5 @@
      pousser à nouveau.
    - Mais mes essais de git pull échouent SAUF avec un --rebase
 * Pour les push suivants
-  il faut que l'agent ait la clef SSH pdedieu chargée manuellement
+  il faut que l'agent ait la clef SSH pdedieu chargée manuellement et
+  que emacs soit lancé depuis le même terminal (?)
