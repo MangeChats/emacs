@@ -1,1 +1,360 @@
-/home/pdedieu/Documents/Informatique/projets-git/pde-helm/init-T460.org
+#+TITLE: emacs config file commenté
++AUTHOR: Pierre DEDIEU
+#+PROPERTY: header-args :tangle ~/.emacs.d/init.el
+
+* Introduction
+
+Noter qu'il est un README.org en lieu et place d'un README.md pour GIT / GITLab.
+
+** Commentaire général sur tangle
+
+Si le fichier org contient des code blocks avec le bon header (~:tangle yes par défaut~),
+ou un nom de fichier de destination, les code blocks sont exportés vers ce fichier.
+
+On peut aussi définir la destination pour tout les blocks
+via une ligne du type ~#+PROPERTY: header-args :tangle ~/.emacs.d/init.el~
+
+Faute de trouver la fonction nécessaire pour le lancer à la sauvegarde
+de ce fichier org, il faut appeler ~M-x org-babel-tangle~.
+
+Utiliser un fichier org comme emacs init est un
+cas particulier de génération de code à partir de fichier org.
+
+La variable locale en fin de fichier se charge de générer le init.el lorsque ce .org est sauvé
+  #+begin_example
+  # after-save-hook: org-babel-tangle
+  #+end_example
+  
+* Theme - Présentation
+Mes préférences, et un raccourci clavier pour le multi-frame.
+De base le thème wheatgrass est pas mal,
+mais en installant le package *zweilight-theme* on obtient mieux
+(alternative afternoon-theme ?)
+
+Je cache les menus et la toolbar (plus d'espace utile quand j'utilise le clavier)
+
+#+begin_src elisp
+  ;; Theme
+  (load-theme 'afternoon)
+  ;;(load-theme 'wheatgrass)
+  ;;(load-theme 'zweilight t)
+  (menu-bar-mode 0)
+  (tool-bar-mode 0)
+  (setq inhibit-splash-screen t)
+  (setq warning-minimum-level :error) ; éviter le popup  *warnings* trop fréquent
+  (desktop-save-mode 0) ; finalement trop
+  (global-set-key "²" 'other-frame)
+  (global-set-key (kbd "M-o") 'ace-window)
+  (winner-mode 1)
+  (setq auth-sources '("~/.authinfo.gpg" "~/.authinfo" "~/.netrc"))
+
+#+end_src
+
+* Configuration MELPA
+Pour permettre de disposer d"une liste de packages emacs a installer
+avec ~package-list-packages~
+
+GNU semble nécessaire à l'installation de sly pour Common Lisp
+
+#+begin_src elisp
+
+;; MELPA stuff
+(require 'package)
+(add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
+;;(add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/packages/"))
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+#+end_src
+
+* Configuration helm
+Pour des recherches plus puissantes, les propositions standard d'emacs
+sont remplacées par les versions helm-XXX des commandes standard par
+une liste filtrée dynamiquement: à essayer mais à l'usage est fort confortable
+
+helm-descbind nécessite d'installer ce package.
+
+#+begin_src elisp
+
+;; Helm stuff
+(use-package  helm :ensure t)
+;;(require 'helm-config)
+(global-set-key (kbd "C-x C-f") 'helm-find-files)
+(global-set-key (kbd "C-x b") 'helm-buffers-list)
+(global-set-key (kbd "C-x rb") 'helm-bookmarks)
+;;(global-set-key (kbd "M-s s") 'helm-occur)
+(global-set-key (kbd "M-x") 'helm-M-x)
+(global-set-key (kbd "M-y") 'helm-show-kill-ring)
+(global-set-key (kbd "C-h b") 'helm-descbinds)
+(global-set-key (kbd "C-h i") 'helm-info)
+
+;; ² est un prefixe au moins pour other window
+(define-prefix-command 'pde-map)
+(global-set-key "²" pde-map)
+(global-set-key "²²" 'other-window)
+#+end_src
+
+* Assignation de touches de fonction
+
+Seules les première touches sont pré-assignées, mais à partir de F5 il
+faut le faire avant de pouvoir assigner des fonction à Shift,
+Controle, Alt
+
+#+begin_src elisp :tangle no
+
+;; Touches de fonction
+(global-set-key (kbd "<f1>") 'aide-touches-fonction)
+(global-set-key (kbd "S-<f1>") (lambda () (interactive) (other-window 1)))
+(global-set-key (kbd "C-<f1>") (lambda () (interactive) (kill-buffer) (delete-window)))
+(global-set-key (kbd "M-<f1>") 'kill-buffer)
+(global-set-key (kbd "S-<f2>") 'eval-buffer)
+(global-set-key (kbd "C-<f2>") (lambda () (interactive) (find-file "~/.emacs.d/init-T460.org")))
+;;(global-set-key (kbd "S-<f3>") 'org-re-reveal-export-to-html)
+(global-set-key (kbd "C-<f3>") 'org-re-reveal-export-to-html)
+(global-set-key (kbd "<S-f4>") 'calc)
+(global-set-key (kbd "<C-f4>") 'casual-calc-tmenu)
+(global-set-key (kbd "<f5>") (lambda () (interactive) (revert-buffer t t)))
+(global-set-key (kbd "S-<f5>") 'abbrev-mode)
+(global-set-key (kbd "C-<f5>") 'paredit-mode)
+(global-set-key (kbd "<f6>") 'helm-occur)
+(global-set-key (kbd "S-<f6>") 'my-grep-find)
+(global-set-key (kbd "C-<f6>") 'highlight-changes-mode)
+(defun aide-touches-fonction ()
+  "Affiche un buffer avec les commandes associées aux touches de fonction (ou le cache si affiché)"
+    (interactive)
+    (unless (get-buffer "*touches-fonction*")
+      (split-window-below 8)
+      (switch-to-buffer (get-buffer-create "*touches-fonction*"))
+      (erase-buffer)
+      (insert "<Shift F1> Fenêtre suivante	<Ctrl F1> Détruit fenêtre	<Alt-F1> Ferme buffer		<F1> Aide
+<Shift F2> Eval-Buffer		<Ctrl F2> Ouvrir T460		<Alt-F2> Commande X		<F2> Prefixe 2 Col
+<Shift F3> Raccourci libre	<Ctrl F3> Export RevealJS	<Alt-F3> Raccourci Libre	<F3> Def Macro
+<Shift F4> Calc			<Ctrl F4> Casual calc		<Alt-F4> Raccourci Libre	<F4> Lance Macro
+<Shift F5> Abbreviation		<Ctrl F5> Paredit		<Alt-F5> Raccourci libre	<F5> Rafraichir
+<Shift F6> grep-find		<Ctrl-F6> highlight changes	<Alt-F6> Raccourci libre	<F6> Occur"))
+    (if (get-buffer-window "*touches-fonction*")
+	(delete-window (get-buffer-window "*touches-fonction*"))
+      (display-buffer "*touches-fonction*" '((display-buffer-at-bottom . nil) (window-height . 8)))))
+#+end_src
+
+* Org
+Pour mes paramètres de forme essentiellement. La notion de génération
+de toc, table des matères, est surtout intéressante pour l'utilisation
+d'un fichier README.org dans GIT en remplacement du README.md
+
+#+begin_src elisp
+  ;; Org stuff
+  (use-package org-bullets
+	:config
+	(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+  (setq org-hide-emphasis-markers t)
+  ;;(require 'org-make-toc)
+  (require 'ox-epub)
+  (setq org-agenda-files '("~/SynologyDrive/todo-2024.org"))
+#+end_src
+
+* Parenthèses - cas général
+Ajoute:
+- La mise en évidence (highlight) de la première parenthèse quand on
+  est placé sur la deuxième
+- La touche % quand utilisée sur une parenthèse déplace le curseur vers la deuxième
+
+#+begin_src elisp
+
+;; Pour les parenthèses
+(show-paren-mode 1)
+(global-set-key "%" 'match-paren)
+(defun match-paren (arg)
+    "Go to the matching parenthesis if on parenthesis otherwise insert %."
+    (interactive "p")
+    (cond ((looking-at "\\s\(") (forward-list 1) (backward-char 1))
+      ((looking-at "\\s\)") (forward-char 1) (backward-list 1))
+      (t (self-insert-command (or arg 1)))))
+#+end_src
+
+* Lisp
+Pour le dev Common Lisp, attention penser à installer les packages sly company et paredit.
+- paredit :: permet de rendre la gestion des parenthèse très confortable
+- company :: permet la complétion automatique lors de la saisie (C-g pour
+  en sortir quand on ne s'intéresse pas à ses propositions)
+- inferior-lisp-program :: pour ne pas avoir à préciser le binaire
+  common lisp au lancement de sly
+
+#+begin_src elisp
+
+  ;; Common Lisp stuff
+  (require 'paredit)
+  (setq inferior-lisp-program "/usr/bin/sbcl")
+  (add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
+  ;;(add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
+  (add-hook 'ielm-mode-hook             #'enable-paredit-mode)
+  (add-hook 'lisp-mode-hook             #'enable-paredit-mode)
+  ;;(add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
+  (add-hook 'scheme-mode-hook           #'enable-paredit-mode)
+  ;; pour autocompletion, entre autre dans lisp
+  (require 'company)
+  (global-company-mode)
+#+end_src
+
+* Abréviations et squelettes
+Pour utiliser ces exemples il faut être dans un mode html ou org et
+taper une des abréviations suivi d'un espace, d'un point ou d'un
+return.
+  
+#+begin_src elisp
+
+  ;; Mes squelettes
+  (define-skeleton html-skeleton
+    "Insère une page HTML basique avec un titre à saisir..."
+     "Titre de la page : "
+    "<html>" \n
+    > "<head>" \n
+    > "<title>" str "</title>" \n
+    -2 "</head>" \n
+    > "<body>" \n
+    > "<p>" _ "</p>" \n
+    -2 "</body>" \n
+    -2 "</html>")
+  (define-skeleton org-skel
+    "En tête pour mes fichiers org"
+    "Titre : "
+    "#+TITLE: " str \n
+    "#+DATE: " _ \n
+    "#+OPTIONS: toc:nil" \n
+    "#+SETUPFILE: theme-readtheorg-local.setup" \n
+    "#+AUTHOR: Pierre DEDIEU" \n
+    "#+Email: MangeChats@gmail.com" \n \n _ )
+  (define-skeleton reveal-skel
+    "En tête pour une présentation revealjs"
+    "Titre de présentation : "
+    ":METADONNEES:" \n
+    "#+TITLE: " str \n
+    "#+LANGUAGE: fr" \n
+    ":END:" \n \n
+    ":REVEALJS:" \n
+    "#+REVEAL_ROOT: https://cdn.jsdelivr.net/npm/reveal.js" \n
+    "#+REVEAL_VERSION: 4" \n
+    "#+REVEAL_THEME: league" \n
+    "#+REVEAL_TRANS: cube" \n
+    "#+OPTIONS: toc:t num:t" \n
+    ":END:" \n \n _ )
+  (define-skeleton diapo-skel
+   "Insertion d'une diapo dans une présentation revealjs"
+    "Titre de la diapo : "
+    "* " str \n
+    "#+BEGIN_NOTES" \n _ \n
+    "#+END_NOTES" \n
+    "#+ATTR_REVEAL: :frag (appear)" \n \n )
+  (global-set-key (kbd "C-*") 'diapo-skel)
+  (define-abbrev-table 'html-mode-abbrev-table '(("fht" "" html-skeleton) ("par" "<p></p>\n") ("gg" "J'y suis !" nil)))
+  (define-abbrev-table 'org-mode-abbrev-table '(("frg" "" org-skel) ("frv" "" reveal-skel)))
+#+end_src
+
+* Curseurs multiples
+C'est une mode, mais mes tests sont une peu décevants:
+- M-f par exemple déplace le curseur d'un mot pour la dernière ligne,
+  mais les autres curseurs sont positionnés par rapport à la même colonne: inadapté
+
+#+begin_src elisp :tangle no
+
+;; Multiple cursors
+(require 'multiple-cursors)
+(global-set-key (kbd "C-c à à") 'set-rectangular-region-anchor)
+(global-set-key (kbd "C-c à l") 'mc/edit-lines)
+(global-set-key (kbd "C-c à a") 'mc/mark-all-like-this)
+(global-set-key (kbd "C-c à n") 'mc/mark-next-like-this)
+#+end_src
+
+* Auto tangle au save du fichier org
+
+L'utilisation de variables locales *before-save-hook: org-babel-tangle* ne semble rien faire.
+
+Par contre dans ma version 29.3 actuelle une section *local-variables* permet
+de définir ~after-save-hook: org-babel-tangle~ qui fonctionne très bien.
+
+* Messagerie notmuch
+Nécessite l'installation de notmuch, bbdb et offlineimap
+et la définition d'un *~/.offlineimap*.
+
+Faire un ~offlineimap~ pour le rappatriement initial des boites mail.
+Faire un ~notmuch setup~ et ~notmuch new~ pour initialiser la base (load
+"~/.emacs.d/pde-mail.el") a été remplacé par (require 'pde-mail) mais
+suppose d'ajouter le répertoire ~/.emacs.d/ à load-path
+
+#+begin_src elisp
+
+  ;; Mails
+  (add-to-list 'load-path "~/.emacs.d")
+  (require 'pde-mail)
+#+end_src
+
+* Configuration de Babel
+
+#+begin_src elisp
+
+;; Babel
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((ditaa . t)))
+#+end_src
+
+* Info pour lire d'autres formats
+  Sur la suggestion de https://emacsnotes.wordpress.com/2023/09/11/view-info-texi-org-and-md-files-as-info-manual/
+  Installer makeinfo pour que cela fonctionne (~dnf install makeinfo~ sur Fedora)
+#+begin_src elisp
+  ;; J'aime les fichiers info
+  (require 'ox-texinfo)
+  (defun view-text-file-as-info-manual ()
+  (interactive)
+  (let ((org-export-with-broken-links 'mark))
+    (pcase (file-name-extension (buffer-file-name))
+      (`"info"
+       (info (buffer-file-name)))
+      (`"texi"
+       (info (org-texinfo-compile (buffer-file-name))))
+      (`"org"
+       (info (org-texinfo-export-to-info)))
+      (`"md"
+       (let ((org-file-name (concat (file-name-sans-extension (buffer-file-name)) ".org")))
+	 (apply #'call-process "pandoc" nil standard-output nil
+		`("-f" "markdown"
+		  "-t" "org"
+		  "-o" , org-file-name
+		  , (buffer-file-name)))
+	 (with-current-buffer (find-file-noselect org-file-name)
+	   (info (org-texinfo-export-to-info)))))u
+      (_ (user-error "Don't know how to convert `%s' to an `info' file"
+		     (file-name-extension (buffer-file-name)))))))
+
+  (global-set-key (kbd "C-x x v") 'view-text-file-as-info-manual)
+#+end_src
+* Mes aides basées sur transient
+
+Assigné à F1 un premier menu qui chaîne sur quelques autres.
+Ajoute aussi des raccourcis sur d'autres touches de fonction documenté par F1
+
+#+begin_src elisp :tangle no
+
+  ;; Mes réglage transient
+  ;;(load "~/Documents/Informatique/projets-git/pde-helm/pde-trans.el")
+  (require 'pde-trans)
+#+end_src
+
+* Les packages et autres custom-set-variables
+
+#+begin_src elisp
+
+  ;; Cette section est pour éviter de perdre les réglages issus de Custom !
+  ;; custom-set-variables was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, the y won't work right.
+  '(custom-safe-themes
+    '("c335adbb7d7cb79bc34de77a16e12d28e6b927115b992bccc109fb752a365c72" default))
+  '(org-safe-remote-resources
+    '("\\`/sudo:root@localhost:/home/pdedieu/Documents/Informatique/projets-git/pde-helm/theme-readtheorg-local\\.setup\\'"))
+  '(package-selected-packages
+    '(0blayout helm-cscope helm-descbinds zweilight-theme workgroups2 sudo-edit sly rainbow-delimiters paredit ox-reveal org-re-reveal org-bullets magit helm company afternoon-theme))
+#+end_src
+
+# Local Variables:
+# after-save-hook: org-babel-tangle
+# End:
