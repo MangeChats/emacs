@@ -4025,11 +4025,11 @@ C-c C-e o O
 C-c C-e h o
      pour afficher le résultat d'une conversion en HTML
 C-c C-e i i
-     exporte comme un fichier info.  Nécessite d'installer *makeinfo* le
-     fichier est optionnellement à déposer dans *_usr/share/info_* (un
-     hardlink est encore mmieux qu'une copie) et pour le rendre
-     accessible l'ajouter dans le menu */usr/share/info/dir* avec une
-     ligne du type
+     exporte comme un fichier info.  Nécessite d'installer *makeinfo* et
+     un ‘(require ox-texinfo)’.  Le fichier est optionnellement à
+     déposer dans *_usr/share/info_* (un hardlink est encore mmieux
+     qu'une copie) et pour le rendre accessible l'ajouter dans le menu
+     */usr/share/info/dir* avec une ligne du type
           * Emacs français: (emacs-documentation).        Ma synthèse en français
      avant *:* le titre qui apparaît dans la page info par défaut entre
      parenthèses le nom du fichier info (sans son extension) après un
@@ -4444,20 +4444,20 @@ Node: Inclusion de diagrammes Ditaa141981
 Node: Inclusion de shémas UML142898
 Node: Exportation143446
 Node: Sans pandoc144227
-Node: Configuration de pandoc148526
-Node: Suite à disparition export odt interface à pandoc149773
-Node: Formules mathématiques150697
-Node: Inclure des diagrammes151259
-Node: Produire un export Word avec un template151616
-Node: Tramp153122
-Node: ssh153519
-Node: ftp153669
-Node: sudo153832
-Node: rclone Google Drive154175
-Node: Stockage des mots de passe154531
-Node: Copie de fichiers entre deux répertoires tramp dired156140
-Node: Installation initiale pour Ubuntu sur HyperV156894
-Node: Liens externes158621
+Node: Configuration de pandoc148561
+Node: Suite à disparition export odt interface à pandoc149808
+Node: Formules mathématiques150732
+Node: Inclure des diagrammes151294
+Node: Produire un export Word avec un template151651
+Node: Tramp153157
+Node: ssh153554
+Node: ftp153704
+Node: sudo153867
+Node: rclone Google Drive154210
+Node: Stockage des mots de passe154566
+Node: Copie de fichiers entre deux répertoires tramp dired156175
+Node: Installation initiale pour Ubuntu sur HyperV156929
+Node: Liens externes158656
 
 End Tag Table
 

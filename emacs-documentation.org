@@ -2567,10 +2567,10 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
                     l'activation de *odt* dans les exports.
    - C-c C-e h o :: pour afficher le résultat d'une conversion en HTML
    - C-c C-e i i :: exporte comme un fichier info. Nécessite
-		    d'installer *makeinfo* le fichier est optionnellement à déposer
-		    dans */usr/share/info/* (un hardlink est encore mmieux qu'une
-		    copie) et pour le rendre accessible l'ajouter dans le menu
-		    */usr/share/info/dir* avec une ligne du type
+		    d'installer *makeinfo* et un ~(require ox-texinfo)~. Le fichier est
+		    optionnellement à déposer dans */usr/share/info/* (un hardlink est
+		    encore mmieux qu'une copie) et pour le rendre accessible
+		    l'ajouter dans le menu */usr/share/info/dir* avec une ligne du type
 		    #+begin_example
 		    * Emacs français: (emacs-documentation).	Ma synthèse en français
 	            #+end_example
