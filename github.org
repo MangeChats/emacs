@@ -1,9 +1,9 @@
-* DONE Créer ou réactiver un compte gratuit MangeChats sur github.com
-** DONE Lui ajouter dans settings la clef publique avec les 2 rôles
-* DONE Créer un repository public emacs sur github
+* Créer ou réactiver un compte gratuit MangeChats sur github.com
+  - Lui ajouter dans settings la clef publique avec les 2 rôles
+  - Créer un repository public emacs sur github
   - Sans un README
-* DONE Ajouter la clef publique dans la console
-** ssh-add clef.privee et saisir la passphrase
+* Ajouter la clef publique dans la console
+  - ssh-add clef.privee et saisir la passphrase
    En principe il est possible que keepass ouvert contenant cette clef
    suffise à être identifié, mais à défaut on peut l'ajouter
    manuellement ainsi.  Lors des essais suivants, même  si
@@ -12,18 +12,27 @@
    - l'envoi de mail demande bien le déverrouillage de *.authinfo.gpg*
      et l'envoi qui suis fonctionne (après un retry ?)
    - mais pour un push github le ~ssh-add pdedieu.priv~ reste indispensable
-* DONE Créer un repository local
-** DONE Lui définir un remote origin avec comme URL git@github.com:MangeChats/emacs.git
-** DONE Renommer la branche par défaut locale
-   de master en main pour être en accord avec le défaut de github
-   ~git branch -m main~
-** DONE Faire un premier Push vers ce remote
-   - dans un premier temps
+* Créer un repository local
+  - Lui définir un remote origin avec comme URL git@github.com:MangeChats/emacs.git
+  - Renommer la branche par défaut locale
+    de master en main pour être en accord avec le défaut de github
+    ~git branch -m main~
+  - Faire un premier Push vers ce remote
+    - dans un premier temps
      Les mises à jour ont été rejetées car le sommet de la branche
      actuelle est derrière son homologue distant. Si vous souhaitez
      intégrer les changements distants, utilisez 'git pull' avant de
      pousser à nouveau.
-   - Mais mes essais de git pull échouent SAUF avec un --rebase
+    - Mais mes essais de git pull échouent SAUF avec un --rebase
 * Pour les push suivants
   il faut que l'agent ait la clef SSH pdedieu chargée manuellement et
-  que emacs soit lancé depuis le même terminal (?)
+  que emacs soit lancé depuis le même terminal (?).
+  - Ne pas faire confiance à keepassxc
+  - si nécessaire retirer les clefs de l'agent soit lancer en shell dans emacs
+    #+begin_src bash
+      git-add -D
+      git-add ~/.ssh/pdedieu.priv
+      # donner la passphrase de keepass
+      git push origin main
+    #+end_src
+  - pour la session en cours l'authentification est conservée dans emacs
