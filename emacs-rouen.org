@@ -1,0 +1,74 @@
+Les deux propositions peuvent être utilisées simultanément, c'est même ce qui est le plus intéressant
+
+* Lancement pour garder une session ouverte en continu
+** Intérêt de screen
+Pour retrouver les connexion SSH même après une interruption du PC, ne
+pas interrompre des opérations longues lancées en fin de journée
+** Principe d'utilisation de screen
+Utiliser le paquet Linux *screen*.
+- Juste après la connexion SSH à un serveur Linux, par exemple celui d'Ansible, utiliser la commande ~screen~ avant
+  toute autre commande (en particulier d'autre SSH, sudo ou emacs)
+- Quand on a interrompu la connexion SSH, il suffit de se reconnecter en SSH et de taper ~screen -r -d~
+  - -r :: rattach, reprend la dernière session
+  - -d :: detach, pour pas toujours nécessaire, mais il arrive que
+    sans, il soit retourné que la session est déjà attachée
+- Si plusieurs session existent déjà pour l'utilisateur courant on
+  peut les lister avec ~screen ls~ puis préciser un des identifiants proposé
+- noter que le but est aussi de gérer de multiples session dans un
+  même terminal, et toute les commandes disponibles sont préfixées par
+  un préfixe qui est par défaut *Control-a*
+- Exemples de commandes:
+  - C-a c :: crée une deuxième fenêtre
+  - C-a C-a :: échange avec la fenêtre précédente
+  - C-a a :: lance vraiment *C-a* dans la fenêtre
+  - C-a A :: permet de renommer la fenêtre courante
+  - C-a " :: liste les fenêtres disponible (et choix avec haut/bas puis entrée)
+- ~man screen~ est votre ami pour aller plus loin
+
+* Lancement de connexions SSH vers de multiples serveurs
+** Intérêt d'emacs pour le SSH
+Il est possible de grandement limiter les saisies multiples de mots de passes et autre validations DUO.
+Permet aussi de copier des fichiers directement d'un serveur à un autre, ou de modifier des fichiers à distance.
+
+** Principe SSH emacs
+- Se connecter en SSH sur le serveur Ansible ~ssh adminXXX@hdvgen131~ (puis votre mot de passe Linux et une validation DUO)
+- Passer en root ~sudo -i~ (puis une deuxième fois votre mot de passe)
+- Passer avec le compte adminansible qui est sudoer root sans resaisie de mot de passe ~su - adminansible~
+- Lancer emacs avec ~et~ (c'est un alias bash sur ce serveur)
+- Pour faire une connexion vers un autre serveur Linux
+  - Taper *F1* pour afficher le menu Rouen
+  - Taper *s* pour SSH
+  - Choisir un serveur avec *s* puis taper le nom court du serveur (exemple: hdvdb136-test)
+  - Choisir une action à lancer parmi
+    - c :: pour ouvrir une console bash qui garde l'historique complet de sa session
+    - d :: pour ouvrir un directory editor (affichage des fichiers d'un répertoire, par défaut /)
+      - *Enter* sur un des fichiers l'ouvre pour l'éditer
+    - t :: si les commandes utilisées ensuite sont incompatible avec
+      le terminal standard emacs, ouvre un terminal sans historique
+      complet. Utile par exemple pour des commandes plein écran comme top, ncdu, aptitude, veeeam ...
+  - Quand on est dans un terminal il est possible d'ouvrir un directory editor sur le répertoire courant par *C-x d*
+- Pour passer d'un buffer à un autre utiliser *C-x b* choisir dans la liste avec haut/bas puis entrée
+  - on peut filtrer les buffers listés en saisissant
+    - quelques lettres du nom
+    - *** suivi de quelques lettres du mode (par exemple *dir pour ne voir que les répertoires)
+    - *@* suivi de quelques lettres que doit contenir le buufer
+  - on peut utiliser *Alt-p* pour retouver une des sélections précédentes (*Alt-n* pour la suivante)
+
+** Pour aller plus loin dans un directory editor
+- La copie peut se faire depuis un directory editor, se placer sur le répertoire ou le fichier et taper *C*
+  - si la destination est déjà ouverte dans un autre buffer, utiliser
+    haut/bas pour choisir la destination parmi les destinations
+    proposées.
+- O :: Changer de propriétaire pour le fichier
+- M :: Changer le mode du fichier (par exemple *a+x* pour ajouter le droit d'ésécution pour tous)
+- R :: Renommer/Déplacer le fichier/répertoire
+- Plus généralement la documentation plus étendue est disponible dans [[info:emacs-documentation][emacs-documentation]]
+
+** Utilisation pour Oracle VDR
+- ²b :: Pour afficher la liste des SID des bases Oracle de la ville de Rouen
+  - quelques caractères :: filtre les noms qui les contiennent
+  - Enter :: Ouvre un shell avec le SID activé sur le serveur correspondant
+- ²o :: Pour lancer quelques commandes courantes pour la base choisie,
+  toujours avec une liste, filtrée avec les caractères tapés
+  - Enter :: pour lancer la commande correspondante
+  - C-g :: pour annuler la commande commencée

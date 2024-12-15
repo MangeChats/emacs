@@ -1,17 +1,79 @@
-* Petites contributions à emacs
+* Menu spécifique Rouen
+L'ouvrir avec ~² flèche bas~ puis utiliser les flèches haut/bas pour choisir et Entrée pour valider
+Le premier menu est
+- Connexions SSH ::
+  - Bases de données :: ouvrir un SSH root sur une des bases oracles en tapant quelque lettres du nom
+  - Shell root serveur :: saisir un nom de serveur pour ouvrir un
+    shell root (hdvapp1XX ou ici pour le shell de la machine où est
+    emacs)
+- Commandes :: au choix pour Oracle / Afficher les process qui chargent / Réunitialiser Veeamtransport
+- Ansible :: pour lancer des playbooks avec une aide à la saisie des répertoires, fichiers, options
+- Copies de fichiers :: dans un dired, différentes commandes de copie du fichier courant
+- Signets :: pour la gestion une liste de raccourcis vers des fichiers (locaux ou distants)
 
-** emacs-documentation.org
-Surtout un mémo que j'ai créé pour moi pour l'utilisation d'emacs et de ses raccourcis clavier
-disponible en version org pour le faire évoluer (c'est sous cette forme que je l'utilise le plus).
-Il est aussi fourni en version EPub pour consultation hors d'emacs.
+* Raccourcis clavier Rouen
+| Touches | Fonction                                                                                  |
+|---------+-------------------------------------------------------------------------------------------|
+| ²s      | Sauve le fichier courant                                                                  |
+| ²x      | Ferme le fichier courant                                                                  |
+| ²k      | Sort d'emacs (et eh)                                                                      |
+| ²f      | Propose une liste des buffers disponibles pour afficher dans la fenêtre en cours          |
+| ²²      | Change de fenêtre active à l'écran                                                        |
+| ².      | Ouvre un dired (explorateur de fichiers) sur le répertoire du fichier courant             |
+| ²0      | Cache la fenêtre active                                                                   |
+| ²1      | Ne garde que la fenêtre active à l'écran                                                  |
+| ²2      | Sépare horizontalement la fenêtre active                                                  |
+| ²3      | Sépare verticalement la fenêtre active                                                    |
+| ²b      | Propose une liste des bases de données pour ouvrir un SSH vers leur serveur               |
+| ²&      | Demande un nom court de serveur pour s'y connecter en SSH root                            |
+| ²i      | Demande un nom de serveur pour s'y connecter en SSH adminXXX (et répare la signature srv) |
+| ²$      | Dans un shell ouvre un terminal (autorise top, veeam, aptitude, ncdu et autre ncurse)     |
+| ²BackSp | Efface le contenu de la fenêtre shell courante                                            |
+| ²o      | Propose une liste de fonctions pour Oracle                                                |
+| ²O      | Permet de lancer une requête SQL sur la base (demande une requête)                        |
+| ²p      | Commandes pour ProxMox (accès SSH aux PVE/PBS, MAJ ...)                                   |
+| ²à      | Recharge le fichier source emacs lisp de la fenêtre en cours (en cas de modification)     |
+| F7      | Insère votre mot de passe adminXXX (gardé en mémoire, si pas encore saisie le demande)    |
+| F6      | Demande votre mot de passe adminXXX (pour le modifier si erreur en mémoire)               |
+| F5      | Recharge le fichier du buffer courant (s'il a changé hors d'emacs, ou abandon des modifs) |
 
-** pde-mail.el
-Mes réglages pour utiliser notmuch dans la consultation de comptes mails
+* Rappel concernant des commandes emacs
+- Esc < :: Aller au début de la fenêtre courante (~Esc >~ pour aller à la fin)
+- Alt < :: (alternative au précédent) Aller au début de la fenêtre
+  courante (~Alt >~ pour aller à la fin)
+- Alt-x :: appel d'une commande par son nom (avec complétion automatique)
+- C-s :: recherche incrémentale de texte à partir de la position
+  courante (plusieurs C-s pour rechercher les suivants)
+- C-x s :: sauve le fichier courant
+- quand on commencer à taper un raccourci clavier avec plusieurs
+  touche, ~?~ permet d'afficher les différents raccourcis qui sont à
+  choisir (ex: C-x-? -> C-x-s et tous les autres)
 
-** pde-trans.el
-Des variations sur l'utilisation de transcient, interface défnie par
-le développement de magit (l'interface emacs à Git)
+** Dans un dired
+- Enter :: sur un répertoire ouvre le dossier dans un nouveau dired,
+  sur un fichier en affiche le contenu
+- a :: comme Enter sauf que le nouveau répertoire remplace le
+  précédent dans la fenêtre courante (ne garde pas le précédent dans
+  les buffers)
+- s :: sort, permet plusieurs tris des noms (premier appui par date, second par nom)
+- S :: recherche une séquence de caractères dans tous les fichier du dossier courant et des sous-répertoires
+- ²e :: ouvre un shell dans le dossier courant
+- O :: chown pour le fichier ou le dossier courant
+- M :: chmod pour le fichier ou le dossier courant
+- j :: permet de se placer sur un fichier / dossier de la liste (plus sélectif que C-s)
+- ? :: pour afficher une liste courte des principales commandes de
+  dired. puis ~h~ pour l'aide détaillée en anglais.
 
-** init-T460.org
-Une version org pour documenter ma configuration emacs et la générer
-avec des options activables/désactivable
+* Procédures particulières
+** Copier coller entre Windows et emacs
+- Utiliser *Maj + sélection* pour sélectionner dans emacs. Prêt alors
+  pour un collage dans Windows
+** Copie de fichiers entre serveurs
+- Depuis un dired (affichage de répertoire) la touche ~C~ propose de
+  copier le fichier sous le curseur vers un des autres dired qui ont
+  été ouverts (possiblement sur un autre serveur).
+
+** Dans la sélection de fenêtre ²f
+- taper quelques lettres du titre permet de ne garder que les buffers dont le nom match
+- taper ~*dir~ ne retiens que les buffers avec des dired (plus généralement ~*nom-mode~ pour ne lister que les buffers dans ce mode
+- ~@pattern~ pour sélectionner les buffers contenant pattern dans leur contenu

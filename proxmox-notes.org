@@ -1,0 +1,1907 @@
+#+title: ProxMox Notes
+#+AUTHOR: Pierre DEDIEU
+
+Contact Téicée *02.72.34.13.20 puis 2 / 02.78.08.58.14 / 06.34.59.77.07*
+Pour Ansible Matthieu Valois
+
+>Attention autre copie en principe synchronisée sur [[file:~/Cloudstation/ProxMox.org::+TITLE: Virtualisation ProxMox et stockage][une version sur
+Cloudstation]], mais c'est celle ci qui fait foi
+
+* Pistes d'utilisation
+  - Sécurisation Oracle et virtualisation moins chère
+    - Des SRV iSCSI 10 Gb + SSD
+    - Stockage Ceph pour réplication synchrone ?
+  - Prolonger l'utilisation de baies MSA non compatibles VMware (lentes, Disk04)
+    - Présenter les baies iSCSI à 2 nodes PVE
+  - Réplication asynchrones de données froides / bureautique
+  - Après arrêt DataCore, présenter les baies mixtes SSD / HDD (Disk03)
+    - Sur le même cluster que précédent
+  - Alternative à VMware avec des disques SAN préentés en iSCSI (qui
+    supporte le partage entre les PVE)
+      
+* Procédures
+** Installation node
+   - Boot UEFI ou BIOS sur clef USB (penser à disk sour ubuntu pour la créer avec l'iso
+   - Suivre le les quelques questions, attention au nom difficile à changer après mise en cluster
+   - Sur Node / System /DNS mettre nos DNS std (en principe récupérable par DHCP si dispo)
+   - Modifier le dépôt prod en no-subsription (http au lieu de hhps)
+     voir https://pve.proxmox.com/wiki/Package_Repositories
+   - la version enterprise des src soit est définie par défaut dans
+     ~/etc/apt/sources.list.d/pve-enterprise.list~
+     la ligne pour le gratuit est 
+     ~deb http://download.proxmox.com/debian/pve bullseye pve-no-subscription~
+   - ~apt-get update~ et ~apt-get dist-upgrade -y~ puis ~reboot~OA
+   - ~apt-get install emacs-nox~
+   - utiliser ~apt-install ifupdown2~ pour activer les modifs rso sans
+     reboot
+   - ~apt-install ntp~
+   - configuration des mails
+     - modifier le fichier ~~/etc/postfix/main.cf~~, ligne  ~relayhost = mail.rouen.fr~
+     - Modifier de la GUI Datacenter / Options Adresse E-mail de
+       l'expéditeur ~admin@rouen.fr~
+     - redémarrer le service postfix ~/etc/init.d/postfix restart~
+   - Creation d'un bonding de deux carte pour la connexion par défaut
+     - dans Network, modifier *vmbr0* connecté par défaut à une nic pour
+       le connecter à un nouveau bond0 (faisable en GUI, car on applique
+       les modifs en une fois)
+     - le nouveau bond0 est fait avec 2 slaves (eno1 ens4F0 ?), VLAN
+       et en mode active backup (au mini) ou en LACP (si activé sur
+       le switch)
+     - Définir eno1 comme primary
+     - activer VLAN Aware (optionnel)
+     - Concernant les modes dispos (ordre de pref décroissant)
+       - LACP :: nécessite une config port du switch, mais donne les perf max
+       - balance-alb :: idem mais en in comme en out
+       - balance-rr :: envoi les paquets sur une NIC différente chaque
+         fois (fault tolerance + perf)
+       - balance-tlb :: choisi la sortie en fonction de la charge
+         actuelle, mais en entrée une seule NIC
+       - balance-xor :: similaire mais pour une même dest on envoie à
+         la même carte
+       - broadcast :: envoi sur toutes les NIC (FT only)
+       - active-backup :: Faut Tolerance only 
+     - Faire cela sur tous les nodes du cluster
+   - Si ~apt update~ échoue, remplacer dans ~/etc/apt/source.list~ les
+     occurence de ~ftp.fr.debian.org~ par ~deb.debian.org~
+   - Suppression du warning de no subscription
+     - ~cd /usr/share/javascript/proxmox-widget-toolkit/~
+     - Modifier le fichier ~proxmoxlib.js~
+     - Rechercher "No valid sub" et dans le début du if, remplacer
+       ~Ext.Msg.show({~ par ~void({ //Ext.Msg.show({~
+     - Redémarrer pour prendre en compte ~systemctl restart pveproxy.service~
+     - corrigé au prochain login (mais sur chaque node ...)
+       
+*** Initialisation cluster
+    Créer le cluster dans DataCenter / Cluster / Create
+    - Les nouveau nodes doivent ne pas avoir de VM ou container installés
+      - Si on veut les conserver, déplacer temporairement les fichiers
+        type 101.conf et les remettre après
+    - Récupérer (copy) les infos de cluster via Cluster / Join
+      information
+    - Sur les suivants faire Cluster / Join cluster, paste des infos,
+      saisir le mdp du premier pve
+    - Si le cluster à ajouter contient des VM la jonction échoue
+      - commencer par supprimer les VM du nouveau cluster (après backup si nécessaire)
+      - peut échouer si il existe des réplication de la VM à
+        supprimer. Dans ce cas commencer par les supprimer, en CLI par
+        exemple ~pvesr list~ puis ~pvesr delete 100-0 --force~ (remplacer
+        par le jo-id listé !)
+    - Si échec de jonction avec ~unable to acquire pmxcfs lock~ essayer
+      ~systemctl stop pve-cluster~ et ~systemctl stop corosync~
+      pmxcfs -l
+      rm -rf /etc/pve/corosync.conf
+      rm -r /etc/corosync/*
+      killall pmxcfs
+      systemctl start pve cluster
+      
+*** Etapes pour Ceph
+    - Voir ce calculateur de Stockage Ceph:
+      https://florian.ca/ceph-calculator/
+    - Aller sur Ceph, qui signale que pas installé, mais le lui faire
+       faire
+    - Le faire sur tous les noeuds
+    - Dans Ceph / Monitor ajouter les moniteurs sur les autres nodes
+    - Effacer les partitions sur les disques à utiliser (fdisk en
+      shell sur chaque node)
+    - Créer des OSD avec chaque disque à utiliser
+    - Créer un Ceph Pool
+    - Puis dans Storage, créer un Ceph Metadata srv sur chaque node
+    - Créer le CephFS
+      
+*** Post installation
+    - Vérifier dans admin web Node / Update et Check
+    - Les disques du serveur sont présents sur Node / Disks
+    - Détruire les partitions des disques (hors celui dy système)
+      - le faire en SSH avec fdisk /dev/sdX
+    - Il est ensuite possible de créer des disques en ZFS avec
+      compression et RAID10 (mais parait mieux en CEPH pour la
+      version 7.0)
+      - Vérifier que le smart monitoring est activé (en web ou
+        ~smartctl -a /dev/sdX~ en SSH)
+    - Activer IOMMU
+      - si CPU, motherboard compatibles et activé dans le BIOS
+      - permet de donner accès direct pour une VM à un périph de
+        l'host.
+      - dans ~/etc/~default/grub~ mettre
+	~GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on"~ (intel ou amd !)
+      - ~update-grub~
+      - Dans ~/etc/module~ il faut
+	vfio
+	vfio_iommu_type1
+	vfio_pci
+	vfio_virqfd
+      - reboot
+    - Node / Network sélectionner le bridge de l'install et
+      activer le VLAN Aware
+      - Editer ~/etc/network/interfaces~ et si nécessaire bridge-vids 10
+	- pour limiter au VLAN 10 (initialement 2-4094)
+	- mais on peut mettre la limitation au niveau des VM, via
+          VLAN Tag dans les propriété de sa carte RSO
+    - Créer un share NFS su niveau du Datacenter / Storage avec Add
+      NFS et pour le contenu lui donner (???)
+      - ISO
+      - Image
+      - Backups
+    - Backups
+      - Prévoir un Schedule backup sur DataCenter
+      - Lancer un premier backup après la fin de la config
+      - Pour gestion fine des déclenchements, modifier le fichier
+        ~/etc/cron.d/vzdump~ (sur n'importe que noeud: c'est répliqué sur chacun)
+    - Upload KVM driver disk for windows (VirtIO, latest)
+      - https://fedoraproject.org/wiki/Windows_Virtio_Drivers#Direct_download
+      - https://fedorapeople.org/groups/virt/virtio-win/deprecated-isos/
+    - Create a NIC Team
+      - avec LACP 802.3ad
+	- l'activer sur le switch, suppose parfois que les ports
+          soient consécutifs ?
+	- sur ces ports il faut passer de switching en aggregating
+	- définir bond0 dans /etc/network/interfaces
+	- y rattacher le vmbr0 avec ~bridge-ports bond0~
+	- voir si dispo dans le GUI en 7.0 ?
+    - Faire un premier template Ubuntu après une première conf de VM
+      - Pour windows, penser à lancer un sysprep avant de convertir en
+	template
+
+*** Optimisations PVE
+    - Diminuer swappiness
+    - ~sysctl vm.swappiness=0~, ~swapoff -a~ puis ~swappon -a~
+      - Ajouter pour next reboot: edition /etc/sysctl.conf et ajout
+        de vm.swappiness=0
+    - Emplacement des iso: sur le pve dans ~/var/lib/vz/template/iso~
+    - Concernant ZFS (ici pour un disque appelé data)
+      - les param détaillés via ~zfs get all~
+      - désactiver la dédup (pour RAM) avec ~zfs set dedup=off data~ (mais
+        garder la compression peu coûteuse)
+      - désactiver le atime avec ~zfs se atime=off data~
+      - risqué pour sécu ? ~zfs set sync=disabled data~
+      - Ajouter des cache SSD
+	- Noter que le cache ARC en RAM peut aller de 1Go à 20Go
+	- Le cache ZIL n'est actif que si le param sync est enabled
+	- Commencer par formater une/des partition(s) adaptée(s), via
+          une VM Gparted (100) sur lequel on monte le disque en
+          passthru
+	  - ~qm set 100 virtio /dev/sdb~
+	- pour ZIL 8 Go non formatés (sdb1 nommé logs)
+	- pour ARC le reste non formaté (sdb2 nommé cache)
+	- ~zpool add data log sda1~ et ~zpool add data cache sda2~
+	- on voit les modifs dans ~zpoll status data~
+	- monitoring via ~zpool iostat -v 1~ (toutes les 1 secondes)
+    - Pour la prod, mettre PVE sur 2 petits disques en ZFS RAID1 (SSD
+      ?) avec dans Compress lz4
+      - diminuer la taille utilisée des SSD (pour les rendre plus
+        pérennes)
+      - Préparation des disques en CLI, identifier par exemple avec
+        un ~ls /dev/disk/by-id/~ puis utiliser gdisk (fdisk pour GPT)
+      - Sinon créer le ZFS dans Disques
+      - suggestion de créer du RAIDz2 pour avoir de la redondance
+      - dans Storage ajouter le ZFS nouvellement créé
+	- Deux vidéos suggèrent de faire du Thin provisionning
+
+** VM dédiée au quorum pour HA
+   - Je choisi sur la VM App149 en suivant
+     https://blog.zwindler.fr/2019/10/11/un-cluster-proxmox-ve-avec-seulement-2-machines/
+   - Commencer par installer sur la VM App149 ~apt install
+     corosync-qnetd~ et ~apt installl corosync-qdevice~
+   - Copier la clef du premier pve sur app149, soit depuis pve ~ssh-copy-id root@hdvapp149~
+   - Installer sur tous les pve du cluster ~apt install corosync-dqevice~ (pas fait sur pve2)
+   - Noter qu'il faut que les 2 nodes soient UP au moment
+     d'utiliser ~pvecm qdevice setup 172.16.101.247~ (qui ajoute la VM au corum du cluster)
+   - Voir le status des votes via ~pvecm status~
+     
+** ntp
+   - installer via ~apt install ntp~
+   - modifier ~/etc/ntp.conf~ pour ajouter les 2 CDAD (server
+     172.16.101.29) et commenter les 2 pool debian
+   - mettre a l'heure avec ~date -s HH:MM:SS~
+   - prendre en compte la modif avec ~service ntp restart~
+   - voir le résultat avec ~ntpq -p~
+     
+** Authentification AD dans GUI ProxMox
+   Dans DataCenter / Permissions / Realms (Authentification ?) Ajouter Server Active Directory
+   - Royaume :: AD-MAIRIE
+   - Base Domaine NAME :: OU=Organigramme,OU=Utilisateurs,DC=ad-mairie,DC=rouen,DC=fr
+   - User Attribute Name :: sAMAccountName
+   - Default :: cocher pour mettre l'AD avant PAM
+   - Serveur :: 172.16.101.9
+   - Serveur de secours ::  172.16.101.29
+   - Commentaire :: Active Directory Mairie
+   - Onglet Sync Options
+     - Utilisateur de Bind :: CN=ldapReadForIntranet,OU=System Users,DC=ad-mairie,DC=rouen,DC=fr
+     - Mot de passe :: Keepass
+     - User Filter :: CN=*adminmj*
+       - pour n'ajouter qu'une partie déselectionner Full et Purger Non
+   - Pour leur donner des droits
+     - dans GUI
+       - Créer des groupes (nom + commentaire)
+       - Créer des rôles (ou utiliser un des noms prédéfinis)
+     - En CLI sur le shell d'un node du cluster
+       - Associer un groupe à un rôle ~pveum acl modify / -group admins
+         -role Administrator~
+       - Ajouter des noms (version court comme pdedieu) à un groupe
+         ~pveum user modify pdedieu -group admins~
+     - Les saisies apparaîssent dans le GUI  (2 endroits)
+
+** Linux avec login sur AD
+   - Voir https://www.redhat.com/sysadmin/linux-active-directory fonctionne pour OEL 7.2 de HdvDb113
+   - ~yum install sssd realmd oddjob oddjob-mkhomedir adcli samba-common samba-common-tools krb5-workstation openldap-clients policycoreutils-python~
+   - ou pour la version OEL 8.5
+   - ~yum install realmd sssd oddjob oddjob-mkhomedir adcli samba-common samba-common-tools krb5-workstation authselect-compat~
+   - Vérification optionnelle de l'accès au domaine ~realm discover ad-mairie.rouen.fr~
+   - jonction par ~realm join --user=adminpdedieu --computer-ou="OU=Hotel de Ville,OU=Serveurs" ad-mairie.rouen.fr~ et saisir le MDP
+   - vérification par ~realm list~ et id ~pdedieu@ad-mairie.rouen.fr~
+   - ajout d'un groupe par ~realm permit -g GG_Admin_Sys@ad-mairie.rouen.fr~
+   - ajout d'un groupe par ~realm permit -g GL_Admin_Local_Serveur@ad-mairie.rouen.fr~
+   - ajout d'un login simple par ~realm permit pdedieu@ad-mairie.rouen.fr~
+   - suppression d'un permit par ~realm permit --withdraw pdedieu@ad-mairie.rouen.fr~
+   - suppression d'un permit de goupe par ~realm permit --withdraw -g Admin_Sys@ad-mairie.rouen.fr~
+   - Autorisation sudoer pour GG_Admin_Sys en ajoutant via ~visudo~
+   - Pour ne pas taper le nom long à la connexion modifier ~/etc/sssd/sssd.conf~ pour
+     ~use_fully_qualified_names = False~
+   - Création auto du homedir (pas par défaut) avec ~pam-auth-update --enable mkhomedir~
+   - pour sortir du domaine ~realm leave ad-mairie.rouen.fr~ cela
+     s'est avéré nécessaire pour supprimer les comptes AD des machines
+     qui bloquaient la définition de comptes admin locaux
+   - tester sur autres OS
+     - DB116 OEL n'existe plus ?
+     - DB18 OEL 6.1 yum n'a pas pu installer les paquets realmd et
+       samba-common-tools. Renseignement pris realmd n'est dispo qu'à
+       partir de RH 7
+     - DB17 OEL 6.3
+     - DB120 OEL 7.4
+     - DB119 OEL 7.4
+     - Sur Debian à partir de 9
+       - avec ~apt-get install sssd realmd sssd-tools libnss-sss libpam-sss adcli samba-common-bin krb5-user -y~ voir policykit-1
+       - le join échoue en ne trouvant pas certains packages qui sont installés, voir paragraphe suivant
+         pour une méthode fonctionnant pour les Debian PVE
+     - Sur Ubuntu peut marcher sur 14.04 ? ou au moins sur 18.04 (selon pkgs.org)
+       
+** Ajout d'un PVE sur l'AD (console et MAJ)       
+   - voir https://forum.proxmox.com/threads/how-to-join-a-proxmox-cluster-to-an-active-directory-domain.100395/
+      #+begin_src bash
+      apt dist-upgrade
+      apt install adcli packagekit samba-common-bin
+      apt install realmd
+      #+end_src
+   - avec l'ajout du groupe AD GG_Admin_Sys et ~use_fully_qualified_names = False~
+   - je me connecte en SSH avec adminpdedieu
+   - par contre en PAM sur PVE web KO
+   - ~pam-auth-update~ permet d'ajouter la création auto du home au login
+   - Dans ~/etc/sssd/sssd.conf~ il peut être interessant de vérifier
+     #+begin_example
+     ldap_id_mapping = True
+     use_fully_qualified_names = False
+     #+end_example
+   - Il est alors possible de se connecter en SSH avec les comptes adminXX
+   - et les MAJ des PVE peuvent se faire avec ~apt update~ puis ~apt upgrade~
+   - Penser au reboot en cas de changement de kernel (à demander via l'interface web PVE pour que le HA
+     gère le déplacement des VM)
+	   
+** Cockpit et Ubuntu/OEL sur AD
+  Attention, cette piste est moins pertinente que la précédente mais cela pourrait s'arronger à
+  l'avenir
+  - Voir procédure d'installation de cockpit
+  - Joindre un domaine se fait sans pb sur VM104 via Coskpit
+  - Le login ssh se fait alors via ~AD-MAIRIE\\pdedieu@172.17.100.11~
+  - Tout user AD est alors autorisé
+  - [X] Deux améliorations à voir
+    - Restreindre le login à un groupe AD
+      - https://www.thegeekdiary.com/how-to-restrict-active-directory-users-and-groups-to-login-to-centos-rhel-7-client/
+      - https://access.redhat.com/solutions/70472
+    - Mettre des droits sudo root à un autre groupe AD
+    - Voir si l'édition de */etc/security/access.conf* est fonctionnelle => NON
+      #+begin_example
+      + : AD-MAIRIE\GG_Admin_Sys : ALL
+      + : root : ALL
+      + : pdedieu : ALL
+      - : ALL : ALL
+      #+end_example
+    - La solution est d'utiliser la commande *realm*
+      - lister l'état initial par *realm list*
+      - ajouter un groupe AD pour restreindre l'utilisation: *realm
+        permit -g GG_Admin_Sys@ad-mairie.rouen.fr*
+      - marche aussi bien en SSH qu'en ouverture de session graphique
+      - Les problèmes sont
+	- Que cockpit est présent sur OEL 7 et pas 6
+	- Que sur OEL 7 il manque des paquets pour l'utiliser pour joindre l'Active Directory
+	- Reste à tester si le ticket de session peut être utilisé pour SSO web ou share windows
+
+** Partages et Active-Directory
+   - le fait d'avoir mis une machine dans le domaine, il est possible
+     de monter de partages DFS, en utilisant le ticket kerberos
+   - pour cela il faut un montage cifs et non plus smb. Par contre pas
+     trouvé le moyen de passer outre le nom du serveur
+   - Exemple de montage dans fstab
+     ~//hdvbur34.ad-mairie.rouen.fr/dfsService/ /home/pdedieu/DFSService cifs sec=krb5i,users,uid=1000,gid=1000,noauto,rw  0  0~
+     ~//hdvbur32.ad-mairie.rouen.fr/dfsMairie/ /home/pdedieu/DFSMairie cifs sec=krb5i,users,uid=1000,gid=1000,noauto,rw  0  0~
+   - les options
+     - users :: permet d'autoriser tout utilisateur à monter/demonter
+     - noauto :: permet de ne lem onter qu'au besoin (après un kinit)
+     - uid / gid :: choix des owners et group du répertoire monté
+     - sec=krb5i :: pour utliser kerberos plutôt que de donner user / passwd
+     
+** Cloud-Init
+  - Permet de changer des infos après un clone, et de diffuser des modifications sans se connecter à la
+    console de la VM (au boot de la machine)
+  - Nécessite
+    - D'ajouter le paqkage cloud-init sur la VM ou le template avec
+      ~yum install cloud-init~
+    - d'ajouter dans l'admin web de la VM un disque de type
+      cloud-init (en IDE 2 par défaut, marche)
+    - de définir les paramètres à pousser dans la section Cloud-Init
+      de la VM sur l'admin web/22
+    - penser à Option / Ordre de boot: scsi0, ide2
+  - Les paramètres testés concernent
+    - l'IP de la machine
+    - un nom d'utilisateur sudoer avec MDP et clef SSH
+      - le login SSH se fait alors sans mot de passe si par
+        exemple on a ouvert keepass et que la clef SSH avec son
+        MDP y est présente et la clef publique mise dans
+        Cloud-init / Clef (le compte est sudoer root)
+
+** Diminuer l'utilisation RAM de ZFS
+   - Par défaut 50% de la RAM, nuisible aux VM du node
+   - via ~/etc/modprobe.d/zfs.conf~ avec ~options zfs
+     zfs_arc_max=4294967296~ pour 4Go max
+     et en ~min zfs_arc_min=1073741824~
+   - ~update-initramfs -u~ pour prochain boot
+   - pour la session en cours ~echo 4294967296>/sys/module/zfs/parameters/zfs_arc_max~
+   - et ~arcstat~ pour voir sa prise en compte
+     
+** ZFS
+   - création ::  ~zpool create bigpool mirror /dev/sda /dev/sdb /dev/sdc~
+   - état :: ~zpool status~
+   - ajout de disque :: ~zpoll add bigpool mirror /dev/sdd /dev/sde~
+     ou ~zpool attach bigpool /dev /sdd~
+   - quotas :: ~zfs set quota=10g bigpool/vm1~ (sinon chaque dataset
+     voit tout l'espace restant)
+   - maintenancs ::  ~zpool offline /dev/sdb~, mais aussi ~online~,
+     ~replace~ et ~hotspare~
+   - snapshots ::   ~zfs create snapshot bigpool/vm1 @now~
+   - consultation ::  en read-only dans ~/bigpool/vm1/.zfs/snapshot/nom/~
+   - clonage d'un snap ::  ~zfs clone bigpool/vm1 @now bigpool/vm5~ (now est un nom quelconque!)
+   - scrub :: vérif périodique des bad blocks. Si redondance, ils
+     sont recréés ailleurs (et visibles dans zpool status).
+   - zil :: log transactionnel, ces logs sont bien sur un SSD (4 Go
+     suffisent)
+   - arc :: read cache (bien sur SSD aussi)
+   - Remplacement d'un disque :: sur un zpool ZFS
+     - identifier le disque fautif !
+       - on a un nom de disque dans ~zpool status data~
+       - le rechercher avec ~ls /dev/disk/by-id | grep le-nome~
+	 - il apparait comme monté sur un ~/dev/sdX~
+       - récup des données détaillées via ~lsblk -o
+         name,model,serial,uid /dev/sdX~
+       - possibilité d'installer ~apt-get install ioping~
+	 - simule de l'activité sur un disque pour le repérer
+	 - genre ~ioping /dev/sdX~ intéressant si on a des LED
+           d'activité !
+     - remplacer (offline) le disque et vérifier détection via lsblk
+     - utiliser ~zpool replace data sdc /dev/sdc~
+     - ~zpool status~ permet de voir où en est la reconstruction
+   - Benchmarking disk :: avec bonnie++ (donne les perfs en R RW W)
+      bonnie++ -u root -r 1024 -s 16384 -d /storage -f -b -n 1 -c 4~
+     - dispo dans le dépôt ubuntu (package bonnie++)
+   - Diminution de la taille du disque d'une VM ::
+     - Commencer par libérer l'espace sur la VM
+     - retirer les temporaires, les téléchargements inutiles par
+       ex)
+     - sur win faire un shrink volume dans la gestion de disques
+       - fait apparaitre de l'espace unallocated, puis shutdown
+     - créer un nouveau disque sur la VM avec une taille de disque inférieure
+       adaptée (avec un cache en write back)
+     - Utiliser un ISO pour G4L (76 Mo), semble une alternative à clonezilla
+     - Noter que dans les options de la VM, on a le boot order, avec
+       le CD avant, et le deuxième disque à ajouter
+     - utiliser Raw mode, puis local use
+     - Select src dans destination drive then clone (A, A and C)
+     - le transfert s'arrête avant la fin de la src, et on peut
+       utiliser Stop de la VM quand ne bouge plus.
+     - sur PVE la VM / HW faire un Detach du HD d'origine (passe en
+       unused)
+     - Changer le boot order dans les options pour utiliser le nouveau
+     - Dans HW désactiver le CDRom G4L
+     - Vérifier que la VM boot, et retourner dans HW pour retirer le
+       trop gros disque (Remove)
+     - Noter qu'on peut chosir UEFI ou Bios boot dans HW/Bios de la VM
+   - Diminution de taille de disque V2 ::
+     - pour un disque en LVM (iSCSI+LVM VM linux dans mon test), trois
+       endroits à corriger:
+       - vérifier que la partition utile est inférieure ou égale à la
+         taille demandée
+       - Réduire le LV qui constitue le disque avec (on réduit ici à
+         32Go pour le LVM et 30 Go pour la partition dans un premier
+         temps)
+	 - ~lvdisplay | grep Path~ pour déterminer le nom du device
+	 - ~e2fsck -fy /dev/pve/vm-100-disk-0~ pour vérifier la partition (ext4)
+	 - ~resize2fs /dev/pve/vm-100-disk-0 30G~ pour réduire la partition (ext4)
+	 - ~lvreduce -L 32G /dev/pve/vm-100-disk-0~
+	 - ~resize2fs /dev/pve/vm-100-disk-0 32G~
+       - Réduire la taille du disque dans le fichier conf de la vm
+         ~emacs /etc/pve/local/qemu-server/100.conf~
+     - Réduire la partition ZFS d'une VM
+       - Faire les même précautions sur la partition qu'avec LVM
+       - Voir le nom complet du device par ~zfs list~
+       - Réduire le disque via ~zfs set volsize=32G rpool/data/vm-100-disk-0~
+     - Réduire la partition ext4 d'un disque /dev/sda1 (VM oracle)
+       - Faire un snapshot de la VM
+       - Manip à faire via Ubuntu live sur CDRom
+	 - Penser à remettre le clavier Français (Dans settings /
+           Keyboard, ajouter french et retirer UK
+       - Faire une vérification (obligatoire) du FS avec ~e2fsck -f /dev/sda1~
+       - Réduire le FS via ~resize2fs /dev/sda1 199g~ (par exemple)
+       - Toujours sur la VM / le Live CD, Reduire la partition sda1 avec ~parted /dev/sda "resizepart 1 214g"~
+	 - Attention si la différence est trop faible on casse le FS
+       - (Attention, cela redetecte l'ancienne taille: Sur PVE faire un ~qm rescan~)
+       - Arrêter la VM
+       - Supprimer le snapshot ???
+       - Réduire la taille du disque dans le fichier conf de la vm
+         ~emacs /etc/pve/local/qemu-server/100.conf~
+       - PROBLEME: le fichier du disque virtuel n'est pas réduit, comme le montre le qm rescan.
+	 - il semble que si le disque n'est pas partitionné, la réduction soit effective
+     - Autre méthode suggérée par Téicée / Valois
+       - créer un nouveau disque plus petit sur la VM
+       - le partitionner si la source était partitionnée
+       - penser à mettre le Boot flag dans fdisk (option a dans fdisk)
+       - copier les données par rsync ou dd (ce dernier nécessite de réduire la partition source)
+	 - avec dd c'est du type ~dd if=/dev/sda1 of=/dev/sda2 bs=1M count=81920~
+	 - si la partition a bien été réduite on n'a pas besoin de
+           définir le count (s'arrête à la fin de la partition)
+	 - on peut faire afficher l'avancement du dd (long) avec un
+           autre terminal et ~kill -USR1 $(pgrep ^dd$)~ levolume copié
+           est alors affiché dans la console où on attends le dd
+	   - l'alternative est d'utiliser plutôt ~dd if=/dev/sda1 of=/dev/sda2 bs=1M count=81920 status=progress~
+	   - ou de faire passer le dd en tache de fond (CTRL-Z bg) et de lancer le kill -USR1 dans cette console
+	 - faire un ~efsck -f /dev/sdc1~ sur le disque de destination
+           (il peut avoir des incohérences si ltaille de la partition
+           par rapport au disque est un peu juste)
+ 	 - tester le bon comportement de la copie en montant dans un répertoire et lisant le contenu
+	 - En plus de la copie il est nécessaire de réinstaller le
+           grub avec ~grub2-install /dev/sdc~ après avoir vérifié sur
+           lsblk que sdc est bien le nouveau petit disque
+       - il est alors possible (après arrêt de la VM)
+	 - de détacher l'ancien disque trop gros
+	 - de détacher / rattacher le nouveau disque pour lui affecter
+           le SCSI ID du trop gros (en général 0)
+	 - de vérifier lque le nouveau disque est bien le seul coché dans Options / Ordre d'amorçage
+	 - de démarrer la VM
+	 - si elle fonctionne (!) il est alors possible de supprimer l'ancien gros disque
+
+   - ~zfs-auto-snapshot~ par github, sur ZFS only
+     - permet des snapshots horaires, quotidiens.. avec
+       conservation de n versions via cron après un ~make install~
+       
+** LVM
+   Ajout d'un disk LVM sur un PVE
+   - le voir via lsblk sur le shell du node (ex: /dev/sdd)
+   - utiliser fdisk pour partitionner le disque (/dev/sddd1)
+   - ~pvcreate /dev/sdd1~
+   - l'utiliser dans un vg, via vgcreate si c'est un nouveau vg,
+     sinon agrandir
+   - Si c'est un nouveau, dans PVE GUI, DataCenter / Storage / Add
+     choisir LVM
+     
+** Suppression d'un node du cluster
+   - Migrate all des VM du node
+   - Shutdown the node (GUI ?)
+   - sur un autre node ~pvecm delnode name~ (les noms sont visible via
+     ~pvecm nodes~)
+   - Si on a un node à moitié présent dans le cluster (cas de mon changement d'IP)
+     - Possibilité de le faire disparaitre en retirant sur le noeud
+       concerné le répertoire ~/etc/pve/node//pveNN~
+     - Supprimer les fichiers ~/etc/corosync/corosync.conf~ et ~/etc/pve/corosync.conf~
+     - Il est possible que certains fichiers soient en read-only, dans
+       ce cas commencer par un ~systemctl stop pvecluster~ puis ~pmxcfs -l~
+** Bascule de VM suite à crash d'un node (hors HA)
+   - Supposons que
+     - le node en panne soit pve1
+     - la destination vers laquelle la VM est répliquée soit pve6
+     - la VM a relancer soit la VM 106
+   - Le principe est de se connecter en SSH sur pve6 et d'utiliser une
+     commande du type ~mv /etc/pve/nodes/pve1/qemu-server/106.conf
+     /etc/pve/nodes/pve6/qemu-server/~
+     
+** Supervision Centreon
+   - Voir https://memo-linux.com/centreon-superviser-les-vm-dun-cluster-proxmox-avec-pve-monitor/
+   - et https://www.sugarbug.fr/atelier/techniques/monitoring_system/proxmox/
+     
+** Installation qemu-guest-agent linux
+   - Vérifier s'il est présent avec ~systemctl status qemu-guest-agent~
+   - Installer si nécessaire avec ~yum install -y qemu-guest-agent~ (sur Debian ~apt install qmu-guest-agent~)
+   - Lancer avec ~systemctl start ~qemu-guest-agent~
+   - Automatiser le lancement au démarage avec ~systemctl enable ~qemu-guest-agent~
+     
+** Mises à jour OEL kernel et OS
+   - Commencer par un snapshot de la VM
+   - puis un ~yum clean all~
+   - Éditer le fichier ~/etc/yum.repos.d/public-yum-ol7.repo~
+     - passer enabled=1 pour les sections concernant la version exacte
+       de OEL désirée (exemple [ol7_u3_base] pour la 7.3)
+     - passer enabled=0 pour les sections concernant la version exacte
+       de OEL actuellement utilisée
+     - de même pour les versions UEK du noyau Unbreakable soit les
+       sections du type [ol7_UEKR4] pour le noyau de la OEL 7.4
+     - il suffit alors de visualiser par ~yum repolist~
+     - et de faire la MAJ correspondante (sur mes essais entre 3' et 9' selon les MAJ)
+     - Selon mes essais la 11.2.0.4 marche en version 7.9
+       
+** Debug réplication
+   - La réplication zfs est parfois bloquée car l'espace résevé pour
+     les snap est trop grand, le changer après consultation avec ~zfs
+     get refquota,reservation,refreservation yourvolume/your-vm-disk~
+   - Pour utiliser une NIC / un vbr spécifique pour les replication/migration
+     - activer la NIC, lui connecter un port sur le nouveau réseau
+     - définir un vbr utilisant cette carte (ou plusieurs !)
+     - dans Datacenter / Options / Migrations settings, choisir le nouveau RSO
+     - fait avec un câble croisé sur les Apple => débit x10
+   - Si un VM qemu a un disque sur du stockage partagé penser à
+     supprimer la réplication sinon la migration échoue
+   - Si une VM qemu est sur du stockage local partagé, la réplication
+     permet de limiter le temps de bascule (seul le delta est envoyé)
+   - Si les réplication d'une VM échouent régulièrement
+     - il peut être nécessaire de supprimer la réplique pour relancer
+       une full (qui sera plus longue la première fois). Elle est
+       définie dans la VM/Réplication et dans le Noeud/Réplication
+     - quand cela ne suffit pas (cas sur 104)
+       - les migrations basées sur la réplication échouent, essayer de
+         migrer après suppression (marche pour 104, 10 minutes pour 32Gb en Gb/s)
+       - voir à baisser la fréquence de réplication (15min à 30 min
+         puis marche après migration inverse ) initialement) avant de
+         tenter une réplication inverse
+       - essayer d'arrêter la VM ?
+       - essayer de supprimer les fichiers de la destination zfs ? N'
+         a pas été nécessaire
+   - Les containers ne migrent qu'en étant temporairement arrêtés
+     
+** Oracle et conventions de nommage de Machines virtuelles
+   - Voir modèle OEL7u5 et essais avec moteur 12.2.06
+   - mettre une disque / en ext4 et un disque dédié au swap
+   - possibilité d'utiliser cloud-init pour simplifier la conf IP / nom du modèle
+   - Numérotation des machines virtuelles dans ProxMox
+     - Moins de 200 = VM non Oracle
+     - De 200 à 399 = VM Oracle de Production
+     - De 400 à 599 = VM Oracles de Test
+     - Plus de 10000 = templates
+   - Nommage des VM Dans ProxMox: *hdvdb1XX* (nom de la base dans la description)
+     
+*** OEL Container lxc
+    - pas de template directement accessible dans ProxMox pour OEL
+    - Selon
+      https://forum.proxmox.com/threads/how-can-i-make-use-of-lxc-templates-from-linuxcontainers-org.45183/
+      il est possible de télécharger un template ailleurs et de
+      l'ajouter dans proxmox
+    - Pour ma part tous mes essais de consultation sur des liens
+      linuxcontainers.org renoient une erreur
+      DNS_PROBE_FINISHED_NXDOMAIN
+    - Selon mes recherches cela pourrait être
+      https://uk.lxd.images.canonical.com/images/oracle/7/amd64/cloud/20211120_08:13/
+    - et peut être choisir le rootfs.tar.xz soit 
+      https://uk.lxd.images.canonical.com/images/oracle/7/amd64/cloud/20211120_08:13/rootfs.tar.xz
+    - il faut par exemple la télécharger depuis un PVE sous un nom
+      approprié dans le répertoire est ~/var/lib/vz/template/cache/~ et
+      la commande du type ~wget URL -O OEL-7.tar.xz~
+    - essai fait avec un container, mais la console affiche
+      ~lxc-console: 117: tools/lxc_console.c: main: 131 117 is not running~
+      - me semble dire que ce n'est pas un template lxc valide pour ProxMox
+      - voir ~lxc-start -n ID -F -l DEBUG -o /tmp/lxc-ID.log~ pour voir
+        ce qui se passe au démarrage ?
+    - on peut créer un nouveau template LXC à partir d'un template
+      valide selon
+      https://billing.instantdedicated.com/index.php?rp=/knowledgebase/169/Create-lxc-template-with-proxmox.html
+    - DECISION: pas de container Oracle car ne permettent pas le HA, et sont coués à la migration
+      
+** Sauvegardes généralités
+   - PBS avec une sauvegarde schedulée au niveau de
+     DataCenter. Sélectionner tout sauf ... exception (comme le pbs
+     virtuel)
+   - la restauration se fait via Stockage (celui correspondant
+     au PBS choisi), et enfin sélectionner le no de la VM
+   - Lorsqu'on a un doute sur le contenu d'un backup, utiliser le
+     bouton *Afficher la configuration* qui liste entre autre le nom
+     (long) de la VM concernée
+   - Lors d'une sélection par no, il est possible de restaurer certains
+     fichiers ou de restaurer tout le backup (éventuellement sur un
+     autre no de VM)
+     
+** Sauvegardes Archive-logs Oracle
+   - Piste avec Veeam
+     - Utilisation d'une sauvegarde complète quotidienne, et
+       activation du guest processing Oracle qui gère les archive logs
+       et leur ménage dans un sous job (fréquence horaire retenue)
+     - la restauration permet le point in time avec interface graphique
+   - Piste PBS only: pas retenue
+     - Pre-post backup voir
+       https://www.jamescoyle.net/how-to/2804-reduce-proxmox-lxc-backup-size-and-time
+       - Modifier ~/etc/vzdump.conf~ pour ajouter ~script:
+	 /usr/local/bin/backup-hook.sh~
+       - créer ce fichier en y lançant pour les lxc et le stage
+	 ~$1=="backup-stage"~ le script de pre-backup (bash ou perl par ex)
+     - Sélection de répertoires à sauvegardes
+       - piste vzdump.conf avec une seule ligne du type
+	 ~exclude-path: "/tmp/.+" "/var/www/html/cache/.+"~
+       
+** Changer le certificat https de proxmox pour Lets Encrypt
+   voir https://pve.proxmox.com/wiki/Certificate_Management
+   - LetsEncrypt via le GUI Proxmox (il doit savoir le quorum pour ce faire)
+   - Dans DataCenter / ACME / Comptes / Ajouter (RouenPVE pdedieu@rouen.fr)
+   - dans Challenge Plugins, ajouter un ~gandi_livedns~ avec (appelé RouenPVE)
+     comme API Data ~wuoii48rf4ALxZ5qM0j69jbc~
+   - Pour chaque node, il est alors possible dans Système /
+     Certificats
+     - de choisir un account (RouenPVE)
+     - puis d'ajouter un / des noms dur le domaine de type DNS avec le Plugin
+       Gandi-Rouen (les sous domaines sont possibles)
+     - PUIS cliquer sur la coche à coté
+     - Puis de Commander un certificat pour le nom de domaine sélectionné
+     - Après une attente de 30 secondes pour la diffusion, le certificat est actif !
+     - Il est valable 3 mois, et renouvellement automatique (à partir de - 30 jours)
+     - Pour des serveurs Apache sous ubuntu voir
+       https://upcloud.com/community/tutorials/install-lets-encrypt-apache/
+     - Pour une doc plus générale voir
+       https://upcloud.com/community/tutorials/install-lets-encrypt-apache/
+       - on y trouve un plugin authenticator third party pour Gandi
+       - dans la CLI certbot on peut préciser -a l'authentificator -i
+         l'installer -w la racine du serveur web
+	 - installer apache et authent gandi
+	 - ~certbot run -a gandi -i apache -w WEBROOT_PATH bidule.rouen.fr~
+     - LetsEncrypt sur Vulture 3 voir https://github.com/crocodanser/vulture3-letsencrypt
+*** Warning Let's Encrypt ponctuel - A ignorer ??
+   - J'ai reçu un mail d'alerte de Let's encrypt ce <2023-01-12 jeu.> me signalant que le certificat de
+     hdvpve10.intranet.rouen.fr allait expirer dans 19 jours, or il a été changé le <2023-01-02 lun.> pour
+     une durée de 3 mois ??
+       
+** Renouvellement des certificats Lets Encrypt PBS sur le cluster PVE et les PBS
+   - Les empreintes des PVE sont définies et copiables dans PBS /
+     Tableau de bord / Afficher l'empreinte
+   - Les 2 disques PBS sont à modifier sur le Cluster pour y déposer
+     la nouvelle empreinte du PBS (dans Cluster / Stockage)
+   - Les 2 PBS sont définis mutellement avec leur empreinte dans PBS / Distants
+   - ALTERNATIVE: selon Teicée, confirmé par les essais sur la maquette Apple
+     - retirer l'empreinte stockée dans les Proxmox
+     - Il s'agit du paramètre "fingerprint" dans le fichier /etc/pve/storage.conf
+     - peut se voir également dans l'interface web "Datacenter > Storage > PBS-ROUEN"
+     
+** Changement du mot de passe de PBS
+   - Attention si le mot de passe root est changé sur la machine PBS, le storage correspondant sur les PVE
+     n'est plus accessible et l'édition du storarage affiche ces informations sans pouvoir les modifier
+   - Une solution est d'aller directement modifier sur l'un des PVE, en root, le fichier de mot de passe
+     correspondant, soit par exemple ~/etc/pve/priv/storage/PBS-ROUEN.pw~
+   - Comme tous les fichiers de /etc/pve, il est immédiatement répliqué sur les 4 serveurs PVE.
+   - L'alternative est de noter les infos de stockage PBS et d'effacer
+     / recréer avec le nouveau mot de passe
+     
+** Migration  ProxMox Vers Vmware
+   - Voir https://edywerder.ch/proxmox-to-vmware/ (tester !!)     
+   - Noter le nom du disque ProxMox dans Matériel / Disque (sur zfs un zfs list)
+   - convertir en vmdk avec ~qemu-img convert chemin/vm-1NN-disk-0 -O vmdk NomDisquevmdk~
+     - pour la VM 110 Win10, zfs list indique ~rpool/data/vm-110-disk-0~
+     - le fichier est ~/dev/rpool/data/vm-110-disk-0~
+       ~qemu-img convert /dev/rpool/data/vm-110-disk-0 -O vmdk /dev/rpool/data/WIN10-Man.vmdk~
+   - créer la VM dans VMware et copier le disque via scp du type
+     ~scp /dev/rpool/data/WIN10-Man.vmdk root@hdvesx116://vmfs/volumes/DC_Prod_Normal_LUN03/DSI-Outils-W10/~
+   - En shell sur l'ESX ~vmkfstools -i zappix-neu.vmdk zappix.vmdk -d thin~
+     ~vmkfstools -i WIN10-Man.vmdk WIN10.vmdk -d thin~
+   - Dans les paramètre de la VM sur vCenter, changer si nécessaire le
+     type de controleur disque (de iSCSI en SATA) : ajouter un
+     contrôleur SATA et retirer iSCSI
+   - Retirer son disque d'origine, lui affecter le(s) nouveau(x) sur
+     SATA, booter
+   - le CentOs 4 ne reconnait pas le disque ? Piste BIOS de la VM ?
+   - Faire du ménage: retirer qemu tools et ajouter vmware tools
+     
+** Migration VMware vers ProxMox
+*** Avec Clonezilla
+    - selon https://www.youtube.com/watch?v=HfnHPuuQ0lM
+    - avec l'ISO de Clonezilla booter la machine à aspirer et la
+      machine virtuelle vide de destination (disque analogue)
+    - Sur la src
+      - choisir la 3ième option Remote src puis disk to remote disk
+      - mettre l'adresse IP statique habituelle du srv ou DHCP sinon
+      - choisir le disque à cloner
+      - le reste par défaut et on se retrouve avec un *Waiting for the
+        target machine to connect*
+    - Sur la target
+      - choisir la 4ième option Remote dest
+      - lui définir une IP par DHCP ou static
+      - saisir l'IP du remote srv
+      - Choisir Option 1 Entire HD
+      - Choisir la destination locale (ds liste des HD)
+      - Attendre (1Gb / min ??)
+      - Arrêter SRC et dest, retirer le CD de la destination
+      - Pour un Linux, il faut ensuite reparamétrer la NIC (car pas
+        identique), par exemple modifier ~eth0~ dans
+        /etc/network/interfaces par ~ens18~ qui est détecté par ~ls
+        /sys/class/net/~
+      - activer par ~ifup ens18~
+	
+*** Conversion de fichiers vmdk en ProxMox
+     - voir https://www.youtube.com/watch?v=RaXHyxaD2eo
+     - si c'est du VMFS le monter sur le node pve
+       - ajouter sur node pve ~apt install sshfs~
+       - monter le stockage d'un ESX
+	 ~mkdir /mnt/ssh~ puis ~sshfs root@esxi:/ /mnt/ssh~
+       - convertir le .vmdk pour proxmox (le plus gros fichier)
+	 ~qemu-img convert /mnt/ssh/vmfs/volumes/<datastore>/<vmname>/<vmname>-flat.vmkd -O raw <vmname>.raw~
+       - créer un VM similaire sur le pve
+       - identifier son disque si ZFS dans ~/dev/zvol/<volumeName>/<diskName>~
+       - mettre le contenu converti dans ce fichier
+	 ~dd bs=1M if=<VMname>.raw of=/dev/zvol/<volumeName>/<diskName>~
+	 - mais pourquoi ne pas conertir directement vers le nom de
+           fichier de la nouvelle vm ?
+     - Accès à un iScsi via un serveur intermédiaire.
+       - se placer sur le serveur et utiliser
+	 - ~iscsiadm --mode discovery -t sendtargets --portal 10.X.X.X~
+	 - avec l'iqn listé ~iscsiadm --mode node --targetname iqn.XX
+           --portal 10.X.X.X:3260 --login~
+	 - Monter le VMFS sur Linux suppose d'installer le driver
+           soit ~apt install vmfs6-tool~ pour du VMFS 6
+	   - le dépôt nécessaire n'est pas dispo par défaut
+	   - le télécharger manuellement
+	 - les commandes sont alors ~mkdir /mnt/tmpfs~ puis ~vmfs6-fuse
+           //dev/sda1/ /mnt/tmpfs~
+	 - on retrouve alors les répertoires de VM dans ~/mnt/tmpfs/~
+           et on peut copier via scp le fichier .vmdk sur le node pve.
+	 - on converti alors le fichier en RBB (si Ceph) ou en ZFS
+           selon le storage visé.
+	   - déterminer le nom de la VM de destination et l'ID du storage
+	   - ~qm importdisk nom_VM_dest nom_du_vmdk zfs1 --format raw~
+             pour Windows 10
+             ~qm importdisk 109 /mnt/tmp/VirtualBox-VM/Win10-Perso/Win10-Perso.vdi local-zfs --format qcow2~
+	   - cela rajoute un unused disk à la VM choisie, faire Edit,
+             sélectionner un bus device,  SCSI par exemple.
+	   - si d'origine le disque était en SATA l'atacher ... en SATA
+	   - penser à réarranger l'ordre de boot dans les options de la VM
+	   - Le disque est alors lisible dans la VM de destination
+    
+*** Cas d'un windows
+    pour un windows via la conversion ~disk2vhd~ à lancer en admin
+    - cocher tous les disques à copier (sauf le drive de destination)
+    - convertir le fichier .vhdx via Starwinds V2V converter
+    - choisir le format de destination (RAW pour KVM)
+    - si c'est pour VirtualBox c'est supporté aussi
+      
+** Retrouver le chemin complet d'un disque de VM
+   - Les infos de la VM sont dispo via ~qm config VMID~
+   - La ligne concernant le disque dur est du type
+     ~scsi0: local-zfs:vm-104-disk-0,size=32G~
+   - Pour avoir le chemin complet du fichier utiliser
+     ~pvesm path local-zfs:vm-104-disk-0~
+
+** Retrouver le répertoire d'une image ISO
+  - Permet de le renommer après l'avoir uploadé
+  - Retrouver le chemin de mmontage de la ressource par ~pvesm list
+    local~ puis le chemin ou elle est montée via ~pvesm path
+    local:iso/OEL-7.4-DVD.iso~
+       
+** Réduire la taille d'une image disque   
+   - Voir les recettes de http://www.voleg.info/KVM.html
+   - ~qemu-img convert -O qcow2 -c SevenAD.img Seven32.qcow2~ (-c pour compress)
+     - Noter que si RAW est le format le plus rapide, des fonctions
+       comme la compression sont mieux sur qcow2
+     - que la compression faite ainsi n'est valable que au moment de
+       la compression, les nouvelles données ne le sont pas
+   - Cas de la compression de 104 (Desktop)
+     *qemu-img convert -O qcow2 -c /dev/zvol/rpool/data/vm-104-disk-0 /root/vm-104-disk-1*
+     *qm importdisk 104 /root/vm-104-disk-1 local-zfs --format qcow2*
+   - Selon https://dannyda.com/2020/05/26/how-to-shrink-reclaim-free-virtual-disk-space-from-virtual-machines-on-proxmox-ve-pve-windows-linux-debian-ubuntu-kali-linux-rhel-centos-fedora-etc/
+     - penser à modifier dans le GUI / PVE / VM / Materiel le disque
+       concerné et cocher *Discard*
+     - ceci est pris en compte lors du redémarrage de la VM
+     - pour un linux utiliser ensuite *sudo fstrim -av*
+     - Pour mon desktop de 32 Go et 9 utilisés, 544 G reportés, cela
+       n'a pas eu d'effet, je profite pour voir si un déplacement de
+       VM sur iSCSI permet l'amélioration
+       
+** Docker
+*** Sur PVE directement
+    - https://www.youtube.com/watch?v=HfnHPuuQ0lM
+    - le principe est de suivre sur le site de docker la procédure
+      pour ajouter les dépôts officiels et d'installer (sur l'OS
+      Debian du PVE)
+    - Suggestion d'utiliser Portainer (dans un container) pour gérer
+      les containers Docker existants (ports 8000 pour l'admin) voir
+      https://notamax.be/portainer-io-presentation-et-premiers-pas/
+    - Toutefois la recommendation de Docker est de le faire via une VM
+      QEMU
+      
+*** Sur LXC
+    - Se baser sur le template Turnkey Core et décocher *Unprivileged container*
+    - mettre le disque sur local pour avoir les snapshots (pas sur
+      les distants ??)
+    - créer le container sans le lancer directement
+    - Avant de lancer, utiliser Options / Features cocher *Nested* (en F Particularités / Emboité)
+    - Au lancement faire Skip / Next et Ctrl-C
+    - dans le shell ~apt update~ puis ~apt upgrade~ 
+    - ~apt install docker.io~ (voir https://thehomelab.wiki)
+      - Echoue, voir autre méthode à partir d'un container Ubuntu ?
+        (il lui faut une exception FW aussi !)
+    - ~systemctl enable docker~ et ~systemctl start docker~
+      
+*** Sur VM Ubuntu LTS
+    - VM108 avec emacs et droit de sortie sur FW
+    - dwagent install
+    - Forcer l'utilisation de X et pas Wayland: dans
+      ~/etc/gdm3/custom.conf~ décommenter ~WaylandEnable=false~
+    - ~service gdm restart~
+
+** Forcer l'arrêt d'une VM qemu
+   - Il est arrivé lors de pb dans le boot d'une VM (disque retiré, ou
+     changé de type, boot order pas rectifié, que le stop du GUI échoue
+     (timeout acquiring lock)
+   - La solution (radicale qui a toujours marché est
+     - idendifier le no de la vm via 
+       ~qm list~ sur le shell du pve par exemple
+     - rechercher le process id de la vm qui tourne avec
+       ~ps aux | grep "/usr/bin/kv[m] -id VMID"~
+     - vérifier, mais le process id est déjà visible sur le dernière colonne du qm list ! (vu à nouveau ce <2023-05-22 lun.>)
+     - Tuer le process avec
+       ~kill -9 PROCESSS_ID~
+   - Noter qu'il est aussi arrivé qu'une machine Stopped soit en
+     locked, empêchant de la redémarrer. Dans ce cas se connecter au
+     PVE qui l'héberge et pour la VM NNN taper la commande ~qm unlock
+     NNN~
+       
+** Réparer une incohérence sur les disques d'une VM
+   - Il est arrivé que les réplication de la VM104 se fassent sur son disque virtuel
+     (vm104-disk1) mais que les migrations soient très allongée du fait de l'existence d'un autre
+     disque (vm104-disk0) dont l'effacement avait été oublié, mais qui n'était pas listé dans le
+     GUI proxmox pour la VM (pas même en disque inutilisé)
+   - J'ai pu corriger en recherchant dans la console des PVE les volumes ZFS concernés soit avec
+     ~zfs list~ puis en supprimant les entrées concernant ce disque (il y avait un disque et 2
+     snapshots). Ces diques en trop ont été enlevés avec ~zfs destroy leur-nom~
+   - J'ai eu deux messages d'aide pour ce sujet sur le forum de support
+     https://forum.proxmox.com/threads/zfs-replication-for-vms-with-multiple-disks.70940/#post-478343
+   - Je retiens pour la prochaine fois qu'il est aussi possible de resyncroniser les disques
+     réels et ce qui est affiché par le GUI web avec ~qm rescan --vmid VMID~ (essayer à l'occasion)
+     
+** Fabric le retour
+   - sur du python 3 faire un pip install fabric2
+   - la commande de base est fab2
+   - exemple ~fab2 -R db host_details~
+   - remise en question de l'utilisation d'une clef SSH root
+     transverse par l'audit de sécurité
+   - voir comment utiliser Ansible sans cette faiblesse
+
+** Aspiration d'une machine physique
+*** Cas de ProfilSearch (Fin 2021)
+    - Poste de travail en salle machine HDV avec un CentOS 4, non supporté par VMware
+    - Utilisation de la procédure de migration de VMware vers PRoxMox (voir ci -desssus)
+    - Le serveur dispose de deux disques dont un de 250 Go qui est
+      très surdimensionné pour son usage, mais qu'on conseerve
+    - Création d'une VM linux vide sur le PVE (2 disques durs ayant une capacité supérieure ou égale à la source)
+    - Boot de la machine de destination sur l'ISO présentée depuis le PVE dans local/ISO (et pas PVE2)
+    - Boot de la machine d'origine sur l'ISO de Clonezilla (via clef USB Ventoy)
+      
+*** Cas de HdvDb10 (fin sept 2022)
+    - Serveur HP DL380 de 2003 avec une Debian 5.0.7 (www10 en 4.0)
+    - 1 Go RAM + 2 Go swap (faire 3 Go initialement = 3072 Mo)
+    - CPU 1 socket, 1 coeurs (2 en hyperthreading) => on attribue 1 vCPU initialement
+    - Disques dur initiaux:
+      - 72.8 Gb (73) disque 0
+    - IP temporaire pour la VM pendant la copie 172.17.100.23 (puis la sienne sera 172.16.101.15)
+    - Sur la src
+      - choisir la 3ième option Remote src puis disk to remote disk
+      - lui définir une IP static (celle du serveur d'origine 172.16.101.15 ici)
+	- masque 255.255.255.0
+	- gateway 172.16.101.1
+	- DNS 172.16.101.29
+      - Le mode Beginner suffit
+      - Choisir le disque à cloner (mode disque et pas partition)
+      - Le reste par défaut et on se retrouve avec un Waiting for the
+        target machine to connect
+    - Sur la target
+      - Choisir la 4ième option Remote dest
+      - Configurer la carte en static avec l'IP temporaire
+	- ip: 172.17.101.23
+	- masque 255.255.252.0
+	- gateway 172.17.100.1
+	- DNS 172.16.101.29
+      - Ne pas réparer le système distant
+      - saisir l'IP du remote srv
+      - Choisir Option 1 Entire HD
+      - Choisir la destination locale (ds liste des HD)
+      - Attendre (1Gb / min ??)
+      - Arrêter SRC et dest, retirer le CD de la destination
+	- J'ai noté deux problèmes lors de cette aspriration
+	  - un message d'erreur sur une partition (je suspecte /var d'après la suite)
+	  - un message d'erreur plus explicite signalant qu'une partition n'a pas pu être copiée
+      - La machine ne boot pas:
+	- dans un premier temps elle ne trouve pas sa partition root, et dans le prompt obtenu, un ~cat /proc/cmdline~
+          montre que le root disk cherché est /dev/cciss/c0d0p1 alors qu'on aimerai /dev/sda1
+	  - il faut modifier sur le disque cloné les références à cciss (spécifique aux Srv HP) par des /dev/sda
+            (drivers std) et refaire un update-grub.
+	    - a faire dans /etc/fstab
+	    - aussi dans /boot/grub/menut.lst (multiples occurences pour chaque kernel)
+	  - Ceci n'est possible qu'en bootant sur un live-cd (ubuntu 22.04-desktop ici) puis montage des patitions
+            nécessaires et chroot pour l'update-grub
+	  - mais même avec ces modifications on se heurte à l'absence de support de périphériques virtualisés sur Debian
+            5 (Lenny)
+	    - l'info a été trouvée sur le forum de support de proxmox (et de même qemu-agent n'est pas dispo sur cette version)
+	    - Cela concerne le controleur SCSI VirtIO et la carte reseau VirtIO
+	    - la solution est de présenter le disque en IDE (ou autre) et la carte réseau en E1000 (émulation au lieu de virtu)
+	      
+** Application de MAJ Kernel sur PVE
+  - appès applciation des MAJ si on a un msg qu'un reboot est à prévoir
+  - la procédure est de redémarrer le PVE et les VM ayant les GRP HA std seront déplacées avant redémarrage
+  - éviter de faire plusieurs noeud en même temps
+  - le réglage s'appuie sur:
+    - des groupes HA assignés aux machines sensibles dans *DataCenter / HA*
+    - dans *DataCenter / HA /Groupes* les groupes incluent tous les PVE avec des priorités (3 plus prioritaire que 1)
+    - dans *DataCenter / Options / Paramètres HA* passer de Optionnal à *shutdown_policy=migrate*
+      
+** Console pour un container LXC (sans son mot de passe root)      
+   - Voir https://dannyda.com/2020/12/23/how-to-reset-forgotten-lxc-container-root-password-on-proxmox-vepve/
+   - Identifier le no du container et le PVE utilisé (ex: 101 sur hdvpve10)
+   - Se connecter à la console du PVE où se trouve le container LXC
+   - ~lxc-attach -n 101~ pour notre exemple
+   - un passwd peut alors se faire
+
+** Installer un client SPICE pour accès desktop et copier/coller
+   - Sur Ubuntu ~apt install virt-viewer~
+   - Sur windows télécharger le client Spice et l'installer
+     
+** Mise à jour des nodes PVE
+   - En principe faisable en se connectant sur l'interface web, mais
+     le seul compte root / local a les droits pour cela.
+   - avec des clefs SSH, on peut le faire en CLI avec ~apt update~ puis ~apt upgrade~
+     
+** Création d'un template OEL pour migrations oracle
+   - Télécharger l'ISO OEL dans HdvPve10 / local / Images ISO à partir
+     de l'URL Oracle type
+     https://yum.oracle.com/ISOS/OracleLinux/OL9/u0/x86_64/OracleLinux-R9-U0-x86_64-dvd.iso
+   - Taille de disque 37 Go, 4 Go RAM, 2 cores
+   - Faire l'installation std en ext4 sans swap
+   - Ajouter un disque cloud-init en ide 2
+   - Ajouter les packages *cloud-init* et *qemu-guest-agent*
+   - Récupérer des données de cloud-init depuis un autre template (dont clefs et RSO)
+   - Générer l'image
+   - Transformer en template
+   - modifier le template par défaut pour correspondre, dans
+     /root/ansible/migration-bases-oracle/roles/clone-machine-virtuelle/defaults/main.yml
+     template_id:
+   - modifier Option / Boot order: scsi0,ide2
+* Prestataires possibles
+  - Pour installation et MCO
+    - https://www.proxmox.com/en/partners/reseller/category/france
+      - Calvados https://www.proxmox.com/en/partners/reseller/item/teicee
+	contacté <2021-08-24 mar. 12:21> annoncent un rappel d'ingé d'ici demain ?
+	- Questions:
+	  - quid de la cohérence des backups ? comment intégrer un
+            pré-snapshot / post snapshot script ?
+            => utilisent le CLient QEMU et n'ont pas eu de pb
+	    - l'installation du client QEMU suffit-elle ? => Oui
+	  - avez vous clients utilisant proxmox pour des VM Oracle ? => Carif Oref Normandie
+	  - comment assurent-ils la cohérence de leurs snap (ou quel
+            solution de backup ??) => uniquement sauvegarde ProxMox, mais 1/j la nuit
+	  - La bascule Live Migration est bien satisfaisante sans
+            ajouts ? (ou faut-il arrêter les bases ?) => pas de soucis
+	  - Contact Yann VOLEAU - 02 31 46 91 16 https://reseau.intercariforef.org/
+	    - ont pris Proxmox 1000€/serveur + MCO chez Téicé pour 2000€/an
+	    - ont rencontré 2 incidents
+	      - Reboots inexpliqués d'un noeud (sans pertes)
+	      - Perte de connexion Ceph sur 1 noeud, traité en 2H par Téicé
+	      - Utilisent ProxMox 4 (!)
+	      - Très enthousiastes sur les containers (sauf pas de
+                live migration, et limité à des noyaux linux moins
+                récents que le Debian sous-jacent
+	- Reprise de contact <2021-11-24 mer. 15:44> au +33 272 34 13
+          20 pour demande de budget prévisionnel pour début 2022
+          incluant
+	  - prestation de configuration initiale du cluster
+	    - offre incluant la création de quelques VM et lestests de
+              bascules arrêt / redémarrage (pas la migration des Oracles existants)
+	  - maintenance premier niveau appuyée sur la souscription Proxmox
+	- Quelques échanges au passage
+	  - Favorables au choix de Ceph
+	  - Qemu plutôt que LXC car bascules à chaud seules supportées ainsi
+	  - Traiteraient l'assistance aux opérations problématiques,
+            pas la surveillance quotidienne à distance.
+	  - En cas de bug détecté intervention de Proxmox mais après
+            création du ticket par Téicée
+      - Alternatives françaises non retenues
+	- Paris https://www.proxmox.com/en/partners/reseller/item/osnet?category_id=11
+	- Bretagne https://www.proxmox.com/en/partners/reseller/item/liberasys
+	- Essone https://www.proxmox.com/en/partners/reseller/item/gplexpert?category_id=11
+	- Alsace https://www.proxmox.com/en/partners/reseller/item/aneosys
+	  
+* Contacts avec des clients de virtualisation ProxMox et Nutanix
+  - Les assurances Filiasur au Havre ont installé du Oracle / Nutanix
+    - L'accueil téléphonique est au 02.76.40.84.84
+    - Les resp info sont en congés, essayer <2021-08-30 lun.> ?
+  - SCC contacté pour avoir un de leurs clients et avoir un retour de
+    leur part: mais sont en congés (LDurn et BPetit)
+  - Contact via M Ménard de Nutanix <2021-08-24 mar.>
+    - Nicolas Vanbremeersch au : 06 01 65 39 09 (mais a besoin de
+      consulter un plus tech que lui)
+    - Attente d'un rappel ??
+  - Questions à poser:
+    - Snapshots utilisables ? (pré-requis à signaler ?)
+    - Quel backup met cohérence ?
+    - Connaissent-ils ou utilisent-ils Nutanix Era ?
+    
+* ProxMox Backup Server
+  - Permet des sauvegardes incrémentales et des restitutions
+    partielles par répertoires ou fichiers
+  - s'installe en serveur dédié ou VM
+  - parait comme une nouvelle destination de backup dans le GUI PVE
+  - Noter que la définition des backups se fait au niveau du
+    Datacenter, il est possible de définir des backup pour une ou
+    plusieurs VM, toutes sauf certaines, ou par groupe (voir comment
+    les définir).
+  - Pour agrandir un PBS virtuel
+    (https://pve.proxmox.com/wiki/Resize_disks) les étapes sont
+    - Aller sur la VM, onglet Matériel, puis Disque
+    - Utiliser le bouton Redimmensionner le disque (+512 G)
+    - Aller sur la Console de la VM (ou Admin / Shell sur l'URL du PBS)
+    - Installer si nécessaire ~apt install parted~
+    - identifier la partition par ~fdisk -l~ (/dev/sda3 pour moi)
+    - ~parted /dev/sda~ puis ~print all~ et accepter de corriger la taille avec ~F~
+    - ~resizepart 3 100%~ (3 est le no de la partition root listée par le print
+    - ~quit~ pour sortir de parted
+    - si comme moi c'est du LVM ~pvresize /dev/sda3~
+    - noter le PV et le LV concernés via ~lvs~ (pour moi pv ~pbs~ et lv ~root~)
+    - puis le LV avec ~lvresize --extents +100%FREE --resizefs /dev/pbs/root~
+  - Pour les Oracle, on peut définir plusieurs jobs
+    (dont des horaires).
+    - Si on fait des conainer LXC, il semble mieux de faire des
+      backups horaires des logs via borg et le cron du node PVE
+      voir
+      https://it-notes.dragas.net/2020/10/06/efficient-backup-of-lxc-containers-in-proxmox/
+  - Pour avoir des copies locales rapides (SSD) et des sécurisées externes:
+    - Définir sur le PBS un datastore utilisant un disque iSCSI du DataCenter
+    - idéalement il faudrait pouvoir y sauvegarder la VM pbs en excluant le DataStore de destination
+    - il exite aussi un ~proxmox-backup-manager pull~
+    - Selon moi, il serait opportun de définir un deuxième pbs pour exploiter le stockage externe (et
+      pouvoir s'appyer sur *Magasin de données / Sync Jobs* en définissant le pbs externe dans *Configuration / Distantes*
+      
+* Configuration réseau de la solution, No de séries et licences ILO
+** Addresses IP
+   | VMid | VLAN                      |       VLAN 101 |      VLAN 106 |      VLAN 106 |   VLAN 460 |       VLAN 2 |        VLAN 440 |
+   |------+---------------------------+----------------+---------------+---------------+------------+--------------+-----------------|
+   |      | Serveur                   |             VM |         Admin |           ILO |   Stockage |    HeartBeat | Backup (no use) |
+   |------+---------------------------+----------------+---------------+---------------+------------+--------------+-----------------|
+   |      | HdvPVE10                  |                | 172.16.106.56 | 172.16.106.60 | 10.3.40.10 | 192.168.5.10 |      10.1.40.18 |
+   |      | HdvPVE11                  |                | 172.16.106.57 | 172.16.106.61 | 10.3.40.11 | 192.168.5.11 |      10.1.40.20 |
+   |      | PelPVE10                  |                | 172.16.106.58 | 172.16.106.62 | 10.3.40.12 | 192.168.5.15 |      10.1.40.23 |
+   |      | PelPVE11                  |                | 172.16.106.59 | 172.16.106.63 | 10.3.40.13 | 192.168.5.13 |      10.1.40.24 |
+   |      | HdvWW17                   |                |  172.16.101.8 |        VMware | 10.3.40.14 | 192.168.5.14 |                 |
+   |------+---------------------------+----------------+---------------+---------------+------------+--------------+-----------------|
+   |      | HdvBkp16                  |                |  172.16.106.9 |               |            |              |      10.1.40.22 |
+   |      | ansible.intranet.rouen.fr |  172.17.100.63 |               |               |            |              |                 |
+   |  400 | hdvdb126-test ALLORT      |  172.17.100.61 |               |               |            |              |                 |
+   |  401 | hdvdb127-test PACNIT      |  172.17.100.64 |               |               |            |              |                 |
+   |      | oracle-rpm-webserver      |  172.17.100.65 |               |               |            |              |                 |
+   |  402 | hdvdb128-test MARCOWT     |  172.17.100.59 |               |               |            |              |                 |
+   |  403 | hdvdb129-test ETERNITT    |   172.17.100.5 |               |               |            |              |                 |
+   |  404 | hdvdb130-test ADSOMAET    |  172.16.101.21 |               |               |            |              |                 |
+   |      | hdvdb131-test             |  172.17.100.69 |               |               |            |              |                 |
+   |      | hdvdb132-test             |  172.17.100.51 |               |               |            |              |                 |
+   |      | hdvdb133-test             |  172.17.100.58 |               |               |            |              |                 |
+   |      | hdvdb134-test             |  172.17.100.76 |               |               |            |              |                 |
+   |      | hdvdb135-test             |  172.17.100.77 |               |               |            |              |                 |
+   |      | hdvdb136-test             |  172.17.100.78 |               |               |            |              |                 |
+   |      | hdvdb137-test             |  172.17.100.75 |               |               |            |              |                 |
+   |      | hdvdb138-test             |  172.17.100.85 |               |               |            |              |                 |
+   |      | hdvdb139-test             |  172.17.100.92 |               |               |            |              |                 |
+   |      | hdvdb140-test             |  172.17.100.93 |               |               |            |              |                 |
+   |      | hdvdb141-test             |  172.17.100.95 |               |               |            |              |                 |
+   |      | hdvdb142-test             | 172.17.100.103 |               |               |            |              |                 |
+   |      | hdvdb143-test             | 172.17.100.105 |               |               |            |              |                 |
+   |      | hdvdb144-test             | 172.17.100.106 |               |               |            |              |                 |
+   |      | hdvdb145-test             | 172.17.100.107 |               |               |            |              |                 |
+   |      | hdvdb146-test             | 172.17.100.108 |               |               |            |              |                 |
+   |      | hdvdb147-test             | 172.17.100.110 |               |               |            |              |                 |
+   |      | hdvdb148-test             | 172.17.100.111 |               |               |            |              |                 |
+   |      | hdvdb149-test             | 172.17.100.112 |               |               |            |              |                 |
+   |      | hdvdb150-test             | 172.17.100.115 |               |               |            |              |                 |
+   |------+---------------------------+----------------+---------------+---------------+------------+--------------+-----------------|
+   |  203 | hdvdb126 ALLORP           |  172.17.100.80 |               |               |            |              |                 |
+   |  204 | hdvdb127 PACNIP           |  172.17.100.82 |               |               |            |              |                 |
+   |  205 | hdvdb128 MARCOWP          |  172.17.100.83 |               |               |            |              |                 |
+   |  206 | hdvdb129 ETERNITP         |  172.17.100.84 |               |               |            |              |                 |
+   |  207 | hdvdb130 ADSOMAEP         |  172.16.101.22 |               |               |            |              |                 |
+   |      | hdvdb131                  |  172.16.101.25 |               |               |            |              |                 |
+   |      | hdvdb132                  |  172.16.101.26 |               |               |            |              |                 |
+   |      | hdvdb133                  |  172.16.101.27 |               |               |            |              |                 |
+   |      | hdvdb134                  |  172.16.101.81 |               |               |            |              |                 |
+   |      | hdvdb135                  |  172.16.101.82 |               |               |            |              |                 |
+   |      | hdvdb136                  |  172.16.101.83 |               |               |            |              |                 |
+   |      | hdvdb137                  |  172.16.101.85 |               |               |            |              |                 |
+   |      | hdvdb138                  |  172.16.101.87 |               |               |            |              |                 |
+   |      | hdvdb139                  | 172.16.101.100 |               |               |            |              |                 |
+   |      | hdvdb140                  | 172.16.101.101 |               |               |            |              |                 |
+   |      | hdvdb141                  | 172.16.101.102 |               |               |            |              |                 |
+   |      | hdvdb142                  | 172.16.101.117 |               |               |            |              |                 |
+   |      | hdvdb143                  | 172.16.101.157 |               |               |            |              |                 |
+   |      | hdvdb144                  | 172.16.101.169 |               |               |            |              |                 |
+   |      | hdvdb145                  | 172.16.101.181 |               |               |            |              |                 |
+   |      | hdvdb146                  | 172.16.101.182 |               |               |            |              |                 |
+   |      | hdvdb147                  | 172.16.101.183 |               |               |            |              |                 |
+   |      | hdvdb148                  | 172.16.101.192 |               |               |            |              |                 |
+   |      | hdvdb149                  | 172.16.101.193 |               |               |            |              |                 |
+   |      | hdvdb150                  | 172.16.101.150 |               |               |            |              |                 |
+
+** Paramétrage des switchs
+   | Switchs             | Utilisation             | Serveur  | Port Srv       | Ports     | BAG id |     VLAN id | Testé |
+   |---------------------+-------------------------+----------+----------------+-----------+--------+-------------+-------|
+   | HdvInfo-B9          | ILO                     | HdvPVE10 | ILO            | 1/21      |     na |         106 | X     |
+   | HdvInfo-B9          | ILO                     | HdvPVE11 | ILO            | 2/21      |     na |         106 | X     |
+   | HdvInfo-B9          | Admin LACP Dynamique    | HdvPVE10 | eno1 eno2      | 1/18 2/18 |     11 |         106 | X     |
+   | HdvInfo-B9          | Admin LACP Dynamique    | HdvPVE11 | eno1 eno2      | 1/17 2/17 |     15 |         106 | X     |
+   | HdvInfo-B9          | Corosync LACP Dynamique | HdvPVE10 | eno3 eno4      | 1/20 2/20 |     12 |           2 | X     |
+   | HdvInfo-B9          | Corosync LACP Dynamique | HdvPVE11 | eno3 eno4      | 1/19 2/19 |     16 |           2 | X     |
+   | HdvInfo-B9          | VMs LACP Dynamique      | HdvPVE10 | ens1f0np0 eno5 | 1/50 2/50 |     13 | 101 pas 103 | X     |
+   | HdvInfo-B9          | VMs LACP Dynamique      | HdvPVE11 | ens1f0np0 eno5 | 1/51 2/51 |     14 | 101 pas 103 | X     |
+   | HdvSANSwl *304*/305 | Ceph LACP Dynamique     | HdvPVE10 | ens1f1np1 eno6 | 1/19 2/19 |      8 |  440 et 460 | X     |
+   | HdvSANSwl *304*/305 | Ceph LACP Dynamique     | HdvPVE11 | ens1f1np1 eno6 | 1/20 2/20 |      9 |  440 et 460 | X     |
+   |---------------------+-------------------------+----------+----------------+-----------+--------+-------------+-------|
+   | DelInfo-B5          | ILO                     | PelPVE10 | ILO            | 1/25      |     na |         106 | X     |
+   | DelInfo-B5          | ILO                     | PelPVE11 | ILO            | 2/25      |     na |         106 | X     |
+   | DelInfo-B5          | Admin LACP Dynamique    | PelPVE10 | eno1 eno2      | 1/22 2/22 |      9 |         106 | X     |
+   | DelInfo-B5          | Admin LACP Dynamique    | PelPVE11 | eno1 eno2      | 1/21 2/21 |      8 |         106 | X     |
+   | DelInfo-B5          | Corosync LACP Dynamique | PelPVE10 | eno3 eno4      | 1/24 2/24 |     13 |           2 | X     |
+   | DelInfo-B5          | Corosync LACP Dynamique | PelPVE11 | eno3 eno4      | 1/23 2/23 |     14 |           2 | X     |
+   | DelInfo-B5          | VMs LACP Dynamique      | PelPVE10 | ens1f0np0 eno5 | 1/50 2/50 |     12 |  101 et 103 | X     |
+   | DelInfo-B5          | VMs LACP Dynamique      | PelPVE11 | ens1f0np0 eno5 | 1/51 2/51 |     11 |  101 et 103 | X     |
+   | PelSANSwl 304/305   | Ceph LACP Dynamique     | PelPVE10 | ens1f1np1 eno6 | 1/19 2/19 |      8 |       460?? | X     |
+   | PelSANSwl 304/305   | Ceph LACP Dynamique     | PelPVE11 | ens1f1np1 eno6 | 1/20 2/20 |      9 |       460?? | X     |
+  
+** Noms des ports dans les description des switchs
+   | Nom Linux | Nom pour switch |
+   |-----------+-----------------|
+   | eno1      | interne 2       |
+   | eno2      | interne 1       |
+   | eno3      | interne 3       |
+   | eno4      | interne 4       |
+   | eno5      | bas droit       |
+   | eno6      | bas gauche      |
+   | ens1f0np0 | haut droit      |
+   | ens1f1np1 | haut gauche     |
+   | ILO       | ILO             |
+
+** Licences ILO et No de série des serveurs PVE
+ | Nom SRV  | No série   | Licence ILO |
+ |----------+------------+-------------|
+ | hdvpve10 | CZ2225033F | NT6LHNKD    |
+ | hdvpve11 | CZ2225033D | XLGV9TZ5    |
+ | pelpve10 | CZ2225033B | P7Q8QBZ7    |
+ | pelpve11 | CZ2225033C | FGH675LN    |
+
+* Essais préliminaires [10/10]
+  - [X] Installer un Windows 10 à partir de l'ISO
+  - [X] Transformer mon Win7 VirtualBox en VM Promox (fait avec un VM 32 bits non AD !)
+    - il faut avoir vboxxmange pour la conversion en raw voir
+      https://www.aitek.ch/migrating-virtualbox-vdi-to-proxmox-ve-proxmox-support-forum/
+      - ~BoxManage clonehd --format RAW [virtual_harddisk].vdi [virtual_harddisk].img~
+    - voir à l'installer sur une VM Ubuntu (plutôt 101 car useless (faire snap avant ?)
+    - pour l'accès direct au host voir
+      ~sshfs root@172.16.103.17:/mnt/oldbdata ~~/olddata~
+    - qui suppose d'avoir créé le point de montage
+    - et d'installer sshfs
+    - Reste à détecter le bon disque à monter sur /mnt/olddata de pve
+      - /dev/sda3 contient deux vieux backups (200 Go Archivelogs / 2 To)
+      - //dev//sdb les VBox and co à monter sur olddata
+      - /dev/sdc3 oldubuntu 230 Go
+      - /dev/sdd3 1.8 To le PVE initial
+    - La conversion est Ok, son déplacement via ~qm importdisk 106 SevenAD.vdi~ aussi
+      - noter qu'il est probable que l'import direct aurait marché !
+        (cela appelle en fait un qemu-img convert)
+      - il est possible d'importer en précisant un format de
+        destination autre que RAW, par exemple en ajoutant au bout ~--format qcow2~
+      - si ledique n'apparait pas assez vite sur la VM itiliser sur le
+        PVE un ~qm rescan~
+    - Son lancement est délicat
+      - Le disque apparait en unused dans le métériel, un double clic
+        permet de choisi un disque en SATA (sinon driver non similaire
+        = ne boot pas)
+      - Retirer l'ancien disque vide dans le Matériel
+      - Penser à modifier le Boot order pour activer le nouveau disque
+      - Trouver un vieil iso VirtIO compatible Seven
+      - Installer VirtIO du stockage pour pouvoir accélérer les accès
+        disques (Très critique)
+      - Installer la vidéo VirtIO pour faire mieux que 800x600 (dans
+        gestionnaire de périphérique) => il semble qu'un simple reboot
+        réactive la souris et mette la vidéo dans le bon mode (il
+        suffit de changer la résolution dans windows)
+      - Installer le driver VirtIO pour le réseau (parcourir D: en
+        cochant parcourir les sous-répertoires)
+	- Dans un premier temps cela fait un écran bleu au boot ! (pb
+          avec la carte RSO pourtant se liste bien dans le
+          gestionnaire de périf)
+	- Pour arrêter une VM qui reboucle sans arrêt sur le boot.
+	  - ~ps aux | grep "/usr/bin/kvm -id VMID"~ noter le PID et ~kill
+            -9 PID~
+	- Il semble que mes isos virtIO ne me permette pas de faire
+          mieux que E2000 comme carte RSO
+  - [X] Créer un container / une VM pour Docker et migrer notre existant
+    - [X] Container 108, supprimé: manque de sécu par rapport au pve
+      et pb avec l'installation de docker sur les images turnkey-core
+      comme ubuntu
+    - [X] Sur une Ubuntu 22.04 LTS latest 108
+      - Méthode recommandée par docker, via installation des repos
+        docker
+      - Voir https://docs.docker.com/engine/install/ubuntu/
+      - voir tuto installation de portainer comme
+        https://smarthomepursuits.com/how-to-install-portainer-with-docker-in-ubuntu-20-04/
+      - commence par l'installation de docker-compose
+      - installer portainer (initial admin muc)
+      - Marche sur l'interne avec http://172.16.103.70:9000
+      - Tester la connexion à un endpoint externe
+	- via l'api docker, sur hdvdock12.intranet.rouen.fr:2375 pas
+          dispo. Activer l'accès à l'API sur dock12
+	  - dans ~/lib/systemd/system/docker.service~ modifier dans la
+            ligne avec ExecStart ajouter l'option ~-H=tcp://0.0.0.0:2375~
+	  - sysctl daemon restart
+	  - service docker restart
+	- plus l'autorisation via ~ufw allow from any to any port 2375~
+	- Le endpoint fonctionne
+  - [X] Récupérer El Capitan ?? avant de démonter le disque concerné
+    (PVE ~/dev/sdb~ avec seulement les disques VirtualBox)
+  - [X] Ajouter un disque à PVE avec ~zpool add rpool /dev/sdb~ (fragile
+    mais cluster)
+  - [X] Contourner le VPN qui ne donne plus accès à rien
+    - Voir à installer un vieil ubuntu pour avoir sa console ?
+    - dwagent sur pve et XBun 104 (16.63.19) sont opé
+    - ajouter dwagent sur la WM101 qui a une GUI
+      - détecter l'ip de la VM 101 par ~qm guest cmd 101
+        network-get-interfaces~ (sur le bon pve, voir ~qm list~)
+      - ~scp dwagent.sh root@172.16.103.56:/tmp/~
+      - et l'installer via ssh root@172.16.103.56 (déjà présent !)
+      - le reconfigurer si nécessaire, noter le nouvel ID et utiliser
+        avec dwagent_configure
+      - IMPASSE: les Ubuntu 21.04 sont en Wayland, non supporté par
+        dwagent (mais on peut les forcer à rester en X)
+    - voir le windows Seven-PVE, c'est la 106 et après ~qm start 106~
+      accès possible à l'écran !
+      - me donne accès à la CLI de ProxMox puis à Win32AD
+      - toutefois le pb du Alt-Gr sur le clavier m'oblige à me
+        connecter avec le clavier visuel !
+      - Autre pb pas d'accès aux lecteurs réseau ni à la sortie vers internet !
+      - Cela me bloque pour y installer DW Agent
+    - Cela débloque-t-il l'accès au FW ? Oui directement sur W32 non AD.
+      - par contrer la seulee modification de shy depuis mon passage
+        concerne l'ajout de l'autorisation de 194.57.9.10
+    - En fait c'est un pb de client VPN depuis Linux: les chemins
+      ajoutés manuellement ne marchent plus
+  - [X] Lets Encrypt sur les PVE
+    - Pb du code API: pas de guillemets SVP (noter C-u ~M-x org-roam-db-build-cache~)
+  - [X] Faire une conversion de VM Vmware en Promox (DSI-Outil ou un serveur)
+  - [X] Intégration au domaine pour Linux
+  - [X] Intégrer pve / pve2 au domaine pour login PAM sur admin web et console / MAJ
+    - Suivre la procédure intégration domaine
+      ~apt-get install sssd realmd sssd-tools libnss-sss libpam-sss adcli samba-common-bin krb5-user -y~
+      - Voir policykit-1 (installé mais pas la bonne réponse pour realm join)
+      - Suivre [[*Linux avec login sur AD][Linux avec login sur AD pour RH]] KO
+      - Selon [[https://forum.proxmox.com/threads/how-to-join-a-proxmox-cluster-to-an-active-directory-domain.100395/][forum proxmox et pve sur AD]] il a été possible d'ajouter les PVE Apple, mais cela ne donne à
+        priori rien pour la console root dans l'admin web, ni pour les MAJ depuis le web
+	- Se rabattre sur le SSH vers le PVE pour faire les MAJ (et avoir une console)
+	- Confirmation attendue par les contacts Téicée ??
+	  
+* Prestations Téicée
+** Préparation
+   - Matériel
+     - il serait quasi indispensable de dédier un disque (Deux en RAID
+       0 idéalement) pour le système pour laisser les gros SSD à
+       Ceph.
+     - Il peuvent en avoir de 240 Go pas trop chers (4*300€ à intégrer
+       dans le marché prestation ?)
+       - Demandé tarif pour des Disques 300 Go magnétiques 10K à Téicée ce <2022-06-27 lun.>
+       - après consultation de Léo Durn les SRV prévus on 6 enmplacement s 2"5 pris par les SSD,
+         restent 2 pour le système
+     - Il faudra prévoir les 4*4 = 16 câbles 10G entre cartes des serveurs et switch 10 Gb
+       - on dispose pour l'instant de 4 DAC 5m livrés
+       - on a en stock ???
+     - La commande inclue par serveur
+       - 6 disques SSD de 3.84 To
+       - 8 emplacement 2"5 pour disques hotplug SATA
+       - 256 Go RAM
+       - 4 ports réseau 10 Gb SFP+
+   - Logiciel
+     - Proposition d'automatisation Ansible pour déploiements et MAJ des VM
+       - Coût inclus dans la MAJ du devis Téicée
+       - Evocation des aspect de sécurité pour Ansible et les clef SSH
+	 - la clef publique n'est poussée que sur le compte dédié Ansible
+	 - Le sudo sera finement paramétré pour n'autoriser que le nécessaire
+	 - La clef privée avec mot de passe est à cantonner sur le
+           poste de chaque administrateur (forwardé par le container
+           Ansible)
+	 - Ce type de déploiement est utilisé pour de grosses
+           structures et est affiné par leur spécialiste sécurité
+     - Echange à faire concernant
+       - l'utilisation de comptes AD au lieu de clef SSH ?
+       - la gestion des clefs SSH via la PKI existante (pour interdire une clef entre autre)
+    
+** Réunion de lancement fin 09/2022
+
+** Formation Proxmox par Damien Quinton <2023-01-10 mar. 14:00>
+  - Présents en visio: MJM, SHY, PDE et Teicee / Damien Quinton
+  - Archi et RSO
+    - une erreur sur le reseau IP d'admin (106, pas 206)
+  - Virtu Prox Mox
+    - Theme sombre assuré par pluggin navigateur
+    - Ajouter la connexion AD des utilisateurs
+    - Voir si le le warning du quorum pose pb à Centreon
+    - Question sur la réservation excusive de CPU qui est demandée par
+      certains éditeur
+    - Question sur la vitesse réseau entre 2 VM (limité à 10 Gb comme
+      physique ou plus ?)
+    - Voir la question de MJM demain: commen MAJ OS en repartant des
+      données dans leur dernier état.
+  - Concernant HA et les coupures élect
+    - mettre en place les 2 group HDV/PRod et PVE/TEst
+    - Modifier les 2 GRP en ajoutant des 0 à la priorité des machines
+      qu'on veut forcer temporairement
+  - Utilisateurs: refaire l'intégration AD
+    - definir des groupes en leur donnant des  droits affinés
+    - Voir comment intégrer les noeud à l'AD pour avoir accès à la
+      console sur les pve !
+      - L'intégration AD est possible (voir plus haut) MAIS ne permet pas la console, l'accès web ni les
+        MAJ
+      - A défaut faire du SSH vers les PVE avec le compte adminXXX et faire les maj avec ~apt update~ puis
+        ~apt upgrade~ (ou l'équivallent apt-get , voir [[https://debian-handbook.info/browse/fr-FR/stable/sect.apt-get.html#sect.apt-upgrade][la doc Debian d'admin]])
+  - Documenter Cloud-Init
+    - Permet de changer des infos après un clone, et de diffuser des
+      modifications sans se connecter à la console de la VM (au boot
+      de la machine)
+    - Nécessite
+      - D'ajouter le package cloud-init sur la VM ou le template avec
+        ~yum install cloud-init~
+      - d'ajouter dans l'admin web de la VM un disque de type
+        cloud-init (en IDE 2 par défaut, marche)
+      - Options / Orde de boot: iscsi0, ide2
+      - de définir les paramètres à pousser dans la section Cloud-Init
+        de la VM sur l'admin web
+      - Les paramètres testés concernent
+	- l'IP de la machine
+	- un nom d'utilisateur sudoer avec MDP et clef SSH
+	  - le login SSH se fait alors sans mot de passe si par
+            exemple on a ouvert keepass et que la clef SSH avec son
+            MDP y est présente et la clef publique mise dans
+            Cloud-init / Clef (le compte est sudoer root)
+	    
+** Formation Ansible par M Valois <2023-01-11 mer. 14:00>
+  - Objectif: présentation du travail, de Ansible, fournir les autils de la migration
+  - S'appuient sur nos infos et les doc Oracle
+  - Terminologie
+    - Base cible = target/SID = source des données (l'ancienne)
+    - Compte system compte qui a tous le privilèges
+    - RMAN l'outil Oracle pour les sauvegarde et restaurations
+    - Catalogue RMAN: base avec métadonnées des autres bases Oracle
+  - Ansible
+    - libre maintenu par RH (initialement communautaire)
+    - RH vent des outils comme des interfaces web et de l'automatisation en plus
+    - permet de la gestion de conf de machines vis description de l'état cible de la machine
+    - on décrit dans des fichier texte yaml
+    - les actions sont séquentielles, mais il gère les machines en parrallèle
+      - en cas d'échec, par défaut Ansible s'arrêt pour la machine
+        concernée.
+	- configurable:
+	  - on peut demander d'arrêter la suite
+	  - faire différent pour les différents
+    - les actions ne sont pas ré-exécutées si déjà jouée (idempotence)
+      - pas possible pour toutes les tâches, mais on essaye de s'en rapprocher
+    - Lien utiles https://doc.ansible.com et https://www.ansible.com
+      et les tuto et forums (c'est le plus populaire des concurents
+      avec l'absence d'agent sur les machines, seulement l'interpréteur python)
+    - Exemple désactivation du service firewalld / de l'installation d'un package
+      - après un name entexte libre
+      - le nom du module utilisé
+	- ses paramètres (package: present ou absent)
+      - Voir la doc sur les package et leur paramètres
+      - pour les questions posées lors de l'installation ??
+	- pour apt, on peut mettre des param en ligne de commande ou
+          utiliser des var d'environnement
+	- sinon il choisi l'action par défaut
+	- on peut surcharger des comportement au pire grace au src des modules
+    - Prévoir de modifier les firewall pour resécuriser ensuite
+    - Vocabulaire
+      - Manager / Controleur: la machine qui controle les autre en
+	lançant les déploiements (manager node)
+      - Task: action à efffecture
+      - Inventaire: l'ensemble des noeuds à contrôller
+      - Playbook: ensemble de taches à appliquer à un inventaire
+      - Rôle: regroupement logique de tâche. Permet l'ajout / la
+	- un dossier par rôle dans roles
+	- templates/
+	  - contient des fichiers à copier mais incluant des variables, substituées à l'usage
+          suppression de taches dans un playbook
+	  - il faut au moins un main.yml par task
+	- file/
+	  - comme template mais sans substitution de variables
+	- on peut définir des métadonnées pour la publication web du rôle
+	- on peut avoir des dossier custom mais qu'il faut utiliser explicitement dans les tasks
+	- les fichiers plus gros ont été découpés en plusieurs
+    - Inventaire
+      - Dans un fichier unique , vite limité
+      - En yaml cas utilisé ici *hosts* (ou hosts.yml)
+      - le grp par défaut est all
+      - les host peuvent être utilisés en IP ou noms DNS
+      - par défaut il fait du SSH, on peut configurer le host ou le port à utiliser
+	- pour du windows ?
+	  - supporté, prérequis à voir (maintenant suppportent openssh)
+	  - les modules pour windows sont spécifiques (win_) et plus limités
+	  - utilise du winrm par défaut (si > 2012 R2)
+	  - pour le client, utiliser le WSL ou une VM proxmox
+	  - gère les msi, les services, les comptes et grp locaux, updates, et des scripts
+    - Playbook.yml exemple
+      - name
+      - hosts
+      - roles (plusieurs)
+	- la migration actuellement ne charge pas de désactiver la base initiale
+    - le retour de ansible-playbook permet de voir les réussites et échecs dans le détail
+  - Architecture
+    - 2 modeles de VM proxmox 8.6 et 8.7 (8601 et 8701) définies avec cloudi-nit
+    - un VM105 avec les archives des src d'install (oracle rpmwebserver)
+    - actuellement on a déjà 2 bases CATRMAN sur vmware. Migrer les
+      bases virtualisées vers la base RMAN virtuelle
+    - clone-machine-virtuel ne gère pas la moodif des disques % template
+      - Pour l'instant SELinux est passé en mode permissif (demandé par ORacle, mais à affiner)
+      - Crée l'arborescnece dossiers Oracle et les scripts
+      - Applique le dernier patch oracle  issu de VM105
+    - migration
+      - configure les listeners et MDP system à l'identique de la source
+      - récupère le spfile src vers dest
+      - configure les tnsnames
+      - configure les auxnames pour les dbf pour le cas base A-> A
+  - Exploitation
+    - prérequis:
+      - manager en unix, python3 et ansible et le module proxmoxer
+        (API web, via pip car plus à jour)
+      - il faut accès SSH sur srv et destinationa
+      - base cible passée en ArchiveLogs (manuel actuellement)
+    - Voir le nom de la VM créée (hdvDb demandé)
+    - on ne changera pas les no de ports
+    - MJM fait passer son scipt de rafraichissement des bases de test
+      - l'effacement doit être fait avant le rman de récup, MJM fait
+        passer son scripts existant à Teicee
+  - Démo
+    - 16 minutes pour cloner installer migrer ALLORT, selon taille
+    - voir pour les plus grosse (60Go pour ALLORT)
+    - le clone prends 2 minutes
+    - installation moteur 10 minutes (5 minutes install et 5 mn patch)
+    - migration 6 minutes
+    - voir à ajuster les veleur cpu et RAM des templates (12 coeurs et 16 Go !)
+    - Faire un disque dédié aux dumps dans les templates (clone puis modif et retemplate)
+    - voir à mettre les clefs dans le cloud-init
+  - Bilan
+    - Il nous faut accepter de mettre le même port que la source et le
+      même nom, et ce n'est pas encore débuggé (demain ?)
+    - Il nous propose de préparer la VM Ansible pour lancer les
+      déploiements depuis nos postes windows
+    - Je relance Damien Quinton pour LDAP / PAM et consoles / MAJ PVE (fait par mail)
+      - Si fonctionnel, définir les droits pour les admin ProxMox
+    - Préparer deux modifications
+      - deux groupes HA
+	- HDV-Prod et PEL-Test (machines PEL seules, même priorités)
+      - Ceph autre que 4/2 à explorer
+	- Le problème est d'assurer un arrêt de salle sans passer en Read Only et sans arrêt des services.
+	- Si l'espace venait à manquer, on pourrait substituer des disques SSD par des + gros ou avouter un
+          controleur pour 8 disques ?
+    - Voir le playbook de MAJ OS ou de patch ?
+    - Officialiser le nommage des VM HdvDB1XX-SID et la numérotation de VM
+      
+** [8/8] Questions durant prestation - 02.72.34.13.20 puis 2 / 02.78.08.58.14 / 06.34.59.77.07
+- [X] Aide Ansible
+  - [X] pourquoi des task/main.yml avec un block: et parfois pas ?
+    - c'est pour factoriser delegate_to et connection dans le cas du rôle clone par exemple
+    - cela permet aussi de mettre un when: pour toutes les tasks du rôle
+  - [X] comment est récupéré la variable api_token_secret ? (pour mes tests sur diffusion de sshkeys)
+    - marcherait si je met les clef dans clone-machine-virtuelle mais c'est nécessaire à posteriori aussi
+      donc mieux à séparer. Au point
+  - [X] Pas retrouvé le filtre qui permet de récupérer les clefs depuis la liste verse le fichier en 1 par
+    ligne: c'est corrigé (voir les rôles du playbook)
+  - [X] Etat des modifs pour SID supplémentaires et pour 11g ? FINI
+- [X] Quid du réglage "Protected" sur le régle d'un backup du PBS ?
+  - selon un forum, c'est un backup qui ne sera pas effacé même si la politique de rétention le suggère
+  - Permet de garder une sauvegarde très ancienne indéfiniement ??
+- [X] Procédure de sauvegarde / restauration de la conf d'un noeud ?
+  - l'essentiel est dans /etc/pve mais il faut aussi quelques répertoires annexes
+  - une liste serait
+    - /etc/pve
+    - /etc/network/interfaces
+    - /etc/passwd
+    - /etc/resolv.conf
+    - /etc/shadow
+    - /etc/group
+  - la première méthode de réinstaller avec une iso, faire les MAJ puis replacer les fichiers sauvegardés dans leur
+    emplacements d'origine
+  - deux scripts proposés sur https://github.com/DerDanilo/proxmox-stuff
+  - l'utilisation avec Ansible ne permettrait pas d'automatiser la récup sur un nouveau noeud ? non
+  - En fait on nous propose
+    - l'installation du noeud std
+    - la récup de certaines infos des autres noeuds ? Non
+    - l'ajout du serveur dans le cluster
+- [X] Restauration rapide d'un PBS ? Quelles options ?
+  - si un des stockages de backups de PBS est opérationnel
+    - au besoin refaire un cluster Proxmox ??
+    - créer une VM ProxMox avec l'ISO std
+      - 4 sockets, 1 core, 5 Go RAM, 32 Go HD Système, 1 To Backup local
+      - se connecter en web 8007
+	- monter si nécessaire le LUN iSCSI
+	- définir les magasins de données
+      - Ajouter les disques du PBS au stockage du cluster
+  - si on repart de rien faire un backup veeam du seul disque système ?
+  - Après échanges Téicée:
+    - le stockage est dans une LUN de SANon réinstalle à neuf et on
+      représente le LUN (au pire), mais il faut reprendre un peu de la config
+    - le backup de pbs est dans les deux stockages, il ne se charge que du disque système: l'utilisere
+- [X] Comment gérer un mode maintenance pour réparer un PVE ?
+  - L'arrêt de la machine via l'admin web migre les VM
+  - Au redémarrage rien à faire
+- [X] Mise en place de règles FW ?? (8006 + 3128 suffit pour Spice ?) : RIEN POUR L'instant
+- [X] Lancement direct d'une console SPICE à partir d'un script sans WebGUI depuis windows ?
+  - de linux j'ai https://forum.proxmox.com/threads/remote-spice-access-without-using-web-manager.16561/page-2#post-219558
+  - mais cela s'appui sur curl et bash ou python
+  - ABANDONNE
+- [X] Gestion du certificat HTTPS des PVE et PBS et renouvellement (procédure)
+  - Lets encrypt pour les PVE semble très bien (en place)
+  - Pour le PBS le chgt tous les 2 mois fait perdre l'empreinte dans
+    tous les pve (les renouveller à chage fois est lourd, et sinon on
+    a des erreurs de backup)
+  - vu avec eux, on garde l'autosigné pour l'instant et on passerai par un reverse si nécessaire pour les
+    navigateurs qui nous bloquent
+    
+** Reste à faire [6/7]
+- [X] Recabler les PVE dans les bras sur les deux sites
+- [X] Tester la connexion actif/passif des deux cartes corosync
+- [X] Etiquettes des srv PVE sur les côtés
+- [X] Documenter de vrais MDP root des serveurs PVE (créés mais pas en place sur les machines pour l'instant)
+- [X] Informer Prod de l'autotype Keepass pour ILO ou SAN
+- [X] Valider les formations admin et leurs dates (finalement après 01/01/2023)
+  - essai à <2023-01-04 mer. 09:10> tous occupés, laissé un msg
+    - <2023-01-04 mer. 09:31> on convient d'un rappel cet après-midi
+  - résultat des derniers essais avec rman et oracle ?
+  - en teams ? OUI
+  - si oui, par 1/2 journées serait mieux ? Retenu, voir RDV pris
+    - pas lors des formations MS les 13/18/20/23/27 janvier
+    - pas cette première semaine de janvier ! MJM
+    - pas la semaine 5 (30/01 au 03/02)
+- [ ] Valider les doc d'archi et les procédures de Téicée
+  
+* Ansible - Rouen
+** Références complémentaires
+*** Notion de vault
+    - Des mots de passe et données sensibles peuvent être cachées dans des fichiers yml encryptés
+    - l'utilitaire *ansible-vault* permet de les créer / voir / editer
+      - lancer ansible-vault sans paramètres pour voir les commandes
+      - par exemple édition en vi par ~ansible-vault edit mes-secrets.yml~ qui demande le mot de passe (voir keepass)
+    - un tel fichier est créé dans le playbook migration-bases-oracle: vars/vault_secrets.yml
+      - il contient la variable *api_token_secret*
+      - qui est utilisée par le rôle *clone-machine-virtuelle* via *playbook.yml* (atention les instruction
+        assocée au paragraphe clone sont nécessaires aussi dans celui de recup-scripts
+      - pour que le déchiffrage soit transparent le mot de passe est récupéré par exemple via le paramètre
+        *--ask-vault-pass* de ~ansible-playbook~
+** Modifications du premier playbook migration-bases-oracle
+- devrait être suivi par 2 playbooks séparés
+  - maj OS
+  - patch de base
+- inclue
+  - la création de la VM à partir du template
+  - l'installation du moteur oracle
+  - l'installation d'un patch 19c
+  - la migration des données avec RMAN
+- initialement paramétré pour
+  - ALLORT
+  - base copiée appellée ALLORN => vérifier qu'on peut changer name: ALLORN etn ALLORT
+  - le port du listener est bien conservé (~source_port = listener_port~)
+- Lancement par
+  - connexion SSH root sur VM ansible.rouen.fr (ajouté dans DNS / ONA)
+  - se placer dans le répertoire du playbook: ~/root/ansible/migration-bases-oracle~
+  - ~ansible-playbook --ask-vault-pass -D -i hosts.yml playbook.yml~
+    - alternative si le mot de passe est toujours dans le répertoire courant 
+      ~ansible-playbook -D --vault-password-file vault_password -i hosts.yml playbook.yml~
+  - Dans un premier temps échoue en root faute de la bonne public key sur la VM
+    - dans le cas de l'appel depuis un ssh linux penser à faire un ~ssh -A ansible.rouen.fr~ pour transférer
+      la clef depuis le poste d'origine
+    - dans le cas de putty, le mieux est de le paramétrer dans une connection, et cocher dans ~Connection /
+      SSH / Auth / Allow Agent Forwarding~
+    - Modifier aussi dans ~Connection / Data / xterm-256-color~ dans le champ ~Terminal-type string~
+- [X] Comme le pemier essai fonctionne, je modifie pour avoir le même nom de base de données
+  - marche du premier coup mais ajoute la base sur la VM (la précédente est dans oratab et ~/oradata/~)
+  - l'avantage est que ça ne prend que 6" contre 16"
+- Pour le clone, les valeurs par défault pour la VM (RAM, CPU default IP, node, state) sont dans
+  ~migration-bases-oracle/roles/clone-machine-virtuelle/tasks/main.yml~
+- [X] voir ~ansible_python_interpreter: auto_silent~ pour nos warnings python
+  - fait dans ~/etc/ansible/ansible.cfg~
+- Voir la génération d'un nouveau playbook car il semble que les répertoires et les fichiers par défaut
+  soient issus d'une génération automatique
+- Signaler que le réseau des VM est par défaut en 172.17.100.0/22 (mis en 24 dans playbooks et dans
+  templates OEL, ansible et les autres)
+- [X] Les tasks détaillent les opérations du clonage, voir pour ajouter le cloud-init du disque
+  - Voir la [[https://docs.ansible.com/ansible/2.9/modules/proxmox_kvm_module.html#proxmox-kvm-module][doc du module proxmox_kvm]] = beaucoup de paramètres mais pas le cloud-init
+  - Il existe un autre module proxmox qui ne semble concerner que les containers
+  - Il existe aussi un [[https://docs.ansible.com/ansible/latest/collections/community/general/proxmox_kvm_module.html][module comunautaire incluant cicustom]]
+    - selon ce [[https://forum.proxmox.com/threads/trouble-using-cicustom-user-network.70050/][forum]]
+      - le fichier passé remplace complètement les valeurs de cloud-init
+      - le fichier foit impérativement avoir l'extension *.yml*
+      - essayer de faire un tel fichier (quel format ?)
+  - Mais après quelque recherches [[https://docs.ansible.com/ansible/latest/collections/index.html#list-of-collections][dans la doc]] il existe un module ~community.general.proxmox_disk~
+    - j'ai ajouté une task dans le role clone
+    - j'ai ajouté aussi l'utilisation de variables supplémentaires dans host-ALLORT.yml
+      - taille de RAM, nb de CPU, ~disk_add~ (rien ou nnG pour faire la place de la base)
+  - Attention: si la création de la VM échoue, on resize la taille du template !
+    - en utilisant ~new_vmid~ plutôt que ~created_vmid~ serait doublement mieux ?
+    - c'est en place
+- [X] Voir comment on utilise notre GITLab (des playbook distinct ?)
+  - on peut tous les mettre dans un nouveau projet ansible-proxmox
+    - créer le projet dans GitLab
+    - pousser les répertoires de ~/root/ansible/~
+- [X] Essai de la première VM de production allorp
+  - Echec de la récupération du pfile par le ~db_synchro.yml~
+    - fait un fetch avec comme src ~SPFILE_PATH~, issu de defaults/mains.yml de la task
+    - sa valeur est ~{{ ORACLE_HOME }}/dbs/~
+    - soit ~{{ ORACLE_BASE }}/{{ ORACLE_PRODUCT }}/dbs/~
+    - soit ~/oracle/product/19c/dbs/~
+    - remarche après correction du serveur physique d'origine ?
+- [-] Faire les modifications restantes pour l'intégration Rouen [14/18]
+  - [X] ajout d'un disque de taille ~disk_dump~ pour les dumps
+  - [X] fusion
+    - création d'un dir *files* dans le rôle clone ?
+      - Plutôt dans un nouveau role installation-fusion-inventory
+      - le tout appelé pour test dans le pbintégrationRouen.yml
+    - modules découverts
+      - ansible.builtin.yum pour les packets RedHat/OEL
+      - community.general.cpanm pour la gestion des modules perl
+      - ansible.builtin.debug
+  - [X] intégration Veeam
+    - voir les ajouts dans la console veeam avec une VM générée
+    - finir les pb de firewall ??
+  - [X] ajout des quelques scripts d'admin oracle (ajouter QuiTourne, ~Vide_FRA~ par exemple)
+    - [X] dans un rôle, par MJM et deux tâches (lister le répertoire files et copier les fichiers), copier
+      les fichier de peldb119-test dans un dossier *files*
+    - [X] role *recup-scripts*
+    - [X] création du projet GitlLab
+    - [X] intégration dans le playbook principal
+    - [X] Voir dans les defaults/main.yml les ~ORACLE_USER: oracle~ pas toujours à garder si 11g (à écraser
+      dans le fichier hosts.yml des 11g) => Abandon du 11g
+    - [X] Voir de même pour ~ADMIN_SCRIPTS_DIR~ pour les 11g => Abandon du 11g
+  - [X] Ajout de Cyberwatch
+    - [X] Retrouver le script ? Les instruction de SHY sinon
+    - [X] tester un nouveau role
+    - [X] faire valider la bonne remontée
+  - [X] Intégration Centreon
+    - voir S:\DSI\SOI\Infra-Prod\Exploitation\Supervision\Projet\2021 - Centreon IT Edition\Procédures
+    - [X] utiliser le script de Zequan
+    - [X] Tester l'ajout de App131-test dans Centreon !!
+  - [X] automatisation des MAJ de sécurité
+    - yum security update
+  - [X] Ajouter les nouveaux rôles dans le Gitlab !!
+  - [X] intégration Deep Sécurity
+    - déposer un script dans files/
+    - voir son contenu pour le remplacer par des appels modules si possible
+    - le lancer ou son équivallent transposé
+  - [X] Préparer un playbook migration-19c
+  - [X] Voir qui défini source_name_ssh pas trouvé dans
+    migration-base-oracle / création du répertoire synchro
+  - [X] Enlever le hostname de role ntp + chg UNC srv ntp
+  - [X] Correction du pb de synchro sur allort2 / db126-test
+    - [X] surmonter la modification MJM du fichier listener.ora non fonctionnelle
+    - [X] voir pour ajuster le fichier résultant finalement ?
+  - [-] des clefs SSH pour chaque admin
+    - [X] créées
+    - [X] faire marcher l'ajout de clefs ssh (commenté !)
+      - nécessite de filtrer les clefs
+	- saisies dans migration-bases / role / clone-machine-virtuelle
+	- récupérés dans clone /task / main.yml
+	- a tester avec le tag *clone*
+    - [ ] donner à MJM !
+  - [ ] un compte git pour mjm et moi avec nos homes ? (pas global user)
+    - dans un premier temps le ~/root/ansible/~ est assocé au user Pierre DEDIEU
+      - il existe des projets par playbook ET par roles
+      - je défini .gitignore sur les projets pour ne pas gérer les répertoires *roles*, ~**/files/*.zip~ et les
+	fichier de sauvegarde d'emacs finisant par tilde
+      - je crée une branche pour les modifs rouen (prise-en main-rouen pour chacun) sur notre GitLab
+	seulement
+      - Il faut aussi initialiser les nouveau projets pour nos roles, avec ~git init~
+	- noter qu'on peut changer à ce moment le nom de la branch par defaut de master en main avec ~git
+          branch -m main~
+	- on peut aussi faire un init avec une brach main avec ~git init --initial-branch=main~
+	- on peut en faire le nom initial lors des git init en utilisant ~git config --global
+          init.defaultBranch main~
+      - ajouter les fichier dans le projet (dans magit s sur les fichiers et cc commit initial
+      - ajouter le nouveau remote par ~~git remote add rouen https://gitlab.rouen.fr/ansible-proxmox/client-veeam.git~
+      - pousser notre projet vers gitlab par ~git push -u rouen main~
+    - une possibilité est de
+      - définir pour mjm un user local sur la VM ansible avec une clef ssh perso, et de faire un clone des
+        projets en modification dans son (lui définir une branche test-mmjm) ~/home/mjmonnier~ et
+      - définir un user mjmonnier sur GitLab rouen et lui associer la même clef SSH perso
+  - [X] Faire le point Téicée pour pb de ALLORP: on modif faite à tester ce <2023-03-20 lun.>
+    
+** Point en gouvernance et reste à faire
+  - [X] Migrer ALLORP et tester si modif Téicé suffisante
+  - [X] Tester MARCOWT (voir MJM et le chargé d'appli: ARabia)
+  - [X] Migrer Marcowp et voir si idem à allorp (pb détecté avec Deep
+    Security en cours de correction ce <2023-03-23 jeu. 11:38>)
+  - [X] Autre erreur rencontrée lors de la synchro rman pour MarcoWP,
+    un erreur avec des le SCN XXX qui montre une incohérence rman (src
+    ? dest ??)
+    - rencontré plusieus fois, il faut voir le statut de la FRA
+      (pleine ?) et éventuellement la vider
+  - [X] Activer Lets Encrypt sur PBS si tests réussis sur Apple
+  - [-] préparer la liste des bases de donnés, des serveurs et noms et ip, avec version initiale
+    - [ ] [[*Addresses IP][Addresses IP]]
+    - [ ] ajouter dans DNS interne les IP sélectionnées dans ONA
+    - [X] reprendre la liste des bases (Fait par MJM)
+  - [X] faire message général aux utilisateurs pour l'opération de bascule (avec direction)
+  - [ ] faire message aux premiers concernés une semaine avant
+  - [X] Voir à définir des dates de bascules avec les resp applicatifs
+    (pendant SOI <2023-03-23 jeu.> ? Non juste transmis le fichier à
+    MJM)
+  - [ ] Compléter Project Monitor
+    - [ ] Ajouter des tests de coupure site
+    - [ ] Intégrer des tests de restauration Veeam / Oracle
+    - [ ] Ajouter les bascules de bases comme tâches
+  - [ ]
+    
+** Point en réunion SOI du <2023-04-06 jeu.>
+  - Les premières bascules sont planifiées : PACNIP puis ETERNITEP vues avec FNE
+  - le tableau a été complété par FNE et GLO, reste QPE (?) et ARA
+    mais avec de l'aide (ex TLPE via GLO)
+  - [ ] Présentation de l'architecture en SOI <2023-05-04 jeu.>
+  - [ ] Faire passer un support avant !
+  - Le mail directions doit partir au plus tard mardi matin (prêt)
+  - pour les applications FNE prépare le premier mail spécifique pour PACNIP
+    
+** Copie de production en test
+  - Essai fonctionnel de récupération de la base pacnit en pacnix de 127 sur 127-test
+    - Avec la clef root PDE veeam
+    - Lent et restriction: il faut le lancer depuis un client lourd
+      - avec une clef SSH qui peut se connecter sur Oracle / destination
+      - avec un compte windows qui a le droit d'accéder aux backups
+    - Piste alternative: il existe une API Powershell plus déléguable aux chargés d'appli voir
+      https://helpcenter.veeam.com/docs/backup/explorers_powershell/veeam_explorer_for_oracle.html?ver=120
+      https://helpcenter.veeam.com/docs/backup/powershell/enums.html?ver=120
+    - Se faire aider ou voir le support ? Un ticket ouvert
+  - La solution ne fonctionne pas vers DB127-test pour le nom PACNIT
+    (alors qu'elle fonctionne pour PACNIX !)
+  - Un ticket est ouvert au support veeam pour cela
+    - 
+  - par contre pas de problème pour MARCOWP vers MARCOWT (backup DB128
+    vers DB128-test)
+  - Un essai complémentaire à faire avec ALLORP vers ALLORT (DB126
+    vers DB126-test)
+    - Le premier backup en archivelog a été fait le <2023-04-13 jeu. 09:00>
+    - La première restauration a été tentée
+      - après vérification du fonctionnement de DB126-test (RAS)
+      - après snapshot la restauration se fait sans aucun problème
+      - il est a été nécessaire d'ajouter oracle au group wheel et d'activer wheel en nopasswd
+      - je fait un nouvel essai en ajoutant dans le rôle monte-dump
+        l'activation d'une ligne de sudoers pour oracle seulement
+	
+** Remarques MJM retour congés au <2023-04-24 lun.>
+  - [X] MAJ des 4 PVE ce <2023-04-24 lun.> matin
+  - [X] DB129-test Eternitt veeamsnap KO - Relancer pb veeam et voir si
+    backup passe (oui)
+    - Le backup semble ne jamais se terminer !! Pourtant il est à 99%
+    - En fait c'est un backup à froid et il finit par un reboot (donc normal, à ignorer)
+  - [X] Correction monte-dump
+    - copy authorized-keys : relancé sur db127-test sans problème, et
+      oracle est bien sudoer root sans MDP, donc je ne comprend pas le
+      problème
+    - root ssh 127 <--> 127-test ? (hort id changed, donc je corrige en l'effaçant comme demandé", sinon OK)
+  - [X] Présentation PowerPoint Proxmox pour SOI
+  - [X] Documentation pour manques MJM
+    - [X] Renouvellement veeam des clef SSH VM
+    - [X] Relance PB Veeam quand pb Veeamsnap / Kernel
+    - [X] MAJ des PVE
+    - [X] ~gpasswd -a -d user group~ pour ajouter effacer un user du groupe (dans wikijs)
+  - [X] Essayer de croiser une restauration de EternitP db129 vers vers PacnitT db127-test
+    - J'ai des doutes sur les prise en compte des dernières clefs (socket closed au début de la restauration)
+    - J'ai relancé monte-dump qui semble OK pour 127-test (connection oracle puis sudo -i accepté
+    - Je relance le backup à froid de 127-test pour m'assurer que tout est ok entre veeam et lui
+    - La restauration échoue systématiquement (même vers d'autres
+      serveurs de test, y compris 126-test)
+    - dans le doute j'ai vérifié que ALLORP vers ALLORP fonctionne toujours
+    - je verifie de même que 128 vers 128-test (MARCOWP/T) fonctionne aussi (OUI)
+    - Et je note qu'une restoration de 129 et de 127 sont toujours en cours dans
+      les running (pourtant terminée vendredi dernier pour l'un et lundi pour l'autre)
+    - Essayer de restaurer 127 / PACNIP vers 127-test PACNIT ??
+      - Ajouter 2 Go pour un test avec pacnix => beaucoup de socket
+        already closed (??) et sinon toujours erreur d'écriture sur la
+        destination
+      - Par contre la même restauration avec le nom PACNIX fonctionne !!
+      - J'ai trouvé l'option pour activer les logs étendus (activés)
+      - Je note qu'il est demandé de supprimer des fichiers de la
+        destination (redo et fast_recovery_area)
+      - Je commence par faire un snapshot de la 401 127-test pacnit
+        avant de faire un nouvel essai de rafraichissement
+      - Les vérifications du support ne permettent pas de comptendre
+        ce qui manque (les owners et droits semblent bien)
+      - Par contre le backup d'avant-hier soir ne permet pas à ORacle
+        dêtre sudoer, je choisi de corriger avec Ansible en
+        réappliquant monte-dump
+    - Le support demande deux autres essais et les extended logs
+      correspondant lors d'un appel tel <2023-04-25 mar. 15:54>
+      commencé vers 16H00
+    - J'ai tenté un restauration PACNIP vers 127-test PACNIT avec 10
+      Go RAM et après un passage en Archivelogs: pas mieux
+      - [X] Restaurer 127 PACNIP sur 128-test PACNIP (normalement
+        MARCOWT mais il a de la place)
+	- Résultat: Failed to create /oradata/db/PACNIP/system
+      - [X] Restaurer 128 MARCOWP sur 127-test MARCOWT (normalement
+        PACNIT et il a aussi la place)
+	- Résultat: Fonctionne bien MAIS pb de ressources la machine (Marco avait 10Go RAM, PACNIT 6 Go)
+	- Refaire pour être sûr avec PACNIT en 10 Go RAM
+	- Va bien au bout, et la base s'arrête et redémarre MAIS
+	  - je note que le listener est paramétré avec l'IP d'origine
+            et ne se lance pas
+	  - au reboot bien que listée dans oratab la base ne se lance
+            pas automatiquement mais manuellement aucun soucis
+	  - Je tente une nouvelle restauration de PACNIP vers 127-test
+            suite à cette manipulation, elle me demande de supprimer
+            tbs/PACNIT.dbf mais toujours la même erreur
+	  - Je fait aussi un test avec PACNIP sur 127-test sans
+            renommer: plante plus loin mais plante aussi
+	  - Je fait un dernier essai avec PCANIX pour vérifier que cela marche toujours
+	    - je note que par moments malgré les 10 Go de RAM je monte
+              à 36 de charge avec un process kswapd dans top. Je vois
+              aussi les process Defunc de la base MARCOWT
+              effacée. J'aurais dû rebooter pour l'éviter ? Je passe
+              en 20 Go et reboot mais Veeam Explrer reste en Cleaning
+              Up
+	- Tends à prouver que le problème est sur le backup source ??
+      - [X] Envoyer les extended logs sur le ticket Veeam
+      - [X] Restaurer 127 PACNIP sur 128-test PACNIX
+  - [X] Tel Téicée sur rôle de m2-pls-ip67 (et supprimer ?)
+  - [X] Complétion dans Project Monitor
+  - [X] Voir à ajouter un fsck sur les oracle au reboot comme vu sur
+    128-test et
+    https://www.golinuxcloud.com/force-file-system-check-on-boot-systemd-fsck/
+    
+** Point Téicée <2023-06-07 mer. 14:00>
+  - Présents: Aurélien BONAMI et Jamal LARBI MANSOUR, PDE
+  - Point sur le projet: restent disponibles pour évolution de playbooks dont MAJ OS et Sécurité Oracle
+  - Pistes de collaboration possibles:
+    - Prestation de MAJ Vulture3 vers 4 et MCO possible via un forfait d'heures
+    - Voir FNE pour dev Electron - framework web offline - pour remplacement de Guide Préface ?
+    - Voir T Gibet pour expertise Drupal et SOLR
+    - Plus généralement envisager la possibilité de les inclure dans
+      une consultation sur les contrats d'assistance sur les parties
+      Open Source
+    - Evolution vers RSO 802.1.X via NAC Open Source Packet Fence
+    - Téléphonie Open Source
+    - WiFi via Ubiquity, bornes WiFi 6 à 180€ HT accès SSH et Web
+    - Expertise GLPI / FusionInventory
+    - Expertise Centreon Communautaire
+    - Gestionnaire de MDP Centralisé Vaultwarden
+      
+* Pistes d'améliorations
+** Copie des backups de pbs sur les différents pve4
+   - Comme l'écriture via PBS semble problématique pour sa sauvegarde,
+     il est sauvegardé sur son stockage local
+   - je copie ce backup sur d'autre noeuds avec (fait une fois à tout hazard)
+     #+begin_src bash
+       rsync -ac --delete /var/lib/vz/dump -e ssh root@hdvpve10.intranet.rouen.fr:/var/lib/vz
+       rsync -ac --delete /var/lib/vz/dump -e ssh root@hdvpve11.intranet.rouen.fr:/var/lib/vz
+       rsync -ac --delete /var/lib/vz/dump -e ssh root@pelpve11.intranet.rouen.fr:/var/lib/vz
+     #+end_src
+     
+** Supervision Centreon
+  Voir https://memo-linux.com/centreon-superviser-les-vm-dun-cluster-proxmox-avec-pve-monitor/
+  
+** Ajout de métriques externes
+  voir https://pve.proxmox.com/wiki/External_Metric_Server
+  
+** statistiques d'IO sur une VM
+  - Dans le GUI, utiliser *Moniteur* puis *info blockstats* qui affiche pour les disques et cartes RSO
+  - depuis console SSH d'un PVE commande du type (409 est le no de la VM sur le PVE)
+    ~echo -e '{"execute":"qmp_capabilities"}\n{"execute":"query-blockstats"}' | socat - UNIX-CONNECT:/var/run/qemu-server/409.qmp | grep -i io~

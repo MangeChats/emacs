@@ -149,6 +149,8 @@ d'un fichier README.org dans GIT en remplacement du README.md
   ;;(require 'org-make-toc)
   (require 'ox-epub)
   (setq org-agenda-files '("~/SynologyDrive/todo-2024.org"))
+  (setq org-todo-keywords '((type "LVP" "Rouen" "Emacs" "Dev" "|" "DONE")))
+  (global-set-key (kbd "C-c a") 'org-agenda-list)
 #+end_src
 
 * Parenthèses - cas général
@@ -321,21 +323,23 @@ suppose d'ajouter le répertoire ~/.emacs.d/ à load-path
 		  , (buffer-file-name)))
 	 (with-current-buffer (find-file-noselect org-file-name)
 	   (info (org-texinfo-export-to-info)))))u
-      (_ (user-error "Don't know how to convert `%s' to an `info' file"
-		     (file-name-extension (buffer-file-name)))))))
-
+	   (_ (user-error "Don't know how to convert `%s' to an `info' file"
+			  (file-name-extension (buffer-file-name)))))))
+  
   (global-set-key (kbd "C-x x v") 'view-text-file-as-info-manual)
 #+end_src
+
 * Mes aides basées sur transient
 
 Assigné à F1 un premier menu qui chaîne sur quelques autres.
 Ajoute aussi des raccourcis sur d'autres touches de fonction documenté par F1
 
-#+begin_src elisp :tangle no
+#+begin_src elisp
 
   ;; Mes réglage transient
   ;;(load "~/Documents/Informatique/projets-git/pde-helm/pde-trans.el")
   (require 'pde-trans)
+  (info "emacs-documentation")
 #+end_src
 
 * Les packages et autres custom-set-variables
