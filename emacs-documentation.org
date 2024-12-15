@@ -1568,6 +1568,21 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
       (global-set-key (kbd "C-c =") 'increment-number-at-point)
      #+END_SRC
     
+*** Chargement de modules
+  - La méthode de base est (load-file "chemin-complet-moodule.el")
+    Cela présente les inconvénients
+    - de ne pas autoriser à déplacer le source dans un autre répertoire
+    - de recharger le module même s'il l'a déjà été dans la session courante
+  - Un alternative est ~(require 'nom-module)~
+    - le système va déterminer le fichier nom-module.elà utiliser en recherchant dans la liste *load-path*
+    - pour des modules placés en dehors des chemins par défaut il faut utiliser
+      ~(add-to-list 'load-path "chemin-supplémentaire")~
+      et dans le cas ou c'est le répertoire du module en cours je préfère
+      ~(add-to-list 'load-path (file-name-directory (buffer-file-name)))~
+    - cela nécessite de plus de mettre à la dernière ligne du module
+      required un ~(provide 'nom-module)~ qui permet à required de
+      savoir que le module est déjà chargé
+      
 *** Minor-mode
   Voir Writing GNU Emacs Extensions Chap 7
   - Définir une variable locale au buffer *NOM-mode* ~(defvar-local NOM-mode)~
@@ -1830,6 +1845,9 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
       - M a :: ajouter un remote (demande un nom et une URL
       - Pu :: Push de la branche locale vers le GIT distant (pour
 	Rouen, ouvrir le VPN avant)
+      - !! :: 	lance une commande git depuis un prompt (si raccourci
+        pas connu par exemple)
+      - : ls-files :: affiche tous les fichiers tracké par le projet en cours
     - La section *unmerged into* liste des modifications disponibles
       dans le dépôt local et pas sur un distant (il manque un push
       pour régulariser)
@@ -1845,8 +1863,13 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
    - Se placer dans le répertoire de l'application à pousser
    - Optionnellement, créer un fichier ~.gitignore~ avec les noms des
      fichiers à ignorer (... avec des commentaires commençant par
-     #). En fait il existe un *.git/info/exclude* qui semble avoir
-     ce but et est créé par le ~git init~.
+     #).
+     #+begin_example
+     *~
+     \#*\*
+     *.texi
+     #+end_example
+     En fait il existe aussi un *.git/info/exclude* qui semble avoir ce but et est créé par le ~git init~.
    - *Créer le dépôt* git local via ~git init~
    - Pour ajouter tout *l'ensemble du répertoire* courant dans le dépôt
      local: ~git add .~ (. peut être remplacé par le nom d'un fichier)
@@ -1858,19 +1881,33 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
      master, se placer dans la branche master (~checkout master~) et
      incorporer les modifs avec ~git merge develop --no-ff~ voir man
      git-merge.
-   - Pour pousser le git local *sur un serveur*, et dans le cas du
-     dépôt GitLab de la mairie (créer le projet IKV sur l'interface web
-     avant), il faut
-     - Définir la destination par ~git remote add origin
-       http://hdvgen15.intranet.rouen.fr/pdedieu/IKV.git~
-     - Envoyer le contenu de prod par ~git push origin master~ (en
-       étant en checkout master)
-     - Envoyer le contenu de dev par ~git push origin develop~ (en étant en
-       checkout develop)
+   - Pour pousser le git local *sur un serveur
+     - dans le cas du dépôt GitLab de la mairie (créer le projet IKV
+       sur l'interface web avant)
+       - Définir la destination par ~git remote add origin
+	 http://hdvgen15.intranet.rouen.fr/pdedieu/IKV.git~
+       - Envoyer le contenu de prod par ~git push origin master~ (en
+	 étant en checkout master)
+       - Envoyer le contenu de dev par ~git push origin develop~ (en étant en
+	 checkout develop)
+     - dans le cas du git sur synology du réseau local
+       - Définir le dépôt en ligne de commande via ~ssh -p 2226 pdedieu@192.168.1.38~
+	 #+begin_src bash
+	   mkdir -p ~/git/mon-projet
+	   cd ~/mon-projet
+	   git init --bare --shared ./mon-projet.git
+	   git branch -m main # ou pas, sion c'est master ?
+	 #+end_src
+       - dans le répertoire du PC de dev
+	 #+begin_src bash
+	   git init
+	   git branch -m main # ou pas
+	   git remote add origin ssh://pdedieu@192.168.1.38:2226/~/git/mon-projet/
+	 #+end_src
    - Pour récupérer le contenu du git sur une *autre machine*, faire
      dans un répertoire vide (pas trouvé comment éviter que ce
      répertoire contienne le sous répertoire IKV du projet, à défaut je
-     déplace le répertorie après coup) ~git clone
+     déplace le répertoire après coup) ~git clone
      http://hdvgen15.intranet.rouen.fr/pdedieu/IKV.git~
    - Depuis une machine pour MAJ la branch courante avec un des
      contenus distants, ~git pull origin master~
@@ -1891,6 +1928,7 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
        ~git branch -r~
        - ~git push origin :dev~ pour supprimer dev mais semble sans effet
        - ~git fetch --all --prune~ suffirait à lui seul et a supprimé deux branches
+   - En général je préfère nettement faire les actions locales dans [[*magit][magit]] depuis emacs
 
 *** emacs et WikiJS
     - modifier les fichiers du dépôt local /home/pdedieu/wiki/data/repo
@@ -2509,7 +2547,7 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
    Mais il faut utiliser la bascule entre std et custom par ~C-c C-x
    C-t~ soit ~(org-toggle-time-stamp-overlays)~ trouvé le
    <2023-01-09 lun. 19:24> ou en tout cas <2023-01-09 lun.>
-*** Sans pandoc
+*** Méthode actuelle simple
    Pour produire de la bureautique, des pdf ou des présentations à
    partir de fichiers Org. Attention, il semble que pour le traitement
    de texte, seul l'export en docx continue de marcher, il faut prévoir
@@ -2593,7 +2631,7 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
                   (Erreur: ... à analyser)
    - C-c C-e C-v ... :: idem mais n'affiche que ce qui est *visible* à l'écran
        
-*** Configuration de pandoc
+*** Pandoc
     - Commencer par installer le paquet =apt install pandoc=
     - Installer le package MELPA =ox-pandoc=
     - Il est ensuite possible d'appeler =M-x org-pandoc-export-*= pour
@@ -2611,7 +2649,8 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
 	- Après quoi j'ai un message qui me suggère de changer de
 	  pdf-engine
 	  ~(setq org-pandoc-options-for-beamer-pdf '((pdf-engine . "xelatex")))~
-*** Suite à disparition export odt, interface à pandoc
+	  
+*** Suite à disparition export odt, interface à pandoc (histrique)
     #+BEGIN_SRC elisp
       (defun convert-org-to-docx ()
 	"Converti le buffer courant en MS-Office Word"
