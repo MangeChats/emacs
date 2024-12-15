@@ -39,9 +39,34 @@
 * Automatisation du login github
   - Premier essai
     #+begin_src elisp
-	    (defun cli-cmd ()
-	      )
-      (defun github-login ()
-	(interactive)
-	(comint-send-string (buffer-name) "\n"))
+(defun run-this-in-shell (cmd)
+  "Runs the command 'cmd' in a shell."
+  (with-current-buffer "*login-buf*"
+    (comint-kill-input)
+    (end-of-buffer)
+    (insert cmd)
+    (comint-send-input)
+    (end-of-buffer)
+    (yank)))
+
+(defun github-login ()
+  (interactive)
+  (shell "*login-buf*")
+  (run-this-in-shell "eval $(ssh-agent)")
+  (sleep-for 0.5)
+  (run-this-in-shell "ssh-add -D")
+  (sleep-for 0.5)
+  (run-this-in-shell "ssh-add ~/.ssh/pdedieu.priv")
+  (sleep-for 0.5)
+  (run-this-in-shell "git push -v github master:main")
+  (sleep-for 0.5)
+  ;; (sleep-for 3)
+  ;; (let ((proc (get-buffer-process (current-buffer))))
+  ;;   (when (processp proc)
+  ;;     (set-process-query-on-exit-flag proc nil))
+  ;;   (kill-buffer "*login-buf*"))
+  )
     #+end_src
+    
+  - marche plus ou moins, mais après un clone, il est sensiblement
+    plus facile de gérer ce qu'on a écupéré depuis.
