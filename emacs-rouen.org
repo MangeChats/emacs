@@ -62,7 +62,9 @@ Permet aussi de copier des fichiers directement d'un serveur à un autre, ou de 
 - O :: Changer de propriétaire pour le fichier
 - M :: Changer le mode du fichier (par exemple *a+x* pour ajouter le droit d'ésécution pour tous)
 - R :: Renommer/Déplacer le fichier/répertoire
-- Plus généralement la documentation plus étendue est disponible dans [[info:emacs-documentation][emacs-documentation]]
+- Plus généralement la documentation plus étendue est disponible dans
+  [[info:emacs-documentation][emacs-documentation]] (en version info) ou dans
+  [[file:emacs-documentation.org][emacs-documentation.org]]
 
 ** Utilisation pour Oracle VDR
 - ²b :: Pour afficher la liste des SID des bases Oracle de la ville de Rouen
