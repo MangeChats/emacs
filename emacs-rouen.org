@@ -63,7 +63,7 @@ Permet aussi de copier des fichiers directement d'un serveur à un autre, ou de 
 - M :: Changer le mode du fichier (par exemple *a+x* pour ajouter le droit d'ésécution pour tous)
 - R :: Renommer/Déplacer le fichier/répertoire
 - Plus généralement la documentation plus étendue est disponible dans
-  [[info:emacs-documentation][emacs-documentation]] (en version info) ou dans
+  [[info:emacs-documentation][emacs-documentation.info]] (en version info) ou dans
   [[file:emacs-documentation.org][emacs-documentation.org]]
 
 ** Utilisation pour Oracle VDR
