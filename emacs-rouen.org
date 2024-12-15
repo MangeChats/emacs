@@ -1,6 +1,6 @@
 Les deux propositions peuvent être utilisées simultanément, c'est même ce qui est le plus intéressant
 
-* Lancement pour garder une session ouverte en continu
+* Sessions SSH ouverte en continu
 ** Intérêt de screen
 Pour retrouver les connexion SSH même après une interruption du PC, ne
 pas interrompre des opérations longues lancées en fin de journée
@@ -25,7 +25,7 @@ Utiliser le paquet Linux *screen*.
   - C-a " :: liste les fenêtres disponible (et choix avec haut/bas puis entrée)
 - ~man screen~ est votre ami pour aller plus loin
 
-* Lancement de connexions SSH vers de multiples serveurs
+* Connexions SSH vers de multiples serveurs
 ** Intérêt d'emacs pour le SSH
 Il est possible de grandement limiter les saisies multiples de mots de passes et autre validations DUO.
 Permet aussi de copier des fichiers directement d'un serveur à un autre, ou de modifier des fichiers à distance.
