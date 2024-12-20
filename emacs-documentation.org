@@ -441,12 +441,15 @@
        (global-set-key "\C-ch" 'org-skel)
     #+END_SRC 
    
-** Sauvegarde de layouts avec workgroup2
+** Sauvegarde de layouts
+Il s'agit de sauver les positions des fenêtres et les buffers qu'ils contiennent
+*** workgroup2
    - Utiliser le package *workgroup2*
    - C-c z C-c :: create wg, demande un nom pour sauver le layout courant
    - C-c z C-v :: open wg, permet de choisir et de restaurer un des layouts sauvés
    - En complément ~(desktop-save-mode 1)~ dans *init.el* permet de restaurer les buffers ouverts au démarage d'emacs
-   - Voir plutôt [[*winner-mode][winner-mode]] plus léger et efficace 
+*** winner-mode
+   - Voir  [[*winner-mode][winner-mode]] plus léger et efficace 
     
 ** Vérification de l'orthographe
    via les paquet *ispell* et *aspell-fr*.
@@ -2266,7 +2269,7 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
      Pour recalculer la case courante *C-c C-c* (tout le tableau si
      placé sur la ligne des formules)
 
-     Les cases de la ligne courante sont *$1* à *$n si besoin de préciser
+     Les cases de la ligne courante sont *$1* à *$n* si besoin de préciser
      la ligne *@m$n*. L'avant dernière ligne peut se noter *@-1*.
 
      Deux notations possibles pour les cases, soit *A1* et *C5* pour @1$1 et @5$3
@@ -2278,9 +2281,11 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
      de la formule, exemple ~:=vsum(@2..@-1);T~
 
      - C-c + :: Permet de faire la somme des cases de la colonne au dessus
-     - sum :: pour la somme d'une région ???
+     - sum :: pour la somme d'une région (voir comment la définir)
      - vsum :: pour la somme du vecteur
      - vmean :: pour la moyenne du vecteur
+     - C-c = :: Pour commencer la saisie d'une formule applicable à
+       toute la colonne (précédé de *C-u* c'est uniquement pour la case)
      - C-c ? :: permet d'afficher dans mini buffer les noms de la case
 		du curseur
      - C-c ' :: pour éditer dans un buffer spécial l'ensemble des

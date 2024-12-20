@@ -32,6 +32,10 @@ mais en installant le package *zweilight-theme* on obtient mieux
 (alternative afternoon-theme ?)
 
 Je cache les menus et la toolbar (plus d'espace utile quand j'utilise le clavier)
+winner-mode pour retrouver les layouts précédents
+auth-sources pour utiliser en priorité le .authinfo qui est encrypté
+display battery-mode pour savoir où en est la charge de la batterie
+indent-tab-mode car je ne veux que des espoces dans mes fichiers yaml
 
 #+begin_src elisp
   ;; Theme
@@ -47,7 +51,8 @@ Je cache les menus et la toolbar (plus d'espace utile quand j'utilise le clavier
   (global-set-key (kbd "M-o") 'ace-window)
   (winner-mode 1)
   (setq auth-sources '("~/.authinfo.gpg" "~/.authinfo" "~/.netrc"))
-
+  (display-battery-mode t)
+  (indent-tabs-mode 0)
 #+end_src
 
 * Configuration MELPA
@@ -340,6 +345,12 @@ Ajoute aussi des raccourcis sur d'autres touches de fonction documenté par F1
   ;;(load "~/Documents/Informatique/projets-git/pde-helm/pde-trans.el")
   (require 'pde-trans)
   (info "emacs-documentation")
+#+end_src
+
+* L'écran de démarrage
+
+#+begin_src elisp
+  (org-agenda-list)
 #+end_src
 
 * Les packages et autres custom-set-variables

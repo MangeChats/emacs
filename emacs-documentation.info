@@ -37,7 +37,7 @@ Editeur
 * Onglets - tabs::
 * Abréviations::
 * Squelettes::
-* Sauvegarde de layouts avec workgroup2::
+* Sauvegarde de layouts::
 * Vérification de l'orthographe::
 * Packages::
 * multiple-cursors::
@@ -60,6 +60,11 @@ helm et listes plus puissantes
 
 * Ecrire une extension à Helm::
 
+Sauvegarde de layouts
+
+* workgroup2::
+* winner-mode::
+
 Packages
 
 * Détail::
@@ -77,7 +82,7 @@ Modes mineurs
 
 * linum-mode::
 * column-number-mode::
-* winner-mode::
+* winner-mode: winner-mode (1).
 * show-parent-mode::
 * which-key-mode::
 * prettify-symbols-mode::
@@ -166,6 +171,7 @@ elpy pour les programmes python
 
 eLISP
 
+* Chargement de modules::
 * Minor-mode::
 * Major_mode::
 * Major-mode basé sur un mode existant::
@@ -215,9 +221,9 @@ Tableaux
 
 Exportation
 
-* Sans pandoc::
-* Configuration de pandoc::
-* Suite à disparition export odt, interface à pandoc: Suite à disparition export odt interface à pandoc.
+* Méthode actuelle simple::
+* Pandoc::
+* Suite à disparition export odt, interface à pandoc (histrique): Suite à disparition export odt interface à pandoc (histrique).
 
 Tramp
 
@@ -250,7 +256,7 @@ File: emacs-documentation.info,  Node: Editeur,  Next: Modes majeurs,  Prev: Top
 * Onglets - tabs::
 * Abréviations::
 * Squelettes::
-* Sauvegarde de layouts avec workgroup2::
+* Sauvegarde de layouts::
 * Vérification de l'orthographe::
 * Packages::
 * multiple-cursors::
@@ -844,7 +850,7 @@ M-x abbrev-mode
      Active le mode abbrev pour le buffer en cours (bascule)
 
 
-File: emacs-documentation.info,  Node: Squelettes,  Next: Sauvegarde de layouts avec workgroup2,  Prev: Abréviations,  Up: Editeur
+File: emacs-documentation.info,  Node: Squelettes,  Next: Sauvegarde de layouts,  Prev: Abréviations,  Up: Editeur
 
 1.13 Squelettes
 ===============
@@ -895,10 +901,24 @@ File: emacs-documentation.info,  Node: Squelettes,  Next: Sauvegarde de layouts 
           (global-set-key "\C-ch" 'org-skel)
 
 
-File: emacs-documentation.info,  Node: Sauvegarde de layouts avec workgroup2,  Next: Vérification de l'orthographe,  Prev: Squelettes,  Up: Editeur
+File: emacs-documentation.info,  Node: Sauvegarde de layouts,  Next: Vérification de l'orthographe,  Prev: Squelettes,  Up: Editeur
 
-1.14 Sauvegarde de layouts avec workgroup2
-==========================================
+1.14 Sauvegarde de layouts
+==========================
+
+Il s'agit de sauver les positions des fenêtres et les buffers qu'ils
+contiennent
+
+* Menu:
+
+* workgroup2::
+* winner-mode::
+
+
+File: emacs-documentation.info,  Node: workgroup2,  Next: winner-mode,  Up: Sauvegarde de layouts
+
+1.14.1 workgroup2
+-----------------
 
    • Utiliser le package *workgroup2*
    • C-c z C-c create wg, demande un nom pour sauver le layout courant
@@ -906,10 +926,17 @@ File: emacs-documentation.info,  Node: Sauvegarde de layouts avec workgroup2,  N
      sauvés
    • En complément ‘(desktop-save-mode 1)’ dans *init.el* permet de
      restaurer les buffers ouverts au démarage d'emacs
-   • Voir plutôt *note winner-mode:: plus léger et efficace
 
 
-File: emacs-documentation.info,  Node: Vérification de l'orthographe,  Next: Packages,  Prev: Sauvegarde de layouts avec workgroup2,  Up: Editeur
+File: emacs-documentation.info,  Node: winner-mode,  Prev: workgroup2,  Up: Sauvegarde de layouts
+
+1.14.2 winner-mode
+------------------
+
+   • Voir *note winner-mode: winner-mode (1). plus léger et efficace
+
+
+File: emacs-documentation.info,  Node: Vérification de l'orthographe,  Next: Packages,  Prev: Sauvegarde de layouts,  Up: Editeur
 
 1.15 Vérification de l'orthographe
 ==================================
@@ -1120,7 +1147,7 @@ personnel décroissant (très subjectif)
 
 * linum-mode::
 * column-number-mode::
-* winner-mode::
+* winner-mode: winner-mode (1).
 * show-parent-mode::
 * which-key-mode::
 * prettify-symbols-mode::
@@ -1141,7 +1168,7 @@ File: emacs-documentation.info,  Node: linum-mode,  Next: column-number-mode,  U
 affiche les no de lignes du buffer.
 
 
-File: emacs-documentation.info,  Node: column-number-mode,  Next: winner-mode,  Prev: linum-mode,  Up: Modes mineurs
+File: emacs-documentation.info,  Node: column-number-mode,  Next: winner-mode (1),  Prev: linum-mode,  Up: Modes mineurs
 
 3.2 column-number-mode
 ======================
@@ -1149,7 +1176,7 @@ File: emacs-documentation.info,  Node: column-number-mode,  Next: winner-mode,  
 pour afficher la colonne courante
 
 
-File: emacs-documentation.info,  Node: winner-mode,  Next: show-parent-mode,  Prev: column-number-mode,  Up: Modes mineurs
+File: emacs-documentation.info,  Node: winner-mode (1),  Next: show-parent-mode,  Prev: column-number-mode,  Up: Modes mineurs
 
 3.3 winner-mode
 ===============
@@ -1161,7 +1188,7 @@ dans un écran.
      fenêtres à une autre (raccourci suggéré *M-o*)
 
 
-File: emacs-documentation.info,  Node: show-parent-mode,  Next: which-key-mode,  Prev: winner-mode,  Up: Modes mineurs
+File: emacs-documentation.info,  Node: show-parent-mode,  Next: which-key-mode,  Prev: winner-mode (1),  Up: Modes mineurs
 
 3.4 show-parent-mode
 ====================
@@ -2711,6 +2738,7 @@ paredit-mode
 
 * Menu:
 
+* Chargement de modules::
 * Minor-mode::
 * Major_mode::
 * Major-mode basé sur un mode existant::
@@ -2718,9 +2746,33 @@ paredit-mode
 * Fabrication d'epub::
 
 
-File: emacs-documentation.info,  Node: Minor-mode,  Next: Major_mode,  Up: eLISP
+File: emacs-documentation.info,  Node: Chargement de modules,  Next: Minor-mode,  Up: eLISP
 
-6.7.1 Minor-mode
+6.7.1 Chargement de modules
+---------------------------
+
+   • La méthode de base est (load-file "chemin-complet-moodule.el") Cela
+     présente les inconvénients
+        • de ne pas autoriser à déplacer le source dans un autre
+          répertoire
+        • de recharger le module même s'il l'a déjà été dans la session
+          courante
+   • Un alternative est ‘(require 'nom-module)’
+        • le système va déterminer le fichier nom-module.elà utiliser en
+          recherchant dans la liste *load-path*
+        • pour des modules placés en dehors des chemins par défaut il
+          faut utiliser ‘(add-to-list 'load-path
+          "chemin-supplémentaire")’ et dans le cas ou c'est le
+          répertoire du module en cours je préfère ‘(add-to-list
+          'load-path (file-name-directory (buffer-file-name)))’
+        • cela nécessite de plus de mettre à la dernière ligne du module
+          required un ‘(provide 'nom-module)’ qui permet à required de
+          savoir que le module est déjà chargé
+
+
+File: emacs-documentation.info,  Node: Minor-mode,  Next: Major_mode,  Prev: Chargement de modules,  Up: eLISP
+
+6.7.2 Minor-mode
 ----------------
 
 Voir Writing GNU Emacs Extensions Chap 7
@@ -2748,7 +2800,7 @@ Voir Writing GNU Emacs Extensions Chap 7
 
 File: emacs-documentation.info,  Node: Major_mode,  Next: Major-mode basé sur un mode existant,  Prev: Minor-mode,  Up: eLISP
 
-6.7.2 Major_mode
+6.7.3 Major_mode
 ----------------
 
 Voir Writing GNU Emacs Extensions Chap 9
@@ -2756,7 +2808,7 @@ Voir Writing GNU Emacs Extensions Chap 9
 
 File: emacs-documentation.info,  Node: Major-mode basé sur un mode existant,  Next: Affichage des macros elisp,  Prev: Major_mode,  Up: eLISP
 
-6.7.3 Major-mode basé sur un mode existant
+6.7.4 Major-mode basé sur un mode existant
 ------------------------------------------
 
 Utilisation d'un package dédié pour une macro qui simplifie l'écriture
@@ -2765,7 +2817,7 @@ du mode
 
 File: emacs-documentation.info,  Node: Affichage des macros elisp,  Next: Fabrication d'epub,  Prev: Major-mode basé sur un mode existant,  Up: eLISP
 
-6.7.4 Affichage des macros elisp
+6.7.5 Affichage des macros elisp
 --------------------------------
 
    • Package à installer: *macrostep*
@@ -2782,7 +2834,7 @@ File: emacs-documentation.info,  Node: Affichage des macros elisp,  Next: Fabric
 
 File: emacs-documentation.info,  Node: Fabrication d'epub,  Prev: Affichage des macros elisp,  Up: eLISP
 
-6.7.5 Fabrication d'epub
+6.7.6 Fabrication d'epub
 ------------------------
 
   1. Actuellement
@@ -3148,6 +3200,11 @@ File: emacs-documentation.info,  Node: magit,  Next: Préparation du projet sur 
      Pu
           Push de la branche locale vers le GIT distant (pour Rouen,
           ouvrir le VPN avant)
+     !!
+          lance une commande git depuis un prompt (si raccourci pas
+          connu par exemple)
+     : ls-files
+          affiche tous les fichiers tracké par le projet en cours
    • La section *unmerged into* liste des modifications disponibles dans
      le dépôt local et pas sur un distant (il manque un push pour
      régulariser)
@@ -3168,8 +3225,11 @@ Issu de la doc IKV
    • Se placer dans le répertoire de l'application à pousser
    • Optionnellement, créer un fichier ‘.gitignore’ avec les noms des
      fichiers à ignorer (... avec des commentaires commençant par #).
-     En fait il existe un *.git/info/exclude* qui semble avoir ce but et
-     est créé par le ‘git init’.
+          *~
+          \#*\*
+          *.texi
+     En fait il existe aussi un *.git/info/exclude* qui semble avoir ce
+     but et est créé par le ‘git init’.
    • *Créer le dépôt* git local via ‘git init’
    • Pour ajouter tout *l'ensemble du répertoire* courant dans le dépôt
      local: ‘git add .’ (.  peut être remplacé par le nom d'un fichier)
@@ -3182,19 +3242,30 @@ Issu de la doc IKV
      master, se placer dans la branche master (‘checkout master’) et
      incorporer les modifs avec ‘git merge develop --no-ff’ voir man
      git-merge.
-   • Pour pousser le git local *sur un serveur*, et dans le cas du dépôt
-     GitLab de la mairie (créer le projet IKV sur l'interface web
-     avant), il faut
-        • Définir la destination par ‘git remote add origin
-          http://hdvgen15.intranet.rouen.fr/pdedieu/IKV.git’
-        • Envoyer le contenu de prod par ‘git push origin master’ (en
-          étant en checkout master)
-        • Envoyer le contenu de dev par ‘git push origin develop’ (en
-          étant en checkout develop)
+   • Pour pousser le git local *sur un serveur
+        • dans le cas du dépôt GitLab de la mairie (créer le projet IKV
+          sur l'interface web avant)
+             • Définir la destination par ‘git remote add origin
+               http://hdvgen15.intranet.rouen.fr/pdedieu/IKV.git’
+             • Envoyer le contenu de prod par ‘git push origin master’
+               (en étant en checkout master)
+             • Envoyer le contenu de dev par ‘git push origin develop’
+               (en étant en checkout develop)
+        • dans le cas du git sur synology du réseau local
+             • Définir le dépôt en ligne de commande via ‘ssh -p 2226
+               pdedieu@192.168.1.38’
+                    mkdir -p ~/git/mon-projet
+                    cd ~/mon-projet
+                    git init --bare --shared ./mon-projet.git
+                    git branch -m main # ou pas, sion c'est master ?
+             • dans le répertoire du PC de dev
+                    git init
+                    git branch -m main # ou pas
+                    git remote add origin ssh://pdedieu@192.168.1.38:2226/~/git/mon-projet/
    • Pour récupérer le contenu du git sur une *autre machine*, faire
      dans un répertoire vide (pas trouvé comment éviter que ce
      répertoire contienne le sous répertoire IKV du projet, à défaut je
-     déplace le répertorie après coup) ‘git clone
+     déplace le répertoire après coup) ‘git clone
      http://hdvgen15.intranet.rouen.fr/pdedieu/IKV.git’
    • Depuis une machine pour MAJ la branch courante avec un des contenus
      distants, ‘git pull origin master’
@@ -3219,6 +3290,8 @@ Issu de la doc IKV
                sans effet
              • ‘git fetch --all --prune’ suffirait à lui seul et a
                supprimé deux branches
+   • En général je préfère nettement faire les actions locales dans
+     *note magit:: depuis emacs
 
 
 File: emacs-documentation.info,  Node: emacs et WikiJS,  Prev: Préparation du projet sur git,  Up: Suivi des versions de sources
@@ -3748,7 +3821,7 @@ par ‘:=’ pour une seule case.
    Pour recalculer la case courante *C-c C-c* (tout le tableau si placé
 sur la ligne des formules)
 
-   Les cases de la ligne courante sont *$1* à *$n si besoin de préciser
+   Les cases de la ligne courante sont *$1* à *$n* si besoin de préciser
 la ligne *@m$n*.  L'avant dernière ligne peut se noter *@-1*.
 
    Deux notations possibles pour les cases, soit *A1* et *C5* pour @1$1
@@ -3952,15 +4025,15 @@ C-t’ soit ‘(org-toggle-time-stamp-overlays)’ trouvé le _<2023-01-09 lun.
 
 * Menu:
 
-* Sans pandoc::
-* Configuration de pandoc::
-* Suite à disparition export odt, interface à pandoc: Suite à disparition export odt interface à pandoc.
+* Méthode actuelle simple::
+* Pandoc::
+* Suite à disparition export odt, interface à pandoc (histrique): Suite à disparition export odt interface à pandoc (histrique).
 
 
-File: emacs-documentation.info,  Node: Sans pandoc,  Next: Configuration de pandoc,  Up: Exportation
+File: emacs-documentation.info,  Node: Méthode actuelle simple,  Next: Pandoc,  Up: Exportation
 
-7.17.1 Sans pandoc
-------------------
+7.17.1 Méthode actuelle simple
+------------------------------
 
 Pour produire de la bureautique, des pdf ou des présentations à partir
 de fichiers Org.  Attention, il semble que pour le traitement de texte,
@@ -4051,10 +4124,10 @@ C-c C-e C-v ...
      idem mais n'affiche que ce qui est *visible* à l'écran
 
 
-File: emacs-documentation.info,  Node: Configuration de pandoc,  Next: Suite à disparition export odt interface à pandoc,  Prev: Sans pandoc,  Up: Exportation
+File: emacs-documentation.info,  Node: Pandoc,  Next: Suite à disparition export odt interface à pandoc (histrique),  Prev: Méthode actuelle simple,  Up: Exportation
 
-7.17.2 Configuration de pandoc
-------------------------------
+7.17.2 Pandoc
+-------------
 
    • Commencer par installer le paquet ‘apt install pandoc’
    • Installer le package MELPA ‘ox-pandoc’
@@ -4076,10 +4149,10 @@ File: emacs-documentation.info,  Node: Configuration de pandoc,  Next: Suite à 
                '((pdf-engine . "xelatex")))’
 
 
-File: emacs-documentation.info,  Node: Suite à disparition export odt interface à pandoc,  Prev: Configuration de pandoc,  Up: Exportation
+File: emacs-documentation.info,  Node: Suite à disparition export odt interface à pandoc (histrique),  Prev: Pandoc,  Up: Exportation
 
-7.17.3 Suite à disparition export odt, interface à pandoc
----------------------------------------------------------
+7.17.3 Suite à disparition export odt, interface à pandoc (histrique)
+---------------------------------------------------------------------
 
      (defun convert-org-to-docx ()
        "Converti le buffer courant en MS-Office Word"
@@ -4307,157 +4380,160 @@ File: emacs-documentation.info,  Node: Liens externes,  Prev: Installation initi
 
 Tag Table:
 Node: Top99
-Node: Editeur4351
-Node: Ouverture de fichiers4995
-Node: Edition7368
-Node: Narrowing11193
-Node: Recherches11675
-Node: Marquage de position dans des fichiers13638
-Node: Fenêtres multiples14041
-Node: Fichier de configuration emacs et emacsd/initel15122
-Node: assignation de touches15587
-Ref: Pour projet python15817
-Ref: Ouvrir le répertoire du fichier courant16004
-Node: Couleurs et masquage du menu / icônes16091
-Node: use-package pour chargement différé de packages16887
-Node: Divers autre17507
-Node: Exemple avec helm+magit18149
-Node: helm et listes plus puissantes20260
-Node: Ecrire une extension à Helm22199
-Node: Themes et Font23630
-Node: Rectangles24626
-Node: Bookmarks25382
-Node: Onglets - tabs26247
-Node: Abréviations26800
-Node: Squelettes27414
-Node: Sauvegarde de layouts avec workgroup229126
-Node: Vérification de l'orthographe29762
-Node: Packages30973
-Node: Détail32417
-Node: multiple-cursors32728
-Node: Autre33635
-Node: Installer emacs sur un Ubuntu neuf35117
-Node: Installer une version plus récente35872
-Node: Modes majeurs36666
-Node: markdown-mode36901
-Node: yaml-ts-mode37147
-Node: Modes mineurs37311
-Node: linum-mode37825
-Node: column-number-mode37993
-Node: winner-mode38195
-Node: show-parent-mode38644
-Node: which-key-mode38889
-Node: prettify-symbols-mode39177
-Node: auto-revert-tail-mode39695
-Node: white-space-mode39989
-Node: command-log-mode40294
-Node: ido-mode40632
-Node: desktop-save-mode41220
-Node: cua-mode41597
-Node: god-mode42015
-Node: Intégration OS42591
-Node: Répertoires43068
-Node: Impressions45364
-Node: Calculatrices46215
-Node: Calculatrice RPN46474
-Node: Quick calc49113
-Node: Calculatrice Embedded49436
-Node: helm-calcul-expression51239
-Node: Terminaux et Man51515
-Node: eshell53131
-Node: Serveur emacs56005
-Node: Scripts sur un serveur distant depuis emacs56605
-Node: Examples57022
-Node: EIN - Emacs IPython Notebook57168
-Node: Navigateur web interne - eww57513
-Node: Gestion des mails mu4e - Messagerie Exchange57975
-Node: Accepter le certificat du serveur Exchange58515
-Node: Autre méthode pour accepter un certificat refusé58930
-Node: Méthode plus directe59975
-Node: Récupération des mails avec offlineimap60389
-Ref: Installation61948
-Node: Quelques raccourcis clavier67240
-Node: Filtre de recherche avec mu68121
-Node: Gestion des mails notmuch - Free/GMail69166
-Node: Installation (1)69471
-Node: Utilisation75613
-Node: Macros78820
-Node: Programmation et debug80583
-Node: Debug de Bash81000
-Node: Debug de C et C++82781
-Node: Indentation et styles84307
-Node: Python84741
-Node: Debug85594
-Node: Pony-mode87742
-Node: python-django89000
-Node: Perl89770
-Node: elpy pour les programmes python90653
-Node: Installation (2)90931
-Node: Utilisation (1)91930
-Node: java92474
-Node: eLISP93055
-Node: Minor-mode97048
-Node: Major_mode98047
-Node: Major-mode basé sur un mode existant98254
-Node: Affichage des macros elisp98571
-Node: Fabrication d'epub99173
-Ref: Actuellement99337
-Ref: Historique99493
-Ref: Conversions via pandoc sur Apple (org en texte MS Office et epub)100247
-Node: Buffer dired ouverts101107
-Node: Buffer non associé à un fichier101386
-Node: SQL et CLI101568
-Node: TAGS102362
-Node: Folding102916
-Node: Docker103194
-Node: Puppet105373
-Node: Comparaisons105941
-Node: Suivi des versions de sources107158
-Node: Intégration dans emacs107454
-Node: magit109956
-Node: Préparation du projet sur git112836
-Node: emacs et WikiJS116583
-Node: org-mode117448
-Node: Notes118111
-Ref: Notes-Footnote-1124342
-Ref: Notes-Footnote-2124401
-Ref: Notes-Footnote-3124485
-Ref: Notes-Footnote-4124643
-Node: Insertion de lien124748
-Node: Navigation dans les titres126061
-Node: Saisies agenda126706
-Node: Affichage des agendas129615
-Node: Chronométrage130793
-Node: org-roam131167
-Node: org-capture132691
-Node: Tableaux133595
-Node: Départs133823
-Node: Saisies134139
-Node: Manipulation lignes et colonnes135318
-Node: Formules136096
-Node: Présentation revealjs138214
-Node: Pour aller plus loin138592
-Node: Org-babel et inclusion de sources138882
-Node: Inclusion de requêtes mysql139309
-Node: Inclusion de code SQLite140200
-Node: Inclusion de diagrammes Ditaa141981
-Node: Inclusion de shémas UML142898
-Node: Exportation143446
-Node: Sans pandoc144227
-Node: Configuration de pandoc148561
-Node: Suite à disparition export odt interface à pandoc149808
-Node: Formules mathématiques150732
-Node: Inclure des diagrammes151294
-Node: Produire un export Word avec un template151651
-Node: Tramp153157
-Node: ssh153554
-Node: ftp153704
-Node: sudo153867
-Node: rclone Google Drive154210
-Node: Stockage des mots de passe154566
-Node: Copie de fichiers entre deux répertoires tramp dired156175
-Node: Installation initiale pour Ubuntu sur HyperV156929
-Node: Liens externes158656
+Node: Editeur4452
+Node: Ouverture de fichiers5080
+Node: Edition7453
+Node: Narrowing11278
+Node: Recherches11760
+Node: Marquage de position dans des fichiers13723
+Node: Fenêtres multiples14126
+Node: Fichier de configuration emacs et emacsd/initel15207
+Node: assignation de touches15672
+Ref: Pour projet python15902
+Ref: Ouvrir le répertoire du fichier courant16089
+Node: Couleurs et masquage du menu / icônes16176
+Node: use-package pour chargement différé de packages16972
+Node: Divers autre17592
+Node: Exemple avec helm+magit18234
+Node: helm et listes plus puissantes20345
+Node: Ecrire une extension à Helm22284
+Node: Themes et Font23715
+Node: Rectangles24711
+Node: Bookmarks25467
+Node: Onglets - tabs26332
+Node: Abréviations26885
+Node: Squelettes27499
+Node: Sauvegarde de layouts29195
+Node: workgroup229510
+Node: winner-mode29981
+Node: Vérification de l'orthographe30194
+Node: Packages31389
+Node: Détail32833
+Node: multiple-cursors33144
+Node: Autre34051
+Node: Installer emacs sur un Ubuntu neuf35533
+Node: Installer une version plus récente36288
+Node: Modes majeurs37082
+Node: markdown-mode37317
+Node: yaml-ts-mode37563
+Node: Modes mineurs37727
+Node: linum-mode38257
+Node: column-number-mode38425
+Node: winner-mode (1)38631
+Node: show-parent-mode39084
+Node: which-key-mode39333
+Node: prettify-symbols-mode39621
+Node: auto-revert-tail-mode40139
+Node: white-space-mode40433
+Node: command-log-mode40738
+Node: ido-mode41076
+Node: desktop-save-mode41664
+Node: cua-mode42041
+Node: god-mode42459
+Node: Intégration OS43035
+Node: Répertoires43512
+Node: Impressions45808
+Node: Calculatrices46659
+Node: Calculatrice RPN46918
+Node: Quick calc49557
+Node: Calculatrice Embedded49880
+Node: helm-calcul-expression51683
+Node: Terminaux et Man51959
+Node: eshell53575
+Node: Serveur emacs56449
+Node: Scripts sur un serveur distant depuis emacs57049
+Node: Examples57466
+Node: EIN - Emacs IPython Notebook57612
+Node: Navigateur web interne - eww57957
+Node: Gestion des mails mu4e - Messagerie Exchange58419
+Node: Accepter le certificat du serveur Exchange58959
+Node: Autre méthode pour accepter un certificat refusé59374
+Node: Méthode plus directe60419
+Node: Récupération des mails avec offlineimap60833
+Ref: Installation62392
+Node: Quelques raccourcis clavier67684
+Node: Filtre de recherche avec mu68565
+Node: Gestion des mails notmuch - Free/GMail69610
+Node: Installation (1)69915
+Node: Utilisation76057
+Node: Macros79264
+Node: Programmation et debug81027
+Node: Debug de Bash81444
+Node: Debug de C et C++83225
+Node: Indentation et styles84751
+Node: Python85185
+Node: Debug86038
+Node: Pony-mode88186
+Node: python-django89444
+Node: Perl90214
+Node: elpy pour les programmes python91097
+Node: Installation (2)91375
+Node: Utilisation (1)92374
+Node: java92918
+Node: eLISP93499
+Node: Chargement de modules97518
+Node: Minor-mode98681
+Node: Major_mode99710
+Node: Major-mode basé sur un mode existant99917
+Node: Affichage des macros elisp100234
+Node: Fabrication d'epub100836
+Ref: Actuellement101000
+Ref: Historique101156
+Ref: Conversions via pandoc sur Apple (org en texte MS Office et epub)101910
+Node: Buffer dired ouverts102770
+Node: Buffer non associé à un fichier103049
+Node: SQL et CLI103231
+Node: TAGS104025
+Node: Folding104579
+Node: Docker104857
+Node: Puppet107036
+Node: Comparaisons107604
+Node: Suivi des versions de sources108821
+Node: Intégration dans emacs109117
+Node: magit111619
+Node: Préparation du projet sur git114687
+Node: emacs et WikiJS119229
+Node: org-mode120094
+Node: Notes120757
+Ref: Notes-Footnote-1126988
+Ref: Notes-Footnote-2127047
+Ref: Notes-Footnote-3127131
+Ref: Notes-Footnote-4127289
+Node: Insertion de lien127394
+Node: Navigation dans les titres128707
+Node: Saisies agenda129352
+Node: Affichage des agendas132261
+Node: Chronométrage133439
+Node: org-roam133813
+Node: org-capture135337
+Node: Tableaux136241
+Node: Départs136469
+Node: Saisies136785
+Node: Manipulation lignes et colonnes137964
+Node: Formules138742
+Node: Présentation revealjs140861
+Node: Pour aller plus loin141239
+Node: Org-babel et inclusion de sources141529
+Node: Inclusion de requêtes mysql141956
+Node: Inclusion de code SQLite142847
+Node: Inclusion de diagrammes Ditaa144628
+Node: Inclusion de shémas UML145545
+Node: Exportation146093
+Node: Méthode actuelle simple146894
+Node: Pandoc151249
+Node: Suite à disparition export odt interface à pandoc (histrique)152470
+Node: Formules mathématiques153413
+Node: Inclure des diagrammes153975
+Node: Produire un export Word avec un template154332
+Node: Tramp155838
+Node: ssh156235
+Node: ftp156385
+Node: sudo156548
+Node: rclone Google Drive156891
+Node: Stockage des mots de passe157247
+Node: Copie de fichiers entre deux répertoires tramp dired158856
+Node: Installation initiale pour Ubuntu sur HyperV159610
+Node: Liens externes161337
 
 End Tag Table
 
