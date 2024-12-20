@@ -188,6 +188,7 @@ Suivi des versions de sources
 * magit::
 * Préparation du projet sur git::
 * emacs et WikiJS::
+* emacs et github::
 
 org-mode
 
@@ -3070,6 +3071,7 @@ File: emacs-documentation.info,  Node: Suivi des versions de sources,  Prev: Com
 * magit::
 * Préparation du projet sur git::
 * emacs et WikiJS::
+* emacs et github::
 
 
 File: emacs-documentation.info,  Node: Intégration dans emacs,  Next: magit,  Up: Suivi des versions de sources
@@ -3294,7 +3296,7 @@ Issu de la doc IKV
      *note magit:: depuis emacs
 
 
-File: emacs-documentation.info,  Node: emacs et WikiJS,  Prev: Préparation du projet sur git,  Up: Suivi des versions de sources
+File: emacs-documentation.info,  Node: emacs et WikiJS,  Next: emacs et github,  Prev: Préparation du projet sur git,  Up: Suivi des versions de sources
 
 6.15.4 emacs et WikiJS
 ----------------------
@@ -3315,6 +3317,15 @@ File: emacs-documentation.info,  Node: emacs et WikiJS,  Prev: Préparation du p
      manuelles multiples !)
    • Ces manipulations sont complexes et militent en faveur d'une
      édition sur le container en web !!
+
+
+File: emacs-documentation.info,  Node: emacs et github,  Prev: emacs et WikiJS,  Up: Suivi des versions de sources
+
+6.15.5 emacs et github
+----------------------
+
+   • Documenter le moyen de se connecter en clef SSH + passphrase malgré
+     les soucis de keepass dans ce domaine
 
 
 File: emacs-documentation.info,  Node: org-mode,  Next: Tramp,  Prev: Programmation et debug,  Up: Top
@@ -4383,160 +4394,161 @@ File: emacs-documentation.info,  Node: Liens externes,  Prev: Installation initi
 
 Tag Table:
 Node: Top99
-Node: Editeur4452
-Node: Ouverture de fichiers5080
-Node: Edition7453
-Node: Narrowing11278
-Node: Recherches11760
-Node: Marquage de position dans des fichiers13723
-Node: Fenêtres multiples14126
-Node: Fichier de configuration emacs et emacsd/initel15207
-Node: assignation de touches15672
-Ref: Pour projet python15902
-Ref: Ouvrir le répertoire du fichier courant16089
-Node: Couleurs et masquage du menu / icônes16176
-Node: use-package pour chargement différé de packages16972
-Node: Divers autre17592
-Node: Exemple avec helm+magit18234
-Node: helm et listes plus puissantes20345
-Node: Ecrire une extension à Helm22284
-Node: Themes et Font23715
-Node: Rectangles24711
-Node: Bookmarks25467
-Node: Onglets - tabs26332
-Node: Abréviations26885
-Node: Squelettes27499
-Node: Sauvegarde de layouts29195
-Node: workgroup229510
-Node: winner-mode29981
-Node: Vérification de l'orthographe30194
-Node: Packages31389
-Node: Détail32833
-Node: multiple-cursors33144
-Node: Autre34051
-Node: Installer emacs sur un Ubuntu neuf35533
-Node: Installer une version plus récente36288
-Node: Modes majeurs37082
-Node: markdown-mode37317
-Node: yaml-ts-mode37563
-Node: Modes mineurs37727
-Node: linum-mode38257
-Node: column-number-mode38425
-Node: winner-mode (1)38631
-Node: show-parent-mode39084
-Node: which-key-mode39333
-Node: prettify-symbols-mode39621
-Node: auto-revert-tail-mode40139
-Node: white-space-mode40433
-Node: command-log-mode40738
-Node: ido-mode41076
-Node: desktop-save-mode41664
-Node: cua-mode42041
-Node: god-mode42459
-Node: Intégration OS43035
-Node: Répertoires43512
-Node: Impressions45808
-Node: Calculatrices46659
-Node: Calculatrice RPN46918
-Node: Quick calc49557
-Node: Calculatrice Embedded49880
-Node: helm-calcul-expression51683
-Node: Terminaux et Man51959
-Node: eshell53575
-Node: Serveur emacs56449
-Node: Scripts sur un serveur distant depuis emacs57049
-Node: Examples57466
-Node: EIN - Emacs IPython Notebook57612
-Node: Navigateur web interne - eww57957
-Node: Gestion des mails mu4e - Messagerie Exchange58419
-Node: Accepter le certificat du serveur Exchange58959
-Node: Autre méthode pour accepter un certificat refusé59374
-Node: Méthode plus directe60419
-Node: Récupération des mails avec offlineimap60833
-Ref: Installation62392
-Node: Quelques raccourcis clavier67684
-Node: Filtre de recherche avec mu68565
-Node: Gestion des mails notmuch - Free/GMail69610
-Node: Installation (1)69915
-Node: Utilisation76057
-Node: Macros79264
-Node: Programmation et debug81027
-Node: Debug de Bash81444
-Node: Debug de C et C++83225
-Node: Indentation et styles84751
-Node: Python85185
-Node: Debug86038
-Node: Pony-mode88186
-Node: python-django89444
-Node: Perl90214
-Node: elpy pour les programmes python91097
-Node: Installation (2)91375
-Node: Utilisation (1)92374
-Node: java92918
-Node: eLISP93499
-Node: Chargement de modules97518
-Node: Minor-mode98681
-Node: Major_mode99710
-Node: Major-mode basé sur un mode existant99917
-Node: Affichage des macros elisp100234
-Node: Fabrication d'epub100836
-Ref: Actuellement101000
-Ref: Historique101156
-Ref: Conversions via pandoc sur Apple (org en texte MS Office et epub)101910
-Node: Buffer dired ouverts102770
-Node: Buffer non associé à un fichier103049
-Node: SQL et CLI103231
-Node: TAGS104025
-Node: Folding104579
-Node: Docker104857
-Node: Puppet107036
-Node: Comparaisons107604
-Node: Suivi des versions de sources108821
-Node: Intégration dans emacs109117
-Node: magit111619
-Node: Préparation du projet sur git114687
-Node: emacs et WikiJS119229
-Node: org-mode120094
-Node: Notes120757
-Ref: Notes-Footnote-1126988
-Ref: Notes-Footnote-2127047
-Ref: Notes-Footnote-3127131
-Ref: Notes-Footnote-4127289
-Node: Insertion de lien127394
-Node: Navigation dans les titres128707
-Node: Saisies agenda129352
-Node: Affichage des agendas132261
-Node: Chronométrage133439
-Node: org-roam133813
-Node: org-capture135337
-Node: Tableaux136241
-Node: Départs136469
-Node: Saisies136785
-Node: Manipulation lignes et colonnes137964
-Node: Formules138742
-Node: Présentation revealjs141022
-Node: Pour aller plus loin141400
-Node: Org-babel et inclusion de sources141690
-Node: Inclusion de requêtes mysql142117
-Node: Inclusion de code SQLite143008
-Node: Inclusion de diagrammes Ditaa144789
-Node: Inclusion de shémas UML145706
-Node: Exportation146254
-Node: Méthode actuelle simple147055
-Node: Pandoc151410
-Node: Suite à disparition export odt interface à pandoc (histrique)152631
-Node: Formules mathématiques153574
-Node: Inclure des diagrammes154136
-Node: Produire un export Word avec un template154493
-Node: Tramp155999
-Node: ssh156396
-Node: ftp156546
-Node: sudo156709
-Node: rclone Google Drive157052
-Node: Stockage des mots de passe157408
-Node: Copie de fichiers entre deux répertoires tramp dired159017
-Node: Installation initiale pour Ubuntu sur HyperV159771
-Node: Liens externes161498
+Node: Editeur4472
+Node: Ouverture de fichiers5100
+Node: Edition7473
+Node: Narrowing11298
+Node: Recherches11780
+Node: Marquage de position dans des fichiers13743
+Node: Fenêtres multiples14146
+Node: Fichier de configuration emacs et emacsd/initel15227
+Node: assignation de touches15692
+Ref: Pour projet python15922
+Ref: Ouvrir le répertoire du fichier courant16109
+Node: Couleurs et masquage du menu / icônes16196
+Node: use-package pour chargement différé de packages16992
+Node: Divers autre17612
+Node: Exemple avec helm+magit18254
+Node: helm et listes plus puissantes20365
+Node: Ecrire une extension à Helm22304
+Node: Themes et Font23735
+Node: Rectangles24731
+Node: Bookmarks25487
+Node: Onglets - tabs26352
+Node: Abréviations26905
+Node: Squelettes27519
+Node: Sauvegarde de layouts29215
+Node: workgroup229530
+Node: winner-mode30001
+Node: Vérification de l'orthographe30214
+Node: Packages31409
+Node: Détail32853
+Node: multiple-cursors33164
+Node: Autre34071
+Node: Installer emacs sur un Ubuntu neuf35553
+Node: Installer une version plus récente36308
+Node: Modes majeurs37102
+Node: markdown-mode37337
+Node: yaml-ts-mode37583
+Node: Modes mineurs37747
+Node: linum-mode38277
+Node: column-number-mode38445
+Node: winner-mode (1)38651
+Node: show-parent-mode39104
+Node: which-key-mode39353
+Node: prettify-symbols-mode39641
+Node: auto-revert-tail-mode40159
+Node: white-space-mode40453
+Node: command-log-mode40758
+Node: ido-mode41096
+Node: desktop-save-mode41684
+Node: cua-mode42061
+Node: god-mode42479
+Node: Intégration OS43055
+Node: Répertoires43532
+Node: Impressions45828
+Node: Calculatrices46679
+Node: Calculatrice RPN46938
+Node: Quick calc49577
+Node: Calculatrice Embedded49900
+Node: helm-calcul-expression51703
+Node: Terminaux et Man51979
+Node: eshell53595
+Node: Serveur emacs56469
+Node: Scripts sur un serveur distant depuis emacs57069
+Node: Examples57486
+Node: EIN - Emacs IPython Notebook57632
+Node: Navigateur web interne - eww57977
+Node: Gestion des mails mu4e - Messagerie Exchange58439
+Node: Accepter le certificat du serveur Exchange58979
+Node: Autre méthode pour accepter un certificat refusé59394
+Node: Méthode plus directe60439
+Node: Récupération des mails avec offlineimap60853
+Ref: Installation62412
+Node: Quelques raccourcis clavier67704
+Node: Filtre de recherche avec mu68585
+Node: Gestion des mails notmuch - Free/GMail69630
+Node: Installation (1)69935
+Node: Utilisation76077
+Node: Macros79284
+Node: Programmation et debug81047
+Node: Debug de Bash81464
+Node: Debug de C et C++83245
+Node: Indentation et styles84771
+Node: Python85205
+Node: Debug86058
+Node: Pony-mode88206
+Node: python-django89464
+Node: Perl90234
+Node: elpy pour les programmes python91117
+Node: Installation (2)91395
+Node: Utilisation (1)92394
+Node: java92938
+Node: eLISP93519
+Node: Chargement de modules97538
+Node: Minor-mode98701
+Node: Major_mode99730
+Node: Major-mode basé sur un mode existant99937
+Node: Affichage des macros elisp100254
+Node: Fabrication d'epub100856
+Ref: Actuellement101020
+Ref: Historique101176
+Ref: Conversions via pandoc sur Apple (org en texte MS Office et epub)101930
+Node: Buffer dired ouverts102790
+Node: Buffer non associé à un fichier103069
+Node: SQL et CLI103251
+Node: TAGS104045
+Node: Folding104599
+Node: Docker104877
+Node: Puppet107056
+Node: Comparaisons107624
+Node: Suivi des versions de sources108841
+Node: Intégration dans emacs109157
+Node: magit111659
+Node: Préparation du projet sur git114727
+Node: emacs et WikiJS119269
+Node: emacs et github120158
+Node: org-mode120443
+Node: Notes121106
+Ref: Notes-Footnote-1127337
+Ref: Notes-Footnote-2127396
+Ref: Notes-Footnote-3127480
+Ref: Notes-Footnote-4127638
+Node: Insertion de lien127743
+Node: Navigation dans les titres129056
+Node: Saisies agenda129701
+Node: Affichage des agendas132610
+Node: Chronométrage133788
+Node: org-roam134162
+Node: org-capture135686
+Node: Tableaux136590
+Node: Départs136818
+Node: Saisies137134
+Node: Manipulation lignes et colonnes138313
+Node: Formules139091
+Node: Présentation revealjs141371
+Node: Pour aller plus loin141749
+Node: Org-babel et inclusion de sources142039
+Node: Inclusion de requêtes mysql142466
+Node: Inclusion de code SQLite143357
+Node: Inclusion de diagrammes Ditaa145138
+Node: Inclusion de shémas UML146055
+Node: Exportation146603
+Node: Méthode actuelle simple147404
+Node: Pandoc151759
+Node: Suite à disparition export odt interface à pandoc (histrique)152980
+Node: Formules mathématiques153923
+Node: Inclure des diagrammes154485
+Node: Produire un export Word avec un template154842
+Node: Tramp156348
+Node: ssh156745
+Node: ftp156895
+Node: sudo157058
+Node: rclone Google Drive157401
+Node: Stockage des mots de passe157757
+Node: Copie de fichiers entre deux répertoires tramp dired159366
+Node: Installation initiale pour Ubuntu sur HyperV160120
+Node: Liens externes161847
 
 End Tag Table
 

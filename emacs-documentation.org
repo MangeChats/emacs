@@ -1932,7 +1932,7 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
        - ~git push origin :dev~ pour supprimer dev mais semble sans effet
        - ~git fetch --all --prune~ suffirait à lui seul et a supprimé deux branches
    - En général je préfère nettement faire les actions locales dans [[*magit][magit]] depuis emacs
-
+     
 *** emacs et WikiJS
     - modifier les fichiers du dépôt local /home/pdedieu/wiki/data/repo
       avec le user *wiki*
@@ -1948,6 +1948,8 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
     - Ces manipulations sont complexes et militent en faveur d'une
       édition sur le container en web !!
 
+*** emacs et github
+  - Documenter le moyen de se connecter en clef SSH + passphrase malgré les soucis de keepass dans ce domaine
 * org-mode
 ** Notes
    Voir *C-h i* puis *m* org[fn:2] pour lire info sur org-mode[fn:1] ou un
