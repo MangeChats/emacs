@@ -3836,11 +3836,14 @@ formule, exemple ‘:=vsum(@2..@-1);T’
 C-c +
      Permet de faire la somme des cases de la colonne au dessus
 sum
-     pour la somme d'une région ???
+     pour la somme d'une région (voir comment la définir)
 vsum
      pour la somme du vecteur
 vmean
      pour la moyenne du vecteur
+C-c =
+     Pour commencer la saisie d'une formule applicable à toute la
+     colonne (précédé de *C-u* c'est uniquement pour la case)
 C-c ?
      permet d'afficher dans mini buffer les noms de la case du curseur
 C-c '
@@ -4511,29 +4514,29 @@ Node: Départs136469
 Node: Saisies136785
 Node: Manipulation lignes et colonnes137964
 Node: Formules138742
-Node: Présentation revealjs140861
-Node: Pour aller plus loin141239
-Node: Org-babel et inclusion de sources141529
-Node: Inclusion de requêtes mysql141956
-Node: Inclusion de code SQLite142847
-Node: Inclusion de diagrammes Ditaa144628
-Node: Inclusion de shémas UML145545
-Node: Exportation146093
-Node: Méthode actuelle simple146894
-Node: Pandoc151249
-Node: Suite à disparition export odt interface à pandoc (histrique)152470
-Node: Formules mathématiques153413
-Node: Inclure des diagrammes153975
-Node: Produire un export Word avec un template154332
-Node: Tramp155838
-Node: ssh156235
-Node: ftp156385
-Node: sudo156548
-Node: rclone Google Drive156891
-Node: Stockage des mots de passe157247
-Node: Copie de fichiers entre deux répertoires tramp dired158856
-Node: Installation initiale pour Ubuntu sur HyperV159610
-Node: Liens externes161337
+Node: Présentation revealjs141022
+Node: Pour aller plus loin141400
+Node: Org-babel et inclusion de sources141690
+Node: Inclusion de requêtes mysql142117
+Node: Inclusion de code SQLite143008
+Node: Inclusion de diagrammes Ditaa144789
+Node: Inclusion de shémas UML145706
+Node: Exportation146254
+Node: Méthode actuelle simple147055
+Node: Pandoc151410
+Node: Suite à disparition export odt interface à pandoc (histrique)152631
+Node: Formules mathématiques153574
+Node: Inclure des diagrammes154136
+Node: Produire un export Word avec un template154493
+Node: Tramp155999
+Node: ssh156396
+Node: ftp156546
+Node: sudo156709
+Node: rclone Google Drive157052
+Node: Stockage des mots de passe157408
+Node: Copie de fichiers entre deux répertoires tramp dired159017
+Node: Installation initiale pour Ubuntu sur HyperV159771
+Node: Liens externes161498
 
 End Tag Table
 
