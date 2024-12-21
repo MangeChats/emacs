@@ -1949,7 +1949,37 @@ sslcacertfile = /etc/ssl/certs/ca-certificates.crt
       édition sur le container en web !!
 
 *** emacs et github
-  - Documenter le moyen de se connecter en clef SSH + passphrase malgré les soucis de keepass dans ce domaine
+  - Pour se connecter en clef SSH + passphrase sur un compte Github,
+    malgré les soucis de keepass dans ce domaine, je propose le script
+    elisp suivant à personnaliser (avec le nom complet de la clef SSH,
+    voir le nom du remote et de la branche)
+    #+begin_src elisp
+      (defun run-this-in-shell (cmd)
+	"Runs the command 'cmd' in a shell."
+	(with-current-buffer "*login-buf*"
+	  (comint-kill-input)
+	  (end-of-buffer)
+	  (insert cmd)
+	  (comint-send-input)
+	  (end-of-buffer)
+	  (yank)))
+      
+      (defun github-push ()
+	(interactive)
+	(shell "*giithub-buf*")
+	(run-this-in-shell (format "cd %s" default-directory))
+	(run-this-in-shell "eval $(ssh-agent)")
+	(sleep-for 0.5)
+	(run-this-in-shell "ssh-add -D")
+	(sleep-for 0.5)
+	(run-this-in-shell "ssh-add ~/.ssh/pdedieu.priv")
+	(sleep-for 0.5)
+	(run-this-in-shell "git push -v origin main")
+	(sleep-for 2)
+	(move-beginning-of-line)
+	(kill-line)
+	)
+    #+end_src
 * org-mode
 ** Notes
    Voir *C-h i* puis *m* org[fn:2] pour lire info sur org-mode[fn:1] ou un

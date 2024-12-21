@@ -3324,8 +3324,35 @@ File: emacs-documentation.info,  Node: emacs et github,  Prev: emacs et WikiJS, 
 6.15.5 emacs et github
 ----------------------
 
-   • Documenter le moyen de se connecter en clef SSH + passphrase malgré
-     les soucis de keepass dans ce domaine
+   • Pour se connecter en clef SSH + passphrase sur un compte Github,
+     malgré les soucis de keepass dans ce domaine, je propose le script
+     elisp suivant à personnaliser (avec le nom complet de la clef SSH,
+     voir le nom du remote et de la branche)
+          (defun run-this-in-shell (cmd)
+            "Runs the command 'cmd' in a shell."
+            (with-current-buffer "*login-buf*"
+              (comint-kill-input)
+              (end-of-buffer)
+              (insert cmd)
+              (comint-send-input)
+              (end-of-buffer)
+              (yank)))
+
+          (defun github-push ()
+            (interactive)
+            (shell "*giithub-buf*")
+            (run-this-in-shell (format "cd %s" default-directory))
+            (run-this-in-shell "eval $(ssh-agent)")
+            (sleep-for 0.5)
+            (run-this-in-shell "ssh-add -D")
+            (sleep-for 0.5)
+            (run-this-in-shell "ssh-add ~/.ssh/pdedieu.priv")
+            (sleep-for 0.5)
+            (run-this-in-shell "git push -v origin main")
+            (sleep-for 2)
+            (move-beginning-of-line)
+            (kill-line)
+            )
 
 
 File: emacs-documentation.info,  Node: org-mode,  Next: Tramp,  Prev: Programmation et debug,  Up: Top
@@ -4508,47 +4535,47 @@ Node: magit111659
 Node: Préparation du projet sur git114727
 Node: emacs et WikiJS119269
 Node: emacs et github120158
-Node: org-mode120443
-Node: Notes121106
-Ref: Notes-Footnote-1127337
-Ref: Notes-Footnote-2127396
-Ref: Notes-Footnote-3127480
-Ref: Notes-Footnote-4127638
-Node: Insertion de lien127743
-Node: Navigation dans les titres129056
-Node: Saisies agenda129701
-Node: Affichage des agendas132610
-Node: Chronométrage133788
-Node: org-roam134162
-Node: org-capture135686
-Node: Tableaux136590
-Node: Départs136818
-Node: Saisies137134
-Node: Manipulation lignes et colonnes138313
-Node: Formules139091
-Node: Présentation revealjs141371
-Node: Pour aller plus loin141749
-Node: Org-babel et inclusion de sources142039
-Node: Inclusion de requêtes mysql142466
-Node: Inclusion de code SQLite143357
-Node: Inclusion de diagrammes Ditaa145138
-Node: Inclusion de shémas UML146055
-Node: Exportation146603
-Node: Méthode actuelle simple147404
-Node: Pandoc151759
-Node: Suite à disparition export odt interface à pandoc (histrique)152980
-Node: Formules mathématiques153923
-Node: Inclure des diagrammes154485
-Node: Produire un export Word avec un template154842
-Node: Tramp156348
-Node: ssh156745
-Node: ftp156895
-Node: sudo157058
-Node: rclone Google Drive157401
-Node: Stockage des mots de passe157757
-Node: Copie de fichiers entre deux répertoires tramp dired159366
-Node: Installation initiale pour Ubuntu sur HyperV160120
-Node: Liens externes161847
+Node: org-mode121466
+Node: Notes122129
+Ref: Notes-Footnote-1128360
+Ref: Notes-Footnote-2128419
+Ref: Notes-Footnote-3128503
+Ref: Notes-Footnote-4128661
+Node: Insertion de lien128766
+Node: Navigation dans les titres130079
+Node: Saisies agenda130724
+Node: Affichage des agendas133633
+Node: Chronométrage134811
+Node: org-roam135185
+Node: org-capture136709
+Node: Tableaux137613
+Node: Départs137841
+Node: Saisies138157
+Node: Manipulation lignes et colonnes139336
+Node: Formules140114
+Node: Présentation revealjs142394
+Node: Pour aller plus loin142772
+Node: Org-babel et inclusion de sources143062
+Node: Inclusion de requêtes mysql143489
+Node: Inclusion de code SQLite144380
+Node: Inclusion de diagrammes Ditaa146161
+Node: Inclusion de shémas UML147078
+Node: Exportation147626
+Node: Méthode actuelle simple148427
+Node: Pandoc152782
+Node: Suite à disparition export odt interface à pandoc (histrique)154003
+Node: Formules mathématiques154946
+Node: Inclure des diagrammes155508
+Node: Produire un export Word avec un template155865
+Node: Tramp157371
+Node: ssh157768
+Node: ftp157918
+Node: sudo158081
+Node: rclone Google Drive158424
+Node: Stockage des mots de passe158780
+Node: Copie de fichiers entre deux répertoires tramp dired160389
+Node: Installation initiale pour Ubuntu sur HyperV161143
+Node: Liens externes162870
 
 End Tag Table
 
